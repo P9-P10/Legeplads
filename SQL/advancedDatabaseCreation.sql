@@ -102,7 +102,7 @@ VALUES (1, 1),
        (4, 1);
 
 INSERT INTO RecoveryQuestions(user_id, question, answer)
-VALUES (3, 'What is my most hated superhero?', 'Spiderman'),
+VALUES (3, 'What is my most hated "superhero?"', 'Spiderman'),
        (1, 'Animal?', 'Yes'),
        (2, 'First pet name', 'Pilchard'),
        (4, 'What do i have when i get out of prison?', 'A plan');
