@@ -10,6 +10,7 @@ Scripts
 SQL
 
 ````
+The ``database_creation_tool.py`` should be placed in the ``Scripts`` folder. <br>
 The SQL folder should contain the definitions of the databases.<br>
 For each new database added, a new function call should be added to the database creation tool, as seen bellow.
 ````python
