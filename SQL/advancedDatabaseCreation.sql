@@ -10,9 +10,10 @@ DROP TABLE IF EXISTS RecoveryQuestions;
 PRAGMA FOREIGN_KEYS = ON;
 CREATE TABLE Users
 (
-    id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    email    VARCHAR NOT NULL,
-    password VARCHAR
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    email         VARCHAR NOT NULL,
+    password      VARCHAR,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS UserData
@@ -31,10 +32,11 @@ CREATE TABLE IF NOT EXISTS UserData
 
 CREATE TABLE IF NOT EXISTS Orders
 (
-    id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    owner    INT,
-    product  INT,
-    quantity INT,
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner      INT,
+    product    INT,
+    quantity   INT,
+    order_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT orders_constraints
         FOREIGN KEY (owner)
             REFERENCES Users (id)
@@ -66,15 +68,17 @@ CREATE TABLE RecoveryQuestions
 
 INSERT INTO Users(email, password)
 VALUES ('test@mail.mail', 'Securepass'),
-       ('bob@fancydomain.com', 'BobTheBodyBuilder'),
-       ('JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan'),
-       ('Egon@olsenbanden.net', 'Hundehoveder');
+       ('bob@fancydomain.com', 'BobTheBodyBuilder');
+INSERT INTO Users(email, password, creation_date)
+VALUES ('JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan', '2020-10-05 06:38:29'),
+       ('Egon@olsenbanden.net', 'Hundehoveder', '2001-10-05 06:38:29');
+
 
 INSERT INTO UserData(user_id, address, phone, birthday, name)
-VALUES (1, 'testStreet', 1234, '22-22-22', 'Test User'),
-       (2, 'testSTreet 2', 12345, '33-33-33', 'Bob The Builder'),
-       (3, 'testStreet 3 NY', 54646576786, '99-99-99', 'J.Jonah Jameson'),
-       (4, 'TestStreet 4', 57, '22-22-22', 'Egon Olsen');
+VALUES (1, 'testStreet', 1234, '2001-10-05 06:38:29', 'Test User'),
+       (2, 'testSTreet 2', 12345, '1966-10-05 06:38:29', 'Bob The Builder'),
+       (3, 'testStreet 3 NY', 54646576786, '1970-10-05 06:38:29', 'J.Jonah Jameson'),
+       (4, 'TestStreet 4', 57, '1962-10-05 06:38:29', 'Egon Olsen');
 
 INSERT INTO Products(name)
 VALUES ('Hammer'),
@@ -94,6 +98,10 @@ VALUES (1, 1, 1),
        (3, 3, 2),
        (4, 5, 3),
        (4, 6, 1);
+
+INSERT INTO Orders(owner, product, quantity, order_time)
+VALUES (4, 4, 5, '2019-10-05 06:38:29'),
+       (4, 5, 5, '2002-10-05 06:38:29');
 
 INSERT INTO NewsLetter (user_id, wants_letter)
 VALUES (1, 1),
