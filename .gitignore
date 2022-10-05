@@ -1,2 +1,2 @@
-identifier.sqlite
+*.sqlite
 .idea/
