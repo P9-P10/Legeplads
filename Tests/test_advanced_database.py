@@ -1,5 +1,4 @@
 import sqlite3
-import pytest
 
 database_name = "AdvancedDatabase"
 
@@ -37,6 +36,30 @@ def test_select_with_sum():
         "FROM Users join Orders O on Users.id = O.owner "
         "JOIN UserData UD on Users.id = UD.user_id GROUP BY name")
     result = conn.fetchall()
-    assert result == [('Egon Olsen', 'Egon@olsenbanden.net', 19),
+    assert result == [('Bob The Builder', 'bob@fancydomain.com', 5),
+                      ('Egon Olsen', 'Egon@olsenbanden.net', 19),
                       ('J.Jonah Jameson', 'JJonahJameson@JustTheFacts.com', 2),
                       ('Test User', 'test@mail.mail', 8)]
+
+
+def test_select_with_joins_from_all_databases():
+    sql = sqlite3.connect("../Databases/" + database_name + ".sqlite")
+    conn = sql.cursor()
+    conn.execute(
+        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity,wants_letter "
+        "from Users U JOIN UserData UD on U.id = UD.user_id "
+        "JOIN NewsLetter NL on UD.id = NL.user_id "
+        "JOIN Orders O on U.id = O.owner "
+        "JOIN Products P on P.product_id = O.product "
+        "JOIN RecoveryQuestions RQ on U.id = RQ.user_id "
+        "GROUP BY UD.name,P.name")
+    assert conn.fetchall() == [
+        ('bob@fancydomain.com', 'Bob The Builder', 'First pet name', 'Hammer', 5, 0),
+        ('Egon@olsenbanden.net', 'Egon Olsen', 'What do i have when i get out of prison?', 'Cigar', 10, 1),
+        ('Egon@olsenbanden.net', 'Egon Olsen', 'What do i have when i get out of prison?', 'fith', 8, 1),
+        ('Egon@olsenbanden.net', 'Egon Olsen', 'What do i have when i get out of prison?', 'pilsner', 1, 1),
+        (
+        'JJonahJameson@JustTheFacts.com', 'J.Jonah Jameson', 'What is my most hated "superhero?"', 'Daily Bugle', 2, 1),
+        ('test@mail.mail', 'Test User', 'Animal?', 'Cigar', 1, 1),
+        ('test@mail.mail', 'Test User', 'Animal?', 'Hammer', 6, 1),
+        ('test@mail.mail', 'Test User', 'Animal?', 'second', 1, 1)]
