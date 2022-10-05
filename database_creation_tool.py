@@ -1,7 +1,4 @@
 import sqlite3
-from sqlite3 import Connection
-
-
 
 def database_creation(database_name):
     sql = sqlite3.connect(database_name + ".sqlite")
