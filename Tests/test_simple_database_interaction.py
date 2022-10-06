@@ -1,7 +1,7 @@
 from Applications.sqliteinterface import SqLiteInterface as Si
 
 database_name = "SimpleDatabase"
-database_path = "../Databases/"
+database_path = "./Databases/"
 
 
 def test_basic_select():

@@ -1,7 +1,7 @@
 from Applications.sqliteinterface import SqLiteInterface as Si
 
 database_name = "AdvancedDatabase"
-database_path = "../Databases/"
+database_path = "./Databases/"
 
 
 def test_simple_select():
@@ -64,3 +64,17 @@ def test_select_with_joins_from_all_databases():
         ('test@mail.mail', 'Test User', 'Animal?', 'Cigar', 1, 1),
         ('test@mail.mail', 'Test User', 'Animal?', 'Hammer', 6, 1),
         ('test@mail.mail', 'Test User', 'Animal?', 'second', 1, 1)]
+
+
+def test_insert_into_users():
+    connection = Si(database_path + database_name + ".sqlite")
+    connection.run_query("INSERT INTO Users(email, password) "
+                         "VALUES ('TestMail@TestingTest.test', 'Password12345');")
+
+    result = connection.run_query("SELECT email,password FROM Users "
+                                  "WHERE email == 'TestMail@TestingTest.test' "
+                                  "AND password == 'Password12345';")
+
+    connection.run_query("DELETE FROM Users WHERE email== 'TestMail@TestingTest.test';")
+    assert len(result) == 1
+    assert result == [('TestMail@TestingTest.test', 'Password12345')]
