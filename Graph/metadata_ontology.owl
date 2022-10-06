@@ -24,8 +24,8 @@
     <!-- http://metadata-ontology.org/hasDataPoint -->
 
     <owl:ObjectProperty rdf:about="http://metadata-ontology.org/hasDataPoint">
-        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataPoint"/>
-        <rdfs:range rdf:resource="http://metadata-ontology.org/DataPoint"/>
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
+        <rdfs:range rdf:resource="http://metadata-ontology.org/DataEntry"/>
     </owl:ObjectProperty>
     
 
@@ -33,7 +33,7 @@
     <!-- http://metadata-ontology.org/hasMetadata -->
 
     <owl:ObjectProperty rdf:about="http://metadata-ontology.org/hasMetadata">
-        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataPoint"/>
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
         <rdfs:range rdf:resource="http://metadata-ontology.org/Metadata"/>
     </owl:ObjectProperty>
     
@@ -42,8 +42,17 @@
     <!-- http://metadata-ontology.org/hasPurpose -->
 
     <owl:ObjectProperty rdf:about="http://metadata-ontology.org/hasPurpose">
-        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataPoint"/>
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
         <rdfs:range rdf:resource="http://metadata-ontology.org/Purpose"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://metadata-ontology.org/hasTimeToLive -->
+
+    <owl:ObjectProperty rdf:about="http://metadata-ontology.org/hasTimeToLive">
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
+        <rdfs:range rdf:resource="http://metadata-ontology.org/TimeToLive"/>
     </owl:ObjectProperty>
     
 
@@ -59,10 +68,28 @@
     
 
 
+    <!-- http://metadata-ontology.org/createdAt -->
+
+    <owl:DatatypeProperty rdf:about="http://metadata-ontology.org/createdAt">
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://metadata-ontology.org/hasTimeToLive -->
+
+    <owl:DatatypeProperty rdf:about="http://metadata-ontology.org/hasTimeToLive">
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://metadata-ontology.org/hasValue -->
 
     <owl:DatatypeProperty rdf:about="http://metadata-ontology.org/hasValue">
-        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataPoint"/>
+        <rdfs:domain rdf:resource="http://metadata-ontology.org/DataEntry"/>
         <rdfs:domain rdf:resource="http://metadata-ontology.org/Metadata"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
@@ -105,9 +132,9 @@
     
 
 
-    <!-- http://metadata-ontology.org/DataPoint -->
+    <!-- http://metadata-ontology.org/DataEntry -->
 
-    <owl:Class rdf:about="http://metadata-ontology.org/DataPoint"/>
+    <owl:Class rdf:about="http://metadata-ontology.org/DataEntry"/>
     
 
 
