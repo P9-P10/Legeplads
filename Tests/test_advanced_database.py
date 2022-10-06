@@ -67,8 +67,7 @@ def test_select_with_joins_from_all_databases(connection):
         ('test@mail.mail', 'Test User', 'Animal?', 'second', 1, 1)]
 
 
-def test_insert_into_users():
-    connection = Si(database_path + database_name + ".sqlite")
+def test_insert_into_users(connection):
     connection.run_query("INSERT INTO Users(email, password) "
                          "VALUES ('TestMail@TestingTest.test', 'Password12345');")
 
