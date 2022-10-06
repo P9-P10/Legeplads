@@ -73,6 +73,7 @@ VALUES (1, 'testStreet', 1234, '2001-10-05 06:38:29', 'Test User'),
        (3, 'testStreet 3 NY', 54646576786, '1970-10-05 06:38:29', 'J.Jonah Jameson'),
        (4, 'TestStreet 4', 57, '1962-10-05 06:38:29', 'Egon Olsen');
 
+
 INSERT INTO Products(name)
 VALUES ('Hammer'),
        ('second'),
@@ -95,7 +96,8 @@ VALUES (1, 1, 1),
 
 INSERT INTO Orders(owner, product, quantity, order_time)
 VALUES (4, 4, 5, '2019-10-05 06:38:29'),
-       (4, 5, 5, '2002-10-05 06:38:29');
+       (4, 5, 5, '2002-10-05 06:38:29'),
+       (2, 1, 5, '2002-10-05 06:38:29');
 
 INSERT INTO NewsLetter (user_id, wants_letter)
 VALUES (1, 1),
