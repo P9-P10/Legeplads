@@ -1,0 +1,35 @@
+@prefix dpv: <https://w3id.org/dpv#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<1> a dpv:NaturalPerson ;
+    dpv:hasAddress "testStreet"^^xsd:string ;
+    dpv:hasContact 1234 ;
+    dpv:hasEntity <test@mail.mail> .
+
+<2> a dpv:NaturalPerson ;
+    dpv:hasAddress "testSTreet 2"^^xsd:string ;
+    dpv:hasContact 12345 ;
+    dpv:hasEntity <bob@fancydomain.com> .
+
+<3> a dpv:NaturalPerson ;
+    dpv:hasAddress "testStreet 3 NY"^^xsd:string ;
+    dpv:hasContact 54646576786 ;
+    dpv:hasEntity <JJonahJameson@JustTheFacts.com> .
+
+<4> a dpv:NaturalPerson ;
+    dpv:hasAddress "TestStreet 4"^^xsd:string ;
+    dpv:hasContact 57 ;
+    dpv:hasEntity <Egon@olsenbanden.net> .
+
+<Egon@olsenbanden.net> a dpv:Entity ;
+    dpv:hasPurpose dpv:Marketing .
+
+<JJonahJameson@JustTheFacts.com> a dpv:Entity ;
+    dpv:hasPurpose dpv:Marketing .
+
+<bob@fancydomain.com> a dpv:Entity ;
+    dpv:hasPurpose dpv:Marketing .
+
+<test@mail.mail> a dpv:Entity ;
+    dpv:hasPurpose dpv:Marketing .
+
