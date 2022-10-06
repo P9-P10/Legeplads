@@ -8,10 +8,10 @@ class SqLiteInterface(DBInterface):
         super().__init__(connection)
         self.sql = sqlite3.connect(self.connection)
 
-    def run_query(cls, query):
-        conn = cls.sql.cursor()
+    def run_query(self, query):
+        conn = self.sql.cursor()
         conn.execute(query)
         response = conn.fetchall()
-        cls.sql.commit()
+        self.sql.commit()
         return response
 
