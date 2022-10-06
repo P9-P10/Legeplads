@@ -4,9 +4,11 @@ import pytest
 database_name = "SimpleDatabase"
 database_path = "./Databases/"
 
+
 @pytest.fixture
 def connection():
     return Si(database_path + database_name + ".sqlite")
+
 
 def test_basic_select(connection):
     result = connection.run_query("SELECT email FROM Users")
