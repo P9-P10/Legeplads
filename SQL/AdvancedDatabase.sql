@@ -101,7 +101,8 @@ VALUES (1, 1, 1),
 
 INSERT INTO Orders(owner, product, quantity, order_time)
 VALUES (4, 4, 5, '2019-10-05 06:38:29'),
-       (4, 5, 5, '2002-10-05 06:38:29');
+       (4, 5, 5, '2002-10-05 06:38:29'),
+       (2, 1, 5, '2002-10-05 06:38:29');
 
 INSERT INTO NewsLetter (user_id, wants_letter)
 VALUES (1, 1),
