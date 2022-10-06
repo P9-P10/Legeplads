@@ -1,14 +1,16 @@
 from Applications.sqliteinterface import SqLiteInterface as Si
+from Applications.optimizedSqlInterface import OptimizedSqliteInterface as OSi
 import pytest
 
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
+o_database_name = "OptimizedAdvancedDatabase"
+
+connection = Si(database_path + database_name + ".sqlite")
+Optimized_connection = OSi(database_path + o_database_name + ".sqlite")
 
 
-@pytest.fixture
-def connection():
-    return Si(database_path + database_name + ".sqlite")
-
+@pytest.mark.parametrize("connection", [connection, Optimized_connection])
 def test_simple_select(connection):
     result = connection.run_query("SELECT email FROM Users")
     assert result == [('test@mail.mail',),
@@ -17,6 +19,7 @@ def test_simple_select(connection):
                       ('Egon@olsenbanden.net',)]
 
 
+@pytest.mark.parametrize("connection", [connection, Optimized_connection])
 def test_basic_select_with_join(connection):
     result = connection.run_query("SELECT U.email,phone,birthday "
                                   "FROM UserData "
@@ -29,6 +32,7 @@ def test_basic_select_with_join(connection):
                       ('test@mail.mail', 1234, '2001-10-05 06:38:29')]
 
 
+@pytest.mark.parametrize("connection", [connection, Optimized_connection])
 def test_select_with_sum(connection):
     result = connection.run_query(
         "SELECT name, email,SUM(o.quantity) as Total_quantity "
@@ -43,6 +47,7 @@ def test_select_with_sum(connection):
                       ('Test User', 'test@mail.mail', 8)]
 
 
+@pytest.mark.parametrize("connection", [connection, Optimized_connection])
 def test_select_with_joins_from_all_databases(connection):
     result = connection.run_query(
         "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity,wants_letter "
@@ -67,6 +72,7 @@ def test_select_with_joins_from_all_databases(connection):
         ('test@mail.mail', 'Test User', 'Animal?', 'second', 1, 1)]
 
 
+@pytest.mark.parametrize("connection", [connection, Optimized_connection])
 def test_insert_into_users(connection):
     connection.run_query("INSERT INTO Users(email, password) "
                          "VALUES ('TestMail@TestingTest.test', 'Password12345');")
