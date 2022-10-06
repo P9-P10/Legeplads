@@ -1,5 +1,10 @@
 # Legeplads
 
+## Tests
+
+To run the tests run the command ``pytest`` from the root folder.
+Make sure that the virtual environment is active and that pytest is installed.
+
 ## Scripts
 
 ### Database Creation Script
