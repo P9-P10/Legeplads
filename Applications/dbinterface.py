@@ -4,5 +4,5 @@ class DBInterface():
 
     @classmethod
     def run_query(cls, query):
-        return object
+        pass
 

@@ -1,11 +1,15 @@
 from Applications.sqliteinterface import SqLiteInterface as Si
+import pytest
 
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
 
 
-def test_simple_select():
-    connection = Si(database_path + database_name + ".sqlite")
+@pytest.fixture
+def connection():
+    return Si(database_path + database_name + ".sqlite")
+
+def test_simple_select(connection):
     result = connection.run_query("SELECT email FROM Users")
     assert result == [('test@mail.mail',),
                       ('bob@fancydomain.com',),
@@ -13,8 +17,7 @@ def test_simple_select():
                       ('Egon@olsenbanden.net',)]
 
 
-def test_basic_select_with_join():
-    connection = Si(database_path + database_name + ".sqlite")
+def test_basic_select_with_join(connection):
     result = connection.run_query("SELECT U.email,phone,birthday "
                                   "FROM UserData "
                                   "JOIN Users U on U.id = UserData.id "
@@ -26,8 +29,7 @@ def test_basic_select_with_join():
                       ('test@mail.mail', 1234, '2001-10-05 06:38:29')]
 
 
-def test_select_with_sum():
-    connection = Si(database_path + database_name + ".sqlite")
+def test_select_with_sum(connection):
     result = connection.run_query(
         "SELECT name, email,SUM(o.quantity) as Total_quantity "
         "FROM Users "
@@ -41,8 +43,7 @@ def test_select_with_sum():
                       ('Test User', 'test@mail.mail', 8)]
 
 
-def test_select_with_joins_from_all_databases():
-    connection = Si(database_path + database_name + ".sqlite")
+def test_select_with_joins_from_all_databases(connection):
     result = connection.run_query(
         "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity,wants_letter "
         "from Users U "

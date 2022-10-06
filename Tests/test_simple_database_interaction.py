@@ -1,11 +1,14 @@
 from Applications.sqliteinterface import SqLiteInterface as Si
+import pytest
 
 database_name = "SimpleDatabase"
 database_path = "./Databases/"
 
+@pytest.fixture
+def connection():
+    return Si(database_path + database_name + ".sqlite")
 
-def test_basic_select():
-    connection = Si(database_path + database_name + ".sqlite")
+def test_basic_select(connection):
     result = connection.run_query("SELECT email FROM Users")
 
     assert result == [('test@mail.mail',),
@@ -14,8 +17,7 @@ def test_basic_select():
                       ('Egon@olsenbanden.net',)]
 
 
-def test_basic_select_with_join():
-    connection = Si(database_path + database_name + ".sqlite")
+def test_basic_select_with_join(connection):
     result = connection.run_query(
         "SELECT U.email,phone,birthday FROM UserData "
         "JOIN Users U on U.id = UserData.id "
