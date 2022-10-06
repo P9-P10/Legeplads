@@ -4,7 +4,6 @@ database_name = "AdvancedDatabase"
 database_path = "../Databases/"
 
 
-
 def test_simple_select():
     connection = Si(database_path + database_name + ".sqlite")
     result = connection.run_query("SELECT email FROM Users")
@@ -31,8 +30,10 @@ def test_select_with_sum():
     connection = Si(database_path + database_name + ".sqlite")
     result = connection.run_query(
         "SELECT name, email,SUM(o.quantity) as Total_quantity "
-        "FROM Users join Orders O on Users.id = O.owner "
-        "JOIN UserData UD on Users.id = UD.user_id GROUP BY name")
+        "FROM Users "
+        "JOIN Orders O on Users.id = O.owner "
+        "JOIN UserData UD on Users.id = UD.user_id "
+        "GROUP BY name")
 
     assert result == [('Bob The Builder', 'bob@fancydomain.com', 5),
                       ('Egon Olsen', 'Egon@olsenbanden.net', 19),
@@ -44,7 +45,8 @@ def test_select_with_joins_from_all_databases():
     connection = Si(database_path + database_name + ".sqlite")
     result = connection.run_query(
         "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity,wants_letter "
-        "from Users U JOIN UserData UD on U.id = UD.user_id "
+        "from Users U "
+        "JOIN UserData UD on U.id = UD.user_id "
         "JOIN NewsLetter NL on UD.id = NL.user_id "
         "JOIN Orders O on U.id = O.owner "
         "JOIN Products P on P.product_id = O.product "
@@ -57,7 +59,8 @@ def test_select_with_joins_from_all_databases():
         ('Egon@olsenbanden.net', 'Egon Olsen', 'What do i have when i get out of prison?', 'fith', 8, 1),
         ('Egon@olsenbanden.net', 'Egon Olsen', 'What do i have when i get out of prison?', 'pilsner', 1, 1),
         (
-        'JJonahJameson@JustTheFacts.com', 'J.Jonah Jameson', 'What is my most hated "superhero?"', 'Daily Bugle', 2, 1),
+            'JJonahJameson@JustTheFacts.com', 'J.Jonah Jameson', 'What is my most hated "superhero?"', 'Daily Bugle', 2,
+            1),
         ('test@mail.mail', 'Test User', 'Animal?', 'Cigar', 1, 1),
         ('test@mail.mail', 'Test User', 'Animal?', 'Hammer', 6, 1),
         ('test@mail.mail', 'Test User', 'Animal?', 'second', 1, 1)]

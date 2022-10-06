@@ -7,7 +7,7 @@ database_path = "../Databases/"
 def test_basic_select():
     connection = Si(database_path + database_name + ".sqlite")
     result = connection.run_query("SELECT email FROM Users")
-    
+
     assert result == [('test@mail.mail',),
                       ('bob@fancydomain.com',),
                       ('JJonahJameson@JustTheFacts.com',),
