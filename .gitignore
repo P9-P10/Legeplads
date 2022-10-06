@@ -1,4 +1,5 @@
 *.sqlite
 .idea/
 
-Tests/__pycache__/
+__pycache__/
+
