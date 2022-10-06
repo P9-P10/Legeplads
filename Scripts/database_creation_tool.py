@@ -11,4 +11,5 @@ def read_file_to_string(file):
 
 database_creation("AdvancedDatabase")
 database_creation("AdvancedDatabaseButBad")
+database_creation("OptimizedAdvancedDatabase")
 database_creation("SimpleDatabase")
