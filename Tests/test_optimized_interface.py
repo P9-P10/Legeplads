@@ -22,6 +22,20 @@ def test_remove_occurrences_in_joins():
     assert result == "SELECT * FROM testTable "
 
 
+def test_remove_occurrences_in_joins_lower_case_JOIN():
+    connection = OSi("")
+    query = "SELECT * FROM testTable join other_table"
+    result = connection.remove_occurrences_in_joins(query, "other_table")
+    assert result == "SELECT * FROM testTable "
+
+
+def test_remove_occurrences_in_joins_mixed_case_JOIN():
+    connection = OSi("")
+    query = "SELECT * FROM testTable Join other_table"
+    result = connection.remove_occurrences_in_joins(query, "other_table")
+    assert result == "SELECT * FROM testTable "
+
+
 def test_find_and_remove_alias():
     connection = OSi("")
     query = "SELECT name, ot.other_value FROM testTable JOIN other_table ot"
