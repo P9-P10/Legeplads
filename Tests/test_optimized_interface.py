@@ -5,7 +5,14 @@ def test_replace_occurrences():
     connection = OSi("")
     query = "SELECT * FROM testTable JOIN other_table"
     result = connection.replace_occurrences(query, "other_table", "correct_table")
-    assert result == "SELECT * FROM testTable JOIN correct_table"
+    assert result == "SELECT * FROM testTable JOIN correct_table "
+
+
+def test_replace_occurrences_does_not_replace_substring():
+    connection = OSi("")
+    query = "SELECT * FROM testTable JOIN other_table_with_longer_name"
+    result = connection.replace_occurrences(query, "other_table", "correct_table")
+    assert result == "SELECT * FROM testTable JOIN other_table_with_longer_name"
 
 
 def test_remove_occurrences_in_joins():

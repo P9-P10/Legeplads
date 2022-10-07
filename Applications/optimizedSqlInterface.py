@@ -1,3 +1,4 @@
+import re
 import sqlite3
 
 from Applications.dbinterface import DBInterface
@@ -39,7 +40,7 @@ class OptimizedSqliteInterface(DBInterface):
 
     @staticmethod
     def replace_occurrences(query, key, value):
-        return query.replace(" " + key + " ", value)
+        return re.sub(r'%s(\W|;|$)' % key, value+" ", query)
 
     @staticmethod
     def find_and_remove_alias(query, value):
