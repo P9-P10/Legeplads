@@ -9,7 +9,7 @@ class OptimizedSqliteInterface(DBInterface):
         super().__init__(connection)
         # {table_name:(should_be_renamed,rename_value)}
         # {string    :(bool             , string     )}
-        self.changes = None
+        self.changes = {}
         self.sql = sqlite3.connect(self.connection)
 
     def run_query(self, query):
@@ -36,7 +36,7 @@ class OptimizedSqliteInterface(DBInterface):
 
     @staticmethod
     def remove_occurrences_in_joins(query, table_name):
-        query_list_without_removed_table = [x for x in query.lower().split("join") if table_name not in x]
+        query_list_without_removed_table = [x for x in query.split("JOIN") if table_name not in x]
         for i, item in enumerate(query_list_without_removed_table):
             if not i == 0:
                 query_list_without_removed_table[i] = "JOIN" + item
