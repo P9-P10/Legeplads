@@ -35,3 +35,29 @@ For each new database added, a new function call should be added to the database
  database_creation("AdvancedDatabase")
 ````
 The code above will create a new database from the file in ``SQL/AdvancedDatabase``, and create the SQLite database in ``Databases/AdvancedDatabase.sqlite``
+
+## Interfaces
+To connect to databases, there are two different predefined SQLite interfaces defined. <br>
+The ``sqliteinterface.py`` presents a constructor which takes the relative path to the database as input, as well as it exposes a function ``run_query(query)`` which takes an SQL query as input, and runs that query on the database.
+
+### Optimized SQLite interface
+This interface is built upon the ``sqliteinterface.py`` interface, and extends the functionality further by enabling the use of `` add_database_change(str, bool, str)`` which allows a user to add a change to the structure of the database. 
+Adding a database change using this function will not modify the database, but it will modify the queries to the database, to adapt to the new structure.
+This is the only function aside from ``run_query`` which should be used from outside the class.
+
+As an example:
+````python
+[..] import OptimizedSqliteInterface as OSi
+    
+osi = OSi("connection_path")
+osi.add_database_change("Newsletter",False,"")
+````
+The above code tells the interface that a database change have been made, and that any occurrence of ``Newsletter`` in queries should be removed.
+
+````python
+[..] import OptimizedSqliteInterface as OSi
+    
+osi = OSi("connection_path")
+osi.add_database_change("Newsletter",True,"NewsLetter")
+````
+The above code on the other hand will replace any mention of ``Newsletter`` with ``NewsLetter``.
