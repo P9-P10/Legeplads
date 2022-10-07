@@ -8,7 +8,7 @@ o_database_name = "OptimizedAdvancedDatabase"
 
 connection = Si(database_path + database_name + ".sqlite")
 Optimized_connection = OSi(database_path + o_database_name + ".sqlite")
-Optimized_connection.database_changes({'NewsLetter': (False, None)})
+Optimized_connection.add_database_change({'NewsLetter': (False, None)})
 
 
 @pytest.mark.parametrize("input_connection", [connection, Optimized_connection])

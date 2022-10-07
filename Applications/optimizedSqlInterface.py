@@ -7,6 +7,8 @@ from Applications.dbinterface import DBInterface
 class OptimizedSqliteInterface(DBInterface):
     def __init__(self, connection):
         super().__init__(connection)
+        # {table_name:(should_be_renamed,rename_value)}
+        # {string    :(bool             , string     )}
         self.changes = None
         self.sql = sqlite3.connect(self.connection)
 
@@ -18,34 +20,36 @@ class OptimizedSqliteInterface(DBInterface):
         self.sql.commit()
         return response
 
-    def database_changes(self, changes: dict):
-        self.changes = changes
+    def add_database_change(self, table_name, should_be_renamed=False, rename_value=""):
+        self.changes.update({table_name: (should_be_renamed, rename_value)})
 
     def modify_query_with_changes(self, query):
         for key, value in self.changes.items():
+            should_be_replaced = value[0]
+            replacement_value = value[1]
             if key in query:
-                if not value[0]:
+                if not should_be_replaced:
                     query = self.remove_occurrences_in_joins(self.find_and_remove_alias(query, key), key)
                 else:
-                    query = self.replace_occurrences(query, key, value[1])
+                    query = self.replace_occurrences(query, key, replacement_value)
         return query
 
     @staticmethod
-    def remove_occurrences_in_joins(query, key):
-        result_list = [x for x in query.split("JOIN") if key not in x]
-        for i, item in enumerate(result_list):
+    def remove_occurrences_in_joins(query, table_name):
+        query_list_without_removed_table = [x for x in query.lower().split("join") if table_name not in x]
+        for i, item in enumerate(query_list_without_removed_table):
             if not i == 0:
-                result_list[i] = "JOIN" + item
-        return ''.join(result_list)
+                query_list_without_removed_table[i] = "JOIN" + item
+        return ''.join(query_list_without_removed_table)
 
     @staticmethod
-    def replace_occurrences(query, key, value):
-        return re.sub(r'%s(\W|;|$)' % key, value+" ", query)
+    def replace_occurrences(query, table_name, new_table_name):
+        return re.sub(r'%s(\W|;|$)' % table_name, new_table_name + " ", query)
 
     @staticmethod
-    def find_and_remove_alias(query, value):
+    def find_and_remove_alias(query, table_name):
         query_without_whitespace = query.split(' ')
-        alias_position = query_without_whitespace.index(value) + 1
+        alias_position = query_without_whitespace.index(table_name) + 1
         if query_without_whitespace[alias_position].lower() != "on":
             alias = query_without_whitespace[alias_position]
             return query.replace(alias + ".", "")
