@@ -39,7 +39,7 @@ class OptimizedSqliteInterface(DBInterface):
 
     @staticmethod
     def replace_occurrences(query, key, value):
-        return query.replace(key, value)
+        return query.replace(" " + key + " ", value)
 
     @staticmethod
     def find_and_remove_alias(query, value):
