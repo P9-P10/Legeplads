@@ -12,7 +12,7 @@ CREATE TABLE Users
 
 CREATE TABLE IF NOT EXISTS UserData
 (
-    id       INT,
+    id       INT PRIMARY KEY,
     address  VARCHAR,
     phone    INT,
     birthday VARCHAR,
