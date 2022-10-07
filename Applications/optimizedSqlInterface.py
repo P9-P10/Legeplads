@@ -9,7 +9,6 @@ class OptimizedSqliteInterface(DBInterface):
         self.changes = None
         self.sql = sqlite3.connect(self.connection)
 
-
     def run_query(self, query):
         query = self.modify_query_with_changes(query)
         conn = self.sql.cursor()
