@@ -9,7 +9,6 @@ class OptimizedSqliteInterface(DBInterface):
         self.changes = None
         self.sql = sqlite3.connect(self.connection)
 
-    # TODO Make able to change join to another table as well.
 
     def run_query(self, query):
         query = self.modify_query_with_changes(query)
