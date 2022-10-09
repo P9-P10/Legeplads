@@ -85,3 +85,10 @@ def test_insert_into_users(input_connection):
     input_connection.run_query("DELETE FROM Users WHERE email== 'TestMail@TestingTest.test';")
     assert len(result) == 1
     assert result == [('TestMail@TestingTest.test', 'Password12345')]
+
+
+@pytest.mark.parametrize("input_connection", [connection, Optimized_connection])
+def test_deletion_of_newsletter_value(input_connection):
+    # Newsletter was chosen as this is modified in the "Optimized" database.
+    # TODO Discuss and make test regarding what to do when element should be deleted, which is no longer in its own table.
+    assert True
