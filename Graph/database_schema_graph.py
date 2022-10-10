@@ -4,11 +4,13 @@ import sqlite3
 
 
 # Could not figure out how to import from Applications folder, so I copied what I needed
-conn = sqlite3.connect('./Databases/SimpleDatabase.sqlite')
+conn = sqlite3.connect('./Databases/AdvancedDatabaseButBad.sqlite')
 
 def run_query(query):
     response = conn.execute(query).fetchall()
     return response
+
+md = Namespace("http://database-ontology.example/")
 
 table_details = run_query(""" 
   SELECT
@@ -54,19 +56,17 @@ def add_triples_for_tables(graph, rows):
 def add_triples_for_columns(graph, columns):
   for column in columns:
     (table, column, is_primary_key) = column
-    graph.add((URIRef(table), Literal("column"), URIRef(table+'/'+column)))
+    graph.add((URIRef(table), md.column, URIRef(table+'/'+column)))
     if is_primary_key:
       graph.add((URIRef(table+'/'+column), RDF.type, URIRef("primary_key")))
 
 def add_triples_for_foreign_keys(graph, foreign_keys):
   for from_table, from_column, to_table, to_column in foreign_keys:
-    graph.add((URIRef(from_table+'/'+from_column), Literal("refences"), URIRef(to_table+'/'+to_column)))
+    graph.add((URIRef(from_table+'/'+from_column), md.references, URIRef(to_table+'/'+to_column)))
 
 add_triples_for_tables(graph, tables)
 add_triples_for_columns(graph, tables)
 add_triples_for_foreign_keys(graph, foreign_keys)
 
-for s, p, o in graph:
-  print(s, p, o)
 
-graph.serialize(destination="database.ttl", format="turtle")
+graph.serialize(destination="database3.ttl", format="turtle")
