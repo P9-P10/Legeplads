@@ -4,9 +4,9 @@ from Applications.dbinterface import DBInterface
 
 
 class SqLiteInterface(DBInterface):
-    def __init__(self, connection):
-        super().__init__(connection)
-        self.sql = sqlite3.connect(self.connection)
+    def __init__(self, path_to_database):
+        super().__init__(path_to_database)
+        self.sql = sqlite3.connect(self.path_to_database)
 
     def run_query(self, query):
         conn = self.sql.cursor()
