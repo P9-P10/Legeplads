@@ -2,15 +2,18 @@ import re
 import sqlite3
 
 from Applications.dbinterface import DBInterface
+from Helpers.changes_class import Changes as Ch
+from Helpers.simple_sql_parser import SqlParser as Sp
 
 
 class OptimizedSqliteInterface(DBInterface):
     def __init__(self, connection):
         super().__init__(connection)
-        # {table_name:(should_be_renamed,rename_value)}
-        # {string    :(bool             , string     )}
+        # {table_name:changes_class}
+        # {string    :changes      }
         self.changes: dict = {}
         self.sql = sqlite3.connect(self.connection)
+        self.parser = Sp()
 
     def run_query(self, query: str):
         query = self.modify_query_with_changes(query)
@@ -20,18 +23,17 @@ class OptimizedSqliteInterface(DBInterface):
         self.sql.commit()
         return response
 
-    def add_database_change(self, table_name: str, should_be_renamed: bool = False, rename_value: str = ""):
-        self.changes.update({table_name: (should_be_renamed, rename_value)})
+    def add_database_change(self, table_name: str, changes: Ch):
+        self.changes.update({table_name: changes})
 
     def modify_query_with_changes(self, query: str):
-        for key, value in self.changes.items():
-            should_be_replaced: bool = value[0]
-            replacement_value: str = value[1]
-            if key in query:
-                if not should_be_replaced:
-                    query = self.remove_occurrences_in_joins(self.find_and_remove_alias(query, key), key)
+        for table in self.parser.get_table_names(query):
+            if table in self.changes:
+                current_changes: Ch = self.changes[table]
+                if not current_changes.should_rename:
+                    query = self.remove_occurrences_in_joins(self.find_and_remove_alias(query, table), table)
                 else:
-                    query = self.replace_occurrences(query, key, replacement_value)
+                    query = self.replace_occurrences(query, table, current_changes.new_name)
         return query
 
     @staticmethod

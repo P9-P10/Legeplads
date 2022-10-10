@@ -27,3 +27,10 @@ def test_get_table_names_select_and_join():
     parser = sp()
     result = parser.get_table_names(query)
     assert result == ["Users", "Orders"]
+
+
+def test_get_where_clause():
+    query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    parser = sp()
+    result = parser.get_where_clause(query)
+    assert result == " O.owner = 'bob'"

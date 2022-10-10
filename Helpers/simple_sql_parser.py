@@ -1,3 +1,6 @@
+import re
+
+
 class SqlParser:
     def __init__(self):
         self.keywords = ["join", "into", "from"]
@@ -9,3 +12,7 @@ class SqlParser:
             if query_without_spaces[i].lower() in self.keywords:
                 output.append(query_without_spaces[i + 1])
         return output
+
+    @staticmethod
+    def get_where_clause(query):
+        return re.split(r"where", query, 1, flags=re.IGNORECASE)[1]
