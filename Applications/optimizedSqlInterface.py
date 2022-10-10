@@ -12,7 +12,7 @@ class OptimizedSqliteInterface(DBInterface):
         # {table_name:changes_class}
         # {string    :changes      }
         self.changes: dict = {}
-        self.sql = sqlite3.connect(self.connection)
+        self.sql = sqlite3.connect(connection)
         self.parser = Sp()
 
     def run_query(self, query: str):
