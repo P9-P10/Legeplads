@@ -5,12 +5,12 @@ from Applications.dbinterface import DBInterface
 
 
 class OptimizedSqliteInterface(DBInterface):
-    def __init__(self, connection):
-        super().__init__(connection)
+    def __init__(self, path_to_database):
+        super().__init__(path_to_database)
         # {table_name:(should_be_renamed,rename_value)}
         # {string    :(bool             , string     )}
         self.changes: dict = {}
-        self.sql = sqlite3.connect(self.connection)
+        self.sql = sqlite3.connect(self.path_to_database)
 
     def run_query(self, query: str):
         query = self.modify_query_with_changes(query)
