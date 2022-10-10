@@ -1,0 +1,44 @@
+PREFIX
+
+#TODO : Find ud af hvilke eksisterende ontologier der kan bruges.
+
+program:user {
+    :hasId xsd:int,
+    :hasPassword xsd:string,
+    :hasGivenName xsd:string,
+    :mbox IRI,
+    :creation_date
+}
+
+program:UserData {
+    :userId IRI,
+    foaf:hasAddress xsd:string,
+    foaf:hasFamilyName xsd:string,
+    foaf:hasPhone xsd:int,
+    foaf:hasBirthday xsd:string,
+    :wantsLetter xsd:int
+}
+
+program:RecoveryQuestion {
+    :userId xsd:int,
+    :question xsd:string,
+    :answer xsd:string
+}
+
+
+program:NewsLetter {
+    :userId xsd:int,
+    :wantsLetter xsd:int
+}
+
+program:orders {
+    :hasOwner xsd:int,
+    :hasProduct IRI,
+    :hasQuantity xsd:int,
+    :hasOrder xsd:date
+}
+
+program:products {
+    :hasName xsd:string,
+    :hasProduct xsd:int
+}
