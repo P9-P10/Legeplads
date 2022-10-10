@@ -34,3 +34,21 @@ def test_get_where_clause():
     parser = sp()
     result = parser.get_where_clause(query)
     assert result == " O.owner = 'bob'"
+
+
+def test_get_query_type_select():
+    query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    parser = sp()
+    assert parser.get_query_type(query) == "SELECT"
+
+
+def test_get_query_type_update():
+    query = "UPDATE Users SET Users.password = 'secure' WHERE Users.email =='test' "
+    parser = sp()
+    assert parser.get_query_type(query) == "UPDATE"
+
+
+def test_get_query_type_delete():
+    query = "DELETE FROM Users WHERE Users.email =='test' "
+    parser = sp()
+    assert parser.get_query_type(query) == "DELETE"
