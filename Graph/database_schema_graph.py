@@ -54,12 +54,17 @@ def add_triples_for_tables(graph, rows):
 def add_triples_for_columns(graph, columns):
   for column in columns:
     (table, column, is_primary_key) = column
-    graph.add((URIRef(table), Literal("column"), URIRef(column)))
+    graph.add((URIRef(table), Literal("column"), URIRef(table+'/'+column)))
     if is_primary_key:
-      graph.add((URIRef(column), RDF.type, URIRef("primary_key")))
+      graph.add((URIRef(table+'/'+column), RDF.type, URIRef("primary_key")))
+
+def add_triples_for_foreign_keys(graph, foreign_keys):
+  for from_table, from_column, to_table, to_column in foreign_keys:
+    graph.add((URIRef(from_table+'/'+from_column), Literal("refences"), URIRef(to_table+'/'+to_column)))
 
 add_triples_for_tables(graph, tables)
 add_triples_for_columns(graph, tables)
+add_triples_for_foreign_keys(graph, foreign_keys)
 
 for s, p, o in graph:
   print(s, p, o)
