@@ -48,6 +48,19 @@ def test_get_table_alias():
     assert parser.get_table_alias(query) == [('Users', ''), ('Orders', 'O')]
 
 
+def test_get_variabels():
+    query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    parser = sp()
+    assert parser.get_variables_without_table_prefixes(query) == ['*']
+
+
+def test_get_variables_without_table_predix():
+    query = "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter FROM"
+    parser = sp()
+    assert parser.get_variables_without_table_prefixes(query) == ["email", "name", "question", "total_quantity",
+                                                                  "wants_letter"]
+
+
 def test_get_query_type_update():
     query = "UPDATE Users SET Users.password = 'secure' WHERE Users.email =='test' "
     parser = sp()
