@@ -24,26 +24,29 @@ class SqlParser:
         output = []
         query_without_spaces = self.split_query_components(query)
         index = 0
+        in_variable_section = False
         while index < len(query_without_spaces):
             if query_without_spaces[index].lower() in self.query_types:
                 index += 1
+                in_variable_section = True
                 continue
-            current_variable = query_without_spaces[index]
-            cleaned_current_var = self.split_prefix(current_variable)
-            next_element = self.get_n_element(query_without_spaces, 1, index)
-            if next_element.lower() in self.end_of_table_list_keywords:
-                output.append(cleaned_current_var)
-                index += 1
-                break
-            elif next_element == "as":
-                element_after_as = self.get_n_element(query_without_spaces, 2, index)
-                output.append(self.split_prefix(element_after_as))
-                index += 3
-            else:
-                output.append(cleaned_current_var)
-                index += 1
-            if index + 1 >= len(query_without_spaces):
-                break
+            if in_variable_section:
+                current_variable = query_without_spaces[index]
+                cleaned_current_var = self.split_prefix(current_variable)
+                next_element = self.get_n_element(query_without_spaces, 1, index)
+                if next_element.lower() in self.end_of_table_list_keywords:
+                    output.append(cleaned_current_var)
+                    index += 1
+                    break
+                elif next_element == "as":
+                    element_after_as = self.get_n_element(query_without_spaces, 2, index)
+                    output.append(self.split_prefix(element_after_as))
+                    index += 3
+                else:
+                    output.append(cleaned_current_var)
+                    index += 1
+                if index + 1 >= len(query_without_spaces):
+                    break
         return output
 
     @staticmethod
