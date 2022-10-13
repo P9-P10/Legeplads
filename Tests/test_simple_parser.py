@@ -51,18 +51,18 @@ def test_get_table_alias():
 def test_get_variabels():
     query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
     parser = sp()
-    assert parser.get_variables_without_table_prefixes(query) == [('', '*')]
+    assert parser.get_variables_with_prefix(query) == [('', '*')]
 
 
 def test_get_variables_with_prefix():
     query = "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter FROM"
     parser = sp()
-    assert parser.get_variables_without_table_prefixes(query) == [('U', 'email'),
-                                                                  ('UD', 'name'),
-                                                                  ('', 'question'),
-                                                                  ('P', 'name'),
-                                                                  ('', 'total_quantity'),
-                                                                  ('', 'wants_letter')]
+    assert parser.get_variables_with_prefix(query) == [('U', 'email'),
+                                                       ('UD', 'name'),
+                                                       ('', 'question'),
+                                                       ('P', 'name'),
+                                                       ('', 'total_quantity'),
+                                                       ('', 'wants_letter')]
 
 
 def test_get_query_type_update():

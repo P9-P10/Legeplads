@@ -23,11 +23,9 @@ class SqlParser:
     def get_variables_with_prefix(self, query):
         output = []
         query_without_spaces = self.split_query_components(query)
-        in_variable_section = False
         index = 0
         while index < len(query_without_spaces):
             if query_without_spaces[index].lower() in self.query_types:
-                in_variable_section = True
                 index += 1
                 continue
             current_variable = query_without_spaces[index]
