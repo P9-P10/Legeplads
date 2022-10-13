@@ -1,0 +1,176 @@
+@prefix : <http://www.cs-22-dt-9-03.org/concrete-structure-ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.cs-22-dt-9-03.org/concrete-structure-ontology#> .
+
+<http://www.cs-22-dt-9-03.org/concrete-structure-ontology#> rdf:type owl:Ontology .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#hasA
+:hasA rdf:type owl:ObjectProperty ,
+               owl:InverseFunctionalProperty ,
+               owl:AsymmetricProperty ,
+               owl:IrreflexiveProperty ;
+      rdfs:domain :DataStore ;
+      rdfs:range :Structure .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#storedIn
+:storedIn rdf:type owl:ObjectProperty ,
+                   owl:FunctionalProperty ,
+                   owl:AsymmetricProperty ,
+                   owl:TransitiveProperty ,
+                   owl:IrreflexiveProperty ;
+          rdfs:domain :DataEntry ;
+          rdfs:range :DataStore .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#name
+:name rdf:type owl:DatatypeProperty ;
+      rdfs:domain :DataStore ,
+                  :Structure ;
+      rdfs:range xsd:string .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#CSV
+:CSV rdf:type owl:Class ;
+     rdfs:subClassOf :File .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Column
+:Column rdf:type owl:Class ;
+        rdfs:subClassOf :Structure .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#DataEntry
+:DataEntry rdf:type owl:Class .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#DataStore
+:DataStore rdf:type owl:Class .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Database
+:Database rdf:type owl:Class ;
+          rdfs:subClassOf :DataStore .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Document
+:Document rdf:type owl:Class ;
+          rdfs:subClassOf :NoSQL .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#File
+:File rdf:type owl:Class ;
+      rdfs:subClassOf :DataStore .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#FilePath
+:FilePath rdf:type owl:Class ;
+          rdfs:subClassOf :Structure .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#FileSystem
+:FileSystem rdf:type owl:Class ;
+            rdfs:subClassOf :DataStore .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#GFS
+:GFS rdf:type owl:Class ;
+     rdfs:subClassOf :FileSystem .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Graph
+:Graph rdf:type owl:Class ;
+       rdfs:subClassOf :NoSQL .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Hadoop
+:Hadoop rdf:type owl:Class ;
+        rdfs:subClassOf :FileSystem .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#JSON
+:JSON rdf:type owl:Class ;
+      rdfs:subClassOf :File .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#JanusGraph
+:JanusGraph rdf:type owl:Class ;
+            rdfs:subClassOf :Graph .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Key-Value
+:Key-Value rdf:type owl:Class ;
+           rdfs:subClassOf :NoSQL .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#MariaDB
+:MariaDB rdf:type owl:Class ;
+         rdfs:subClassOf :Relational .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#MongoDB
+:MongoDB rdf:type owl:Class ;
+         rdfs:subClassOf :Document .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#NoSQL
+:NoSQL rdf:type owl:Class ;
+       rdfs:subClassOf :Database .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#ObjectOriented
+:ObjectOriented rdf:type owl:Class ;
+                rdfs:subClassOf :Database .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Plaintext
+:Plaintext rdf:type owl:Class ;
+           rdfs:subClassOf :File .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#PostgreSQL
+:PostgreSQL rdf:type owl:Class ;
+            rdfs:subClassOf :Relational .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#RedisGraph
+:RedisGraph rdf:type owl:Class ;
+            rdfs:subClassOf :Graph .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Relational
+:Relational rdf:type owl:Class ;
+            rdfs:subClassOf :Database .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#SQLite
+:SQLite rdf:type owl:Class ;
+        rdfs:subClassOf :Relational .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Structure
+:Structure rdf:type owl:Class .
+
+
+###  http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Table
+:Table rdf:type owl:Class ;
+       rdfs:subClassOf :Structure .
+
+
+###  Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi

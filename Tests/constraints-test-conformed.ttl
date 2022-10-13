@@ -6,11 +6,9 @@
 @prefix cs:   <http://www.cs-22-dt-9-03.org/concrete-structure-ontology#> .
 @prefix cc:   <http://www.cs-22-dt-9-03.org/concrete-structure-constraints#> .
 
-cc:RelationalShape a sh:NodeShape ;
-    sh:targetClass cs:Relational ;
-    sh:property [ sh:path cs:hasA ; sh:minCount 1 ; sh:class cs:Table ; ] ;
-    sh:property [ sh:path cs:name ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; ] ;
+<DB> a cs:Relational ;
+    cs:hasA <T> ;
+    cs:name "DB"
 .
 
-
-
+<T> a cs:Table .

@@ -277,25 +277,6 @@
     <owl:Class rdf:about="http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Table">
         <rdfs:subClassOf rdf:resource="http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Structure"/>
     </owl:Class>
-    
-
-
-    <!-- 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //
-    // Individuals
-    //
-    ///////////////////////////////////////////////////////////////////////////////////////
-     -->
-
-    
-
-
-    <!-- http://www.cs-22-dt-9-03.org/concrete-structure-ontology#MySQL -->
-
-    <owl:NamedIndividual rdf:about="http://www.cs-22-dt-9-03.org/concrete-structure-ontology#MySQL">
-        <rdf:type rdf:resource="http://www.cs-22-dt-9-03.org/concrete-structure-ontology#Relational"/>
-    </owl:NamedIndividual>
 </rdf:RDF>
 
 
