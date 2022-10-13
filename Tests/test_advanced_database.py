@@ -1,5 +1,6 @@
 from Applications.sqliteinterface import SqLiteInterface as Si
 from Applications.optimizedSqlInterface import OptimizedSqliteInterface as OSi
+from Applications.sqliteinterface import DBConfig
 import pytest
 from Helpers.changes_class import Changes as Ch
 
@@ -7,8 +8,8 @@ database_name = "AdvancedDatabase"
 database_path = "./Databases/"
 o_database_name = "OptimizedAdvancedDatabase"
 
-connection = Si(database_path + database_name + ".sqlite")
-Optimized_connection = OSi(database_path + o_database_name + ".sqlite")
+connection = Si(DBConfig(database_name))
+Optimized_connection = OSi(DBConfig(o_database_name))
 Optimized_connection.add_database_change("NewsLetter", Ch())
 
 

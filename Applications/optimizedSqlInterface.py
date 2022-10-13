@@ -5,15 +5,16 @@ from Applications.dbinterface import DBInterface
 from Helpers.changes_class import Changes as Ch
 from Helpers.simple_sql_parser import SqlParser as Sp
 from Applications.querytransformation import RemoveTable, ChangeTable
+from Applications.sqliteinterface import DBConfig
 
 
 class OptimizedSqliteInterface(DBInterface):
-    def __init__(self, path_to_database):
-        super().__init__(path_to_database)
+    def __init__(self, config: DBConfig):
+        super().__init__(config.get_path_to_database())
         # {table_name:changes_class}
         # {string    :changes      }
         self.changes: dict = {}
-        self.sql = sqlite3.connect(path_to_database)
+        self.sql = sqlite3.connect(self.path_to_database)
         self.parser = Sp()
 
     def run_query(self, query: str):
