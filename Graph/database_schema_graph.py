@@ -46,6 +46,8 @@ print(foreign_keys)
 
 graph = Graph()
 
+graph.bind("rdf", RDF)
+
 def add_triples_for_tables(graph, rows):
   unique_table_names = set([row[0] for row in rows])
 
