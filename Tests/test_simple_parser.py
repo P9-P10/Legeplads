@@ -42,6 +42,12 @@ def test_get_query_type_select():
     assert parser.get_query_type(query) == "SELECT"
 
 
+def test_get_table_alias():
+    query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    parser = sp()
+    assert parser.get_table_alias(query) == [('Users', ''), ('Orders', 'O')]
+
+
 def test_get_query_type_update():
     query = "UPDATE Users SET Users.password = 'secure' WHERE Users.email =='test' "
     parser = sp()
