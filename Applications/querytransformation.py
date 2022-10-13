@@ -1,11 +1,13 @@
 import re
 
+
 class QueryTransformation():
     def __init__(self):
         pass
-    
+
     def apply(self, query: str) -> str:
         pass
+
 
 class RemoveTable(QueryTransformation):
     def __init__(self, table):
@@ -15,7 +17,7 @@ class RemoveTable(QueryTransformation):
     def apply(self, query: str) -> str:
         if self.table not in query:
             return query
-        
+
         query = self.remove_alias(query)
         query = self.remove_table(query)
 
@@ -36,6 +38,7 @@ class RemoveTable(QueryTransformation):
             if not i == 0:
                 query_list_without_removed_table[i] = "JOIN" + item
         return ''.join(query_list_without_removed_table).rstrip()
+
 
 class ChangeTable(QueryTransformation):
     def __init__(self, old_table, new_table):

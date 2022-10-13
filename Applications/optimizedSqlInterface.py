@@ -1,10 +1,9 @@
-import re
 import sqlite3
 
 from Applications.dbinterface import DBInterface
+from Applications.querytransformation import RemoveTable, ChangeTable
 from Helpers.changes_class import Changes as Ch
 from Helpers.simple_sql_parser import SqlParser as Sp
-from Applications.querytransformation import RemoveTable, ChangeTable
 
 
 class OptimizedSqliteInterface(DBInterface):
@@ -37,7 +36,8 @@ class OptimizedSqliteInterface(DBInterface):
     def get_changes_for_table(self, table: str) -> Ch:
         return self.changes[table]
 
-    def apply_changes(self, query: str, table: str, current_changes: Ch) -> str:
+    @staticmethod
+    def apply_changes(query: str, table: str, current_changes: Ch) -> str:
         if current_changes.should_rename:
             query = ChangeTable(table, current_changes.new_name).apply(query)
         else:

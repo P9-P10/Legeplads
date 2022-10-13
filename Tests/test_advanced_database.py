@@ -52,7 +52,7 @@ def test_select_with_sum(input_connection):
 @pytest.mark.parametrize("input_connection", [connection, Optimized_connection])
 def test_select_with_joins_from_all_databases(input_connection):
     result = input_connection.run_query(
-        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity,NL.wants_letter "
+        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter "
         "from Users U "
         "JOIN UserData UD on U.id = UD.user_id "
         "JOIN NewsLetter NL on UD.id = NL.user_id "
