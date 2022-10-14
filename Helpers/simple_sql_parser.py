@@ -63,8 +63,8 @@ class SqlParser:
 
     def get_table_and_alias(self, query):
         table = self.get_table(query)
-        value = self.get_alias(query)
-        return table, value
+        alias = self.get_alias(query)
+        return table, alias
 
     def get_table(self, query):
         return query.next()
