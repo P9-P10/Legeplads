@@ -2,7 +2,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+#@prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix cs:   <http://www.cs-22-dt-9-03.org/concrete-structure-ontology#> .
 @prefix cc:   <http://www.cs-22-dt-9-03.org/concrete-structure-constraints#> .
 
