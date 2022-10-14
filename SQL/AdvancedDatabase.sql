@@ -53,14 +53,14 @@ CREATE TABLE IF NOT EXISTS Products
 
 CREATE TABLE NewsLetter
 (
-    user_id      INT,
+    user_id      INTEGER PRIMARY KEY,
     wants_letter INT,
     FOREIGN KEY (user_id) REFERENCES UserData (id)
 );
 
 CREATE TABLE RecoveryQuestions
 (
-    user_id  INTEGER,
+    user_id  INTEGER PRIMARY KEY,
     question VARCHAR,
     answer   VARCHAR,
     FOREIGN KEY (user_id) REFERENCES Users (id)

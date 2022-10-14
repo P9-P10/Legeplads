@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS Products
 
 CREATE TABLE RecoveryQuestions
 (
-    user_id  INTEGER,
+    user_id  INTEGER PRIMARY KEY,
     question VARCHAR,
     answer   VARCHAR,
     FOREIGN KEY (user_id) REFERENCES Users (id)
