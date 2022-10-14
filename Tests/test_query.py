@@ -52,10 +52,16 @@ def test_current_stays_at_last_value():
     assert query.current() == "FROM"
 
 
-def test_peek_returns_next_value():
+def test_peek_returns_next_value_by_default():
     query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
     
     assert query.peek() == "*"
+
+def test_peek_returns_value_at_given_position_relative_to_current():
+    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
+    
+    assert query.peek(3) == "Users"
+    assert query.peek(11) == "WHERE"
 
 def test_peek_does_not_change_value_of_current():
     query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
@@ -63,6 +69,16 @@ def test_peek_does_not_change_value_of_current():
     assert query.current() == "SELECT"
     query.peek()
     assert query.current() == "SELECT"
+
+def test_peek_is_idempotent():
+    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
+    
+    first_peek_value = query.peek()
+    assert query.peek() == first_peek_value
+    assert query.peek(2) == "FROM"
+    assert query.peek() == first_peek_value
+    assert query.peek(89) == None
+    assert query.peek() == first_peek_value
 
 def test_peek_is_idempotent():
     query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
@@ -85,10 +101,18 @@ def test_peek_returns_None_when_current_is_last_element():
     assert query.peek() == None
 
 
-def test_next_returns_next_value():
+def test_next_returns_next_value_by_default():
     query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
 
     assert query.next() == "*"
+
+def test_next_returns_value_at_given_position_relative_to_current():
+    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
+
+    assert query.next(2) == "FROM"
+    assert query.next(2) == "JOIN"
+    assert query.next(7) == "WHERE"
+
 
 def test_next_returns_None_when_current_is_last_element():
     query = Q("SELECT * FROM")
