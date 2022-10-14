@@ -4,7 +4,7 @@ from Helpers.query import Query as Q
 class SqlParser:
     def __init__(self):
         self.table_prefix = ["join", "into", "from"]
-        self.SQL_keywords = ["where", "join", "from", "select", "on", "="]
+        self.SQL_keywords = ["where", "join", "from", "select", "on", "=", "inner", "left", "right", "full"]
 
     def get_table_names(self, query: str):
         output = []
