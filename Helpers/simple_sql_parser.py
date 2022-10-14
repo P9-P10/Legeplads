@@ -54,15 +54,17 @@ class SqlParser:
         output = []
         query = Q(query)
 
-        while query.index < query.max:
-            current = query.current()
-            if current.lower() in self.table_prefix:
+        for component in query:
+            if self.is_prefix(component):
                 table = query.next()
-                alias_position = query.peek()
-                if alias_position.lower() not in self.SQL_keywords:
-                    output.append((table, alias_position))
+                alias = query.peek()
+
+                if self.is_keyword(alias):
+                    value = ""
                 else:
-                    output.append((table, ""))
-            if query.next() is None:
-                break
+                    value = alias
+
+                output.append((table, value))
+
         return output
+
