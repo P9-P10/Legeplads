@@ -7,7 +7,22 @@ class Query:
         self.query = self.split_query_components()
         self.query_types = ["select", "delete", "update"]
         self.index = 0
+        self.first = True
         self.max = len(self.query)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.first:
+            self.first = False
+            return self.current()
+
+        res = self.next()
+        if res is None:
+            raise StopIteration
+        else:
+            return res
 
     def get_where_clause(self):
         return re.split(r"where", self.query_as_string, 1, flags=re.IGNORECASE)[1]
@@ -34,3 +49,6 @@ class Query:
 
     def current(self):
         return self.query[self.index]
+
+    def is_query_type(self, string: str) -> bool:
+        return string.lower() in self.query_types
