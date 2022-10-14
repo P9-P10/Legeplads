@@ -1,6 +1,16 @@
 @prefix ddl:   <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
 
-<DB> a ddl:Database  ;
+<DB>
+    a                ddl:SQLite  ;
+    ddl:hasName      "DB" ;
     ddl:hasStructure <T> .
 
-<T> a 1 .
+<T>
+    a                ddl:Table ;
+    ddl:hasName      "T" ;
+    ddl:primaryKey <C> ;
+    ddl:hasStructure <C> .
+
+<C>
+    a           ddl:Column ;
+    ddl:hasName "C" .

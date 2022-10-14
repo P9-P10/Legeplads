@@ -4,7 +4,8 @@ from rdflib import Graph
 data_graph = Graph()
 shapes_graph = Graph()
 
-data_graph.parse("./Graph/data_graph.ttl")
+# data_graph.parse("./Graph/data_graph.ttl")
+data_graph.parse("./data_graph.ttl")
 shapes_graph.parse("./Graph/datastore-description-language.ttl")
 
 r = validate(ont_graph=shapes_graph, data_graph=data_graph, shacl_graph=shapes_graph, abort_on_first=False)

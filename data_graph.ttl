@@ -1,0 +1,124 @@
+@prefix ddl: <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
+
+<NewsLetter> a ddl:Table ;
+    ddl:foreignKey <NewsLetter/user_id> ;
+    ddl:hasName "NewsLetter" ;
+    ddl:hasStructure <NewsLetter/user_id>,
+        <NewsLetter/wants_letter> ;
+    ddl:primaryKey <NewsLetter/user_id> .
+
+<Orders> a ddl:Table ;
+    ddl:foreignKey <Orders/owner>,
+        <Orders/product> ;
+    ddl:hasName "Orders" ;
+    ddl:hasStructure <Orders/id>,
+        <Orders/order_time>,
+        <Orders/owner>,
+        <Orders/product>,
+        <Orders/quantity> ;
+    ddl:primaryKey <Orders/id> .
+
+<Products> a ddl:Table ;
+    ddl:hasName "Products" ;
+    ddl:hasStructure <Products/name>,
+        <Products/product_id> ;
+    ddl:primaryKey <Products/product_id> .
+
+<RecoveryQuestions> a ddl:Table ;
+    ddl:foreignKey <RecoveryQuestions/user_id> ;
+    ddl:hasName "RecoveryQuestions" ;
+    ddl:hasStructure <RecoveryQuestions/answer>,
+        <RecoveryQuestions/question>,
+        <RecoveryQuestions/user_id> ;
+    ddl:primaryKey <RecoveryQuestions/user_id> .
+
+<UserData> a ddl:Table ;
+    ddl:foreignKey <UserData/user_id> ;
+    ddl:hasName "UserData" ;
+    ddl:hasStructure <UserData/address>,
+        <UserData/birthday>,
+        <UserData/id>,
+        <UserData/name>,
+        <UserData/phone>,
+        <UserData/user_id> ;
+    ddl:primaryKey <UserData/id> .
+
+<Users> a ddl:Table ;
+    ddl:hasName "Users" ;
+    ddl:hasStructure <Users/creation_date>,
+        <Users/email>,
+        <Users/id>,
+        <Users/password> ;
+    ddl:primaryKey <Users/id> .
+
+<NewsLetter/wants_letter> a ddl:Column ;
+    ddl:hasName "wants_letter" .
+
+<Orders/order_time> a ddl:Column ;
+    ddl:hasName "order_time" .
+
+<Orders/quantity> a ddl:Column ;
+    ddl:hasName "quantity" .
+
+<Products/name> a ddl:Column ;
+    ddl:hasName "name" .
+
+<RecoveryQuestions/answer> a ddl:Column ;
+    ddl:hasName "answer" .
+
+<RecoveryQuestions/question> a ddl:Column ;
+    ddl:hasName "question" .
+
+<UserData/address> a ddl:Column ;
+    ddl:hasName "address" .
+
+<UserData/birthday> a ddl:Column ;
+    ddl:hasName "birthday" .
+
+<UserData/name> a ddl:Column ;
+    ddl:hasName "name" .
+
+<UserData/phone> a ddl:Column ;
+    ddl:hasName "phone" .
+
+<Users/creation_date> a ddl:Column ;
+    ddl:hasName "creation_date" .
+
+<Users/email> a ddl:Column ;
+    ddl:hasName "email" .
+
+<Users/password> a ddl:Column ;
+    ddl:hasName "password" .
+
+<Orders/id> a ddl:Column ;
+    ddl:hasName "id" .
+
+<Orders/owner> a ddl:Column ;
+    ddl:hasName "owner" ;
+    ddl:references <Users/id> .
+
+<Orders/product> a ddl:Column ;
+    ddl:hasName "product" ;
+    ddl:references <Products/product_id> .
+
+<UserData/user_id> a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references <Users/id> .
+
+<NewsLetter/user_id> a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references <UserData/id> .
+
+<Products/product_id> a ddl:Column ;
+    ddl:hasName "product_id" .
+
+<RecoveryQuestions/user_id> a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references <Users/id> .
+
+<UserData/id> a ddl:Column ;
+    ddl:hasName "id" .
+
+<Users/id> a ddl:Column ;
+    ddl:hasName "id" .
+

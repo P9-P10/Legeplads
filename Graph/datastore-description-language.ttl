@@ -8,7 +8,7 @@
 
 ddl:
     a            owl:Ontology ;
-    owl:imports <http://datashapes.org/dash> ;
+    owl:imports  <http://datashapes.org/dash> ;
     rdfs:label   "Datastore Description Language (DDL) Vocabulary"@en ;
     rdfs:comment "This vocabulary defines terms that can be used to describe datastores"@en ;
     sh:declare   [ sh:prefix    "ddl" ;
@@ -23,18 +23,67 @@ ddl:hasStructure
 ddl:storedIn
     a rdf:Property .
 
+ddl:hasName
+    a rdf:Property .
+
+ddl:hasValue
+    a rdf:Property .
+
+ddl:withConnection
+    a rdf:Property .
+
+ddl:primaryKey
+    a rdf:Property .
+
+ddl:foreignKey
+    a rdf:Property .
+
+ddl:references
+    a rdf:Property .
+
+ddl:ReferencesShape
+    a                  sh:NodeShape ;
+    sh:targetObjectsOf ddl:foreignKey ;
+    sh:property        [ sh:path     ddl:references ;
+                         sh:class    ddl:Column ;
+                         sh:minCount 1 ;
+                         sh:maxCount 1 ; ] .
 
 ### DataEntry
 
 ddl:DataEntry
+    a           rdfs:Class, sh:NodeShape ;
+    sh:property [ sh:path     ddl:storedIn ;
+                  sh:class    ddl:Structure ;
+                  sh:minCount 1 ;
+                  sh:maxCount 1 ; ] ;
+    sh:property [ sh:path     ddl:hasValue ;
+                  sh:nodeKind sh:Literal ;
+                  sh:minCount 1 ;
+                  sh:maxCount 1 ] .
+
+
+### Entity
+
+ddl:Entity
     a rdfs:Class .
+
+ddl:NamedEntity
+    a           rdfs:Class, sh:NodeShape ;
+    sh:property [ sh:path     ddl:hasName ;
+                  sh:datatype xsd:string ;
+                  sh:minCount 1 ;
+                  sh:maxCount 1 ; ] .
 
 
 ### Datastore
 
 ddl:Datastore
-    a rdfs:Class, sh:NodeShape ;
-    sh:property [ sh:path ddl:hasStructure ; sh:class ddl:Structure ; sh:minCount 1 ; ] .
+    a               rdfs:Class, sh:NodeShape ;
+    rdfs:subClassOf ddl:NamedEntity ;
+    sh:property     [ sh:path     ddl:hasStructure ;
+                      sh:class    ddl:Structure ;
+                      sh:minCount 1 ; ] .
 
 ddl:Database
     a               rdfs:Class ;
@@ -42,20 +91,43 @@ ddl:Database
 
 ddl:Relational
     a               rdfs:Class, sh:NodeShape ;
+    rdfs:subClassOf ddl:Database ;
     sh:property     [ sh:path     ddl:hasStructure ;
                       sh:class    ddl:Table ;
                       sh:minCount 1 ; ] ;
-    rdfs:subClassOf ddl:Database .
+    sh:property     [ sh:path ddl:hasName ; ] .
+
+
+ddl:SQLite
+    a               rdfs:Class ;
+    rdfs:subClassOf ddl:Relational .
+
+ddl:ConnectionShape
+    a                  sh:NodeShape ;
+    sh:targetObjectsOf ddl:storedIn ;
+    sh:property        [ sh:path     ddl:withConnection ;
+                         sh:minCount 1 ;
+                         sh:maxCount 1 ] .
 
 
 ### Structure
 
 ddl:Structure
-    a rdfs:Class .
+    a               rdfs:Class ;
+    rdfs:subClassOf ddl:NamedEntity .
 
 ddl:Table
     a               rdfs:Class ;
-    rdfs:subClassOf ddl:Structure .
+    rdfs:subClassOf ddl:Structure ;
+    sh:property     [ sh:path     ddl:hasStructure ;
+                      sh:class    ddl:Column ;
+                      sh:minCount 1 ; ] ;
+    sh:property     [ sh:path     ddl:primaryKey ;
+                      sh:class    ddl:Column ;
+                      sh:minCount 1 ; ] ;
+    sh:property     [ sh:path  ddl:foreignKey ;
+                      sh:class ddl:Column ; ] .
+
 
 ddl:Column
     a               rdfs:Class ;
