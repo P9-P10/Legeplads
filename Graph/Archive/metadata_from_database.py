@@ -28,7 +28,7 @@ g.bind('dpv', dpv)
 g.bind('dpvo', dpvo)
 g.bind('md', md)
 
-path = '../Databases/'
+path = '../../Databases/'
 dbs = ['SimpleDatabase', 'AdvancedDatabase', 'AdvancedDatabaseButBad']
 extension = '.sqlite'
 
