@@ -1,0 +1,62 @@
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix dash:  <http://datashapes.org/dash#> .
+@prefix ddl:   <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
+
+ddl:
+    a            owl:Ontology ;
+    owl:imports <http://datashapes.org/dash> ;
+    rdfs:label   "Datastore Description Language (DDL) Vocabulary"@en ;
+    rdfs:comment "This vocabulary defines terms that can be used to describe datastores"@en ;
+    sh:declare   [ sh:prefix    "ddl" ;
+                   sh:namespace "http://www.cs-22-dt-9-03.org/datastore-description-language#" ; ] ; .
+
+
+### Properties
+
+ddl:hasStructure
+    a rdf:Property .
+
+ddl:storedIn
+    a rdf:Property .
+
+
+### DataEntry
+
+ddl:DataEntry
+    a rdfs:Class .
+
+
+### Datastore
+
+ddl:Datastore
+    a rdfs:Class, sh:NodeShape ;
+    sh:property [ sh:path ddl:hasStructure ; sh:class ddl:Structure ; sh:minCount 1 ; ] .
+
+ddl:Database
+    a               rdfs:Class ;
+    rdfs:subClassOf ddl:Datastore .
+
+ddl:Relational
+    a               rdfs:Class, sh:NodeShape ;
+    sh:property     [ sh:path     ddl:hasStructure ;
+                      sh:class    ddl:Table ;
+                      sh:minCount 1 ; ] ;
+    rdfs:subClassOf ddl:Database .
+
+
+### Structure
+
+ddl:Structure
+    a rdfs:Class .
+
+ddl:Table
+    a               rdfs:Class ;
+    rdfs:subClassOf ddl:Structure .
+
+ddl:Column
+    a               rdfs:Class ;
+    rdfs:subClassOf ddl:Structure .

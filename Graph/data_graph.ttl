@@ -1,0 +1,6 @@
+@prefix ddl:   <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
+
+<DB> a ddl:Database  ;
+    ddl:hasStructure <T> .
+
+<T> a 1 .
