@@ -13,7 +13,7 @@ class Query:
         return re.split(r"where", self.query_as_string, 1, flags=re.IGNORECASE)[1]
 
     def split_query_components(self):
-        return re.split(r', | |,', self.query_as_string)
+        return re.split(r'[ ,\n\r]+', self.query_as_string)
 
     def get_query_type(self):
         if self.query[0].lower() in self.query_types:
