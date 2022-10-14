@@ -1,8 +1,5 @@
-import pytest
 from pyshacl import validate
-
-from rdflib import Graph, URIRef, Literal, Namespace
-from rdflib.namespace import RDF, RDFS, XSD, OWL, SH
+from rdflib import Graph
 
 data_graph_prefixes = '''
     @prefix cs:   <http://www.cs-22-dt-9-03.org/concrete-structure-ontology#> .
