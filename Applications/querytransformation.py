@@ -47,4 +47,7 @@ class ChangeTable(QueryTransformation):
         self.new_table = new_table
 
     def apply(self, query: str) -> str:
+        return self.replace_old_table_and_new_table(query)
+
+    def replace_old_table_and_new_table(self, query):
         return re.sub(r'%s(\W|;|$)' % self.old_table, self.new_table + " ", query).rstrip()

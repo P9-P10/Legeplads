@@ -47,7 +47,7 @@ def test_get_table_alias_handles_joins_with_multiple_keyword():
     assert parser.get_table_alias(query) == [('Users', ''), ('Orders', 'O'), ('Subscriptions', 'S')]
 
 
-def test_get_variabels():
+def test_get_variables():
     query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
     parser = sp()
     assert parser.get_variables_with_prefix(query) == [('', '*')]

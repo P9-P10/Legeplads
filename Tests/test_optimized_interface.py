@@ -1,6 +1,7 @@
 from Applications.optimizedSqlInterface import OptimizedSqliteInterface as OSi
 from Helpers.changes_class import Changes as Ch
 
+
 def test_modify_query_with_change_remove_value():
     connection = OSi("")
     connection.add_database_change('other_table', Ch())

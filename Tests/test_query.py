@@ -22,6 +22,21 @@ def test_get_query_type_select():
     assert query.get_query_type() == "SELECT"
 
 
+def test_split_query_components():
+    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
+    print(query.split_query_components())
+    assert query.split_query_components() == ['SELECT', '*', 'FROM', 'Users', 'JOIN', 'Orders', 'O', 'on', 'Users.id',
+                                              '=', 'O.owner', 'WHERE', 'O.owner', '=', "'bob'"]
+
+
+def test_split_query_components_contains_newLine():
+    query = Q("""SELECT * FROM Users JOIN Orders O on
+    Users.id = O.owner WHERE O.owner = 'bob'""")
+    print(query.split_query_components())
+    assert query.split_query_components() == ['SELECT', '*', 'FROM', 'Users', 'JOIN', 'Orders', 'O', 'on', 'Users.id',
+                                              '=', 'O.owner', 'WHERE', 'O.owner', '=', "'bob'"]
+
+
 def test_current_returns_first_element_of_query():
     query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
 
