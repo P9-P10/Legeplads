@@ -4,11 +4,11 @@ import re
 class Query:
     def __init__(self, input_query):
         self.query_as_string = input_query
-        self.query = self.split_query_components()
+        self.components = self.split_query_components()
         self.query_types = ["select", "delete", "update"]
         self.index = 0
         self.first = True
-        self.max = len(self.query)
+        self.max = len(self.components)
 
     def __iter__(self):
         return self
@@ -31,24 +31,30 @@ class Query:
         return re.split(r'[ ,\n\r]+', self.query_as_string)
 
     def get_query_type(self):
-        if self.query[0].lower() in self.query_types:
-            return self.query[0].upper()
+        if self.is_query_type(self.component_at(0)):
+            return self.component_at(0).upper()
 
     def next(self, n=1):
-        if self.index + n < self.max:
+        if self.within_size(n):
             self.index += n
-            return self.query[self.index]
+            return self.current()
         else:
             return None
 
     def peek(self, n=1):
-        if self.index + n < self.max:
-            return self.query[self.index + n]
+        if self.within_size(n):
+            return self.component_at(self.index + n)
         else:
             return None
 
+    def within_size(self, n):
+        return self.index + n < self.max
+
     def current(self):
-        return self.query[self.index]
+        return self.components[self.index]
 
     def is_query_type(self, string: str) -> bool:
         return string.lower() in self.query_types
+
+    def component_at(self, index: int) -> str:
+        return self.components[index]

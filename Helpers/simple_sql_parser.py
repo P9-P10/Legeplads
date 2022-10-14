@@ -43,12 +43,10 @@ class SqlParser:
 
     @staticmethod
     def split_prefix(input_string: str):
-
         if '.' in input_string:
-            split_string = input_string.split('.')
-            return split_string[0], split_string[1]
+            return tuple(input_string.split('.'))
         else:
-            return '', input_string
+            return ('', input_string)
 
     def get_table_alias(self, query: str):
         output = []
