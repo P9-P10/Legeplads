@@ -6,40 +6,40 @@ class SqlParser:
         self.table_prefix = ["join", "into", "from"]
         self.SQL_keywords = ["where", "join", "from", "select", "on", "=", "inner", "left", "right", "full"]
 
-    def get_table_names(self, query: str):
+    def get_table_names(self, string: str):
         output = []
-        query = Q(query)
-        for i in range(len(query.query)):
-            if query.query[i].lower() in self.table_prefix:
-                output.append(query.query[i + 1])
+        query = Q(string)
+        for component in query:
+            if self.is_prefix(component):
+                output.append(query.next())
         return output
+
+    def is_prefix(self, string: str) -> bool:
+        return string.lower() in self.table_prefix
 
     def get_variables_with_prefix(self, query: str):
         output = []
         query = Q(query)
-        in_variable_section = False
-        while query.index < query.max:
-            if query.current().lower() in query.query_types:
-                in_variable_section = True
-                query.next()
+
+        for component in query:
+            # Skip keyword specifying the query type
+            if query.is_query_type(component):
                 continue
-            elif in_variable_section:
-                cleaned_current_var = self.split_prefix(query.current())
-                next_element = query.peek(1)
-                if next_element.lower() in self.SQL_keywords:
-                    output.append(cleaned_current_var)
-                    return output
-                elif next_element == "as":
-                    element_after_as = query.peek(2)
-                    output.append(self.split_prefix(element_after_as))
-                    query.next(3)
-                else:
-                    output.append(cleaned_current_var)
-                    query.next()
+                
+            next_element = query.peek()
+            if next_element == "as":
+                variable = query.next(2)
             else:
-                if query.next() is None:
-                    break
+                variable = component
+            output.append(self.split_prefix(variable))
+
+            if self.is_keyword(next_element):
+                return output
+   
         return output
+
+    def is_keyword(self, string: str) -> bool:
+        return string.lower() in self.SQL_keywords
 
     @staticmethod
     def split_prefix(input_string: str):
