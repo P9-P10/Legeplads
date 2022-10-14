@@ -3,7 +3,6 @@ from Helpers.query import Query as Q
 
 class SqlParser:
     def __init__(self):
-        # Todo Make query object
         self.table_prefix = ["join", "into", "from"]
         self.SQL_keywords = ["where", "join", "from", "select", "on", "="]
 
@@ -18,31 +17,28 @@ class SqlParser:
     def get_variables_with_prefix(self, query: str):
         output = []
         query = Q(query)
-        index = 0
         in_variable_section = False
-        while index < len(query.query):
-            if query.query[index].lower() in query.query_types:
+        while query.index < query.max:
+            if query.current().lower() in query.query_types:
                 in_variable_section = True
-                index += 1
+                query.next()
                 continue
             elif in_variable_section:
-                current_variable = query.query[index]
-                cleaned_current_var = self.split_prefix(current_variable)
+                cleaned_current_var = self.split_prefix(query.current())
                 next_element = query.peek(1)
-
                 if next_element.lower() in self.SQL_keywords:
                     output.append(cleaned_current_var)
-                    index += 1
-                    break
+                    return output
                 elif next_element == "as":
                     element_after_as = query.peek(2)
                     output.append(self.split_prefix(element_after_as))
-                    index += 3
+                    query.next(3)
                 else:
                     output.append(cleaned_current_var)
-                    index += 1
+                    query.next()
             else:
-                index += 1
+                if query.next() is None:
+                    break
         return output
 
     @staticmethod
