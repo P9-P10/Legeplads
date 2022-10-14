@@ -1,13 +1,16 @@
+import pytest
 from pyshacl import validate
 from rdflib import Graph
 
 data_graph_prefixes = "@prefix ddl: <http://www.cs-22-dt-9-03.org/datastore-description-language#> ."
 
-shapes_graph = Graph()
-shapes_graph.parse("./Graph/datastore-description-language.ttl")
+
+@pytest.fixture(scope="module")
+def shapes_graph():
+    return Graph().parse("./Graph/datastore-description-language.ttl")
 
 
-def test_ontology_unknown_conforms():
+def test_ontology_unknown_conforms(shapes_graph):
     data_graph = Graph()
 
     data_string = data_graph_prefixes + '''
@@ -26,7 +29,7 @@ def test_ontology_unknown_conforms():
     assert conforms is True
 
 
-def test_ontology_known_conforms_not():
+def test_ontology_known_conforms_not(shapes_graph):
     data_graph = Graph()
 
     data_string = data_graph_prefixes + '''
