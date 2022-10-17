@@ -7,6 +7,9 @@ from rdflib import Graph
 def shapes_graph() -> Graph:
     return Graph().parse("./Graph/datastore-description-language.ttl")
 
+def test_sqlite_to_graph():
+    pass
+
 
 def make_data_graph(data_string: str) -> Graph:
     data_graph_prefixes = "@prefix ddl: <http://www.cs-22-dt-9-03.org/datastore-description-language#> ."

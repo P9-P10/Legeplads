@@ -1,124 +1,138 @@
 @prefix ddl: <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
 
-<NewsLetter> a ddl:Table ;
-    ddl:foreignKey <NewsLetter/user_id> ;
-    ddl:hasName "NewsLetter" ;
-    ddl:hasStructure <NewsLetter/user_id>,
-        <NewsLetter/wants_letter> ;
-    ddl:primaryKey <NewsLetter/user_id> .
+<58c67f34-ec4e-5c21-919a-be1c8590ffbd> a ddl:SQLite ;
+    ddl:hasName "AdvancedDatabase.sqlite" ;
+    ddl:hasStructure <b86d5963-e34f-5b4d-8cf3-027dd4961daf> ;
+    ddl:withConnection "./Databases/AdvancedDatabase.sqlite" .
 
-<Orders> a ddl:Table ;
-    ddl:foreignKey <Orders/owner>,
-        <Orders/product> ;
-    ddl:hasName "Orders" ;
-    ddl:hasStructure <Orders/id>,
-        <Orders/order_time>,
-        <Orders/owner>,
-        <Orders/product>,
-        <Orders/quantity> ;
-    ddl:primaryKey <Orders/id> .
-
-<Products> a ddl:Table ;
-    ddl:hasName "Products" ;
-    ddl:hasStructure <Products/name>,
-        <Products/product_id> ;
-    ddl:primaryKey <Products/product_id> .
-
-<RecoveryQuestions> a ddl:Table ;
-    ddl:foreignKey <RecoveryQuestions/user_id> ;
-    ddl:hasName "RecoveryQuestions" ;
-    ddl:hasStructure <RecoveryQuestions/answer>,
-        <RecoveryQuestions/question>,
-        <RecoveryQuestions/user_id> ;
-    ddl:primaryKey <RecoveryQuestions/user_id> .
-
-<UserData> a ddl:Table ;
-    ddl:foreignKey <UserData/user_id> ;
-    ddl:hasName "UserData" ;
-    ddl:hasStructure <UserData/address>,
-        <UserData/birthday>,
-        <UserData/id>,
-        <UserData/name>,
-        <UserData/phone>,
-        <UserData/user_id> ;
-    ddl:primaryKey <UserData/id> .
-
-<Users> a ddl:Table ;
-    ddl:hasName "Users" ;
-    ddl:hasStructure <Users/creation_date>,
-        <Users/email>,
-        <Users/id>,
-        <Users/password> ;
-    ddl:primaryKey <Users/id> .
-
-<NewsLetter/wants_letter> a ddl:Column ;
-    ddl:hasName "wants_letter" .
-
-<Orders/order_time> a ddl:Column ;
-    ddl:hasName "order_time" .
-
-<Orders/quantity> a ddl:Column ;
-    ddl:hasName "quantity" .
-
-<Products/name> a ddl:Column ;
-    ddl:hasName "name" .
-
-<RecoveryQuestions/answer> a ddl:Column ;
+<0dc8fb6e-07eb-5168-a004-0e08c742f216> a ddl:Column ;
     ddl:hasName "answer" .
 
-<RecoveryQuestions/question> a ddl:Column ;
-    ddl:hasName "question" .
+<3d6836bb-c574-5ca3-b68f-88b7124213b1> a ddl:Column ;
+    ddl:hasName "order_time" .
 
-<UserData/address> a ddl:Column ;
+<3ed31a4f-6a80-5cf7-b874-15d3c0f9553f> a ddl:Column ;
     ddl:hasName "address" .
 
-<UserData/birthday> a ddl:Column ;
-    ddl:hasName "birthday" .
+<3f295f93-079f-5621-9b06-6233bc3e4abf> a ddl:Table ;
+    ddl:foreignKey <1be3def8-6ad0-50d5-aa00-ac283ed6a1ae>,
+        <337dad1a-7bb9-5b11-b595-46c95955df27> ;
+    ddl:hasName "Orders" ;
+    ddl:hasStructure <1be3def8-6ad0-50d5-aa00-ac283ed6a1ae>,
+        <337dad1a-7bb9-5b11-b595-46c95955df27>,
+        <3601ddf8-aa96-514f-9bb9-e9ecc35cf026>,
+        <3d6836bb-c574-5ca3-b68f-88b7124213b1>,
+        <58178cf5-a2e2-5833-9e2a-9d0c10522099> ;
+    ddl:primaryKey <3601ddf8-aa96-514f-9bb9-e9ecc35cf026> .
 
-<UserData/name> a ddl:Column ;
-    ddl:hasName "name" .
+<58178cf5-a2e2-5833-9e2a-9d0c10522099> a ddl:Column ;
+    ddl:hasName "quantity" .
 
-<UserData/phone> a ddl:Column ;
-    ddl:hasName "phone" .
-
-<Users/creation_date> a ddl:Column ;
-    ddl:hasName "creation_date" .
-
-<Users/email> a ddl:Column ;
-    ddl:hasName "email" .
-
-<Users/password> a ddl:Column ;
+<58dc3549-b06c-5e21-90f5-aa377deb61a8> a ddl:Column ;
     ddl:hasName "password" .
 
-<Orders/id> a ddl:Column ;
+<69c97b77-f805-5ae3-85b7-9894cfaa06a2> a ddl:Table ;
+    ddl:foreignKey <2b447f60-4c63-5d8b-bd9b-b13095ab5d2c> ;
+    ddl:hasName "UserData" ;
+    ddl:hasStructure <2b447f60-4c63-5d8b-bd9b-b13095ab5d2c>,
+        <3ed31a4f-6a80-5cf7-b874-15d3c0f9553f>,
+        <836e93c3-850a-5413-872c-67b851e22101>,
+        <ade812a6-e337-5d0d-9a19-03187a67bfa9>,
+        <b274b546-e0f4-5b6d-aff5-77b14e6c6485>,
+        <c11497b2-bc46-5977-9b22-4bbbaebeac81> ;
+    ddl:primaryKey <b274b546-e0f4-5b6d-aff5-77b14e6c6485> .
+
+<836e93c3-850a-5413-872c-67b851e22101> a ddl:Column ;
+    ddl:hasName "birthday" .
+
+<92736622-390b-52ca-ab94-4b7f45891d49> a ddl:Column ;
+    ddl:hasName "question" .
+
+<973750c3-f66d-5ec8-a6c0-53e1c1fe6423> a ddl:Table ;
+    ddl:hasName "Users" ;
+    ddl:hasStructure <4d3186a7-5871-540a-96d4-c3f7e8bcc8be>,
+        <58dc3549-b06c-5e21-90f5-aa377deb61a8>,
+        <e3a7a3bd-30b2-59cd-927e-2ad9764e66d3>,
+        <ff84bae7-6026-515d-a94d-c031bf23f5ad> ;
+    ddl:primaryKey <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
+
+<ade812a6-e337-5d0d-9a19-03187a67bfa9> a ddl:Column ;
+    ddl:hasName "phone" .
+
+<b20c1a80-0470-5130-80ff-fa634feb1856> a ddl:Table ;
+    ddl:foreignKey <e22d9c22-feaa-5b10-b711-cff0eb31f6ed> ;
+    ddl:hasName "RecoveryQuestions" ;
+    ddl:hasStructure <0dc8fb6e-07eb-5168-a004-0e08c742f216>,
+        <92736622-390b-52ca-ab94-4b7f45891d49>,
+        <e22d9c22-feaa-5b10-b711-cff0eb31f6ed> ;
+    ddl:primaryKey <e22d9c22-feaa-5b10-b711-cff0eb31f6ed> .
+
+<b86d5963-e34f-5b4d-8cf3-027dd4961daf> a ddl:Schema ;
+    ddl:hasName "main" ;
+    ddl:hasStructure <3f295f93-079f-5621-9b06-6233bc3e4abf>,
+        <69c97b77-f805-5ae3-85b7-9894cfaa06a2>,
+        <973750c3-f66d-5ec8-a6c0-53e1c1fe6423>,
+        <b20c1a80-0470-5130-80ff-fa634feb1856>,
+        <ddd726cf-6b06-575a-a62a-d6847a81f30f>,
+        <f5b835cb-9a29-5e6d-bf2f-792e4fdf301c> .
+
+<c11497b2-bc46-5977-9b22-4bbbaebeac81> a ddl:Column ;
+    ddl:hasName "name" .
+
+<c2e1c9d8-e8fb-5db4-83de-f23a5eb74af1> a ddl:Column ;
+    ddl:hasName "name" .
+
+<ddd726cf-6b06-575a-a62a-d6847a81f30f> a ddl:Table ;
+    ddl:hasName "Products" ;
+    ddl:hasStructure <3189805a-0fe8-5abe-bbfc-fac33b5d99b7>,
+        <c2e1c9d8-e8fb-5db4-83de-f23a5eb74af1> ;
+    ddl:primaryKey <3189805a-0fe8-5abe-bbfc-fac33b5d99b7> .
+
+<e3a7a3bd-30b2-59cd-927e-2ad9764e66d3> a ddl:Column ;
+    ddl:hasName "email" .
+
+<f171c713-78e6-5a35-9424-d9ff1907556d> a ddl:Column ;
+    ddl:hasName "wants_letter" .
+
+<f5b835cb-9a29-5e6d-bf2f-792e4fdf301c> a ddl:Table ;
+    ddl:foreignKey <709b1eb4-1078-5edf-9cd5-7fcf8b64817f> ;
+    ddl:hasName "NewsLetter" ;
+    ddl:hasStructure <709b1eb4-1078-5edf-9cd5-7fcf8b64817f>,
+        <f171c713-78e6-5a35-9424-d9ff1907556d> ;
+    ddl:primaryKey <709b1eb4-1078-5edf-9cd5-7fcf8b64817f> .
+
+<ff84bae7-6026-515d-a94d-c031bf23f5ad> a ddl:Column ;
+    ddl:hasName "creation_date" .
+
+<1be3def8-6ad0-50d5-aa00-ac283ed6a1ae> a ddl:Column ;
+    ddl:hasName "product" ;
+    ddl:references <3189805a-0fe8-5abe-bbfc-fac33b5d99b7> .
+
+<2b447f60-4c63-5d8b-bd9b-b13095ab5d2c> a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
+
+<337dad1a-7bb9-5b11-b595-46c95955df27> a ddl:Column ;
+    ddl:hasName "owner" ;
+    ddl:references <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
+
+<3601ddf8-aa96-514f-9bb9-e9ecc35cf026> a ddl:Column ;
     ddl:hasName "id" .
 
-<Orders/owner> a ddl:Column ;
-    ddl:hasName "owner" ;
-    ddl:references <Users/id> .
-
-<Orders/product> a ddl:Column ;
-    ddl:hasName "product" ;
-    ddl:references <Products/product_id> .
-
-<UserData/user_id> a ddl:Column ;
-    ddl:hasName "user_id" ;
-    ddl:references <Users/id> .
-
-<NewsLetter/user_id> a ddl:Column ;
-    ddl:hasName "user_id" ;
-    ddl:references <UserData/id> .
-
-<Products/product_id> a ddl:Column ;
+<3189805a-0fe8-5abe-bbfc-fac33b5d99b7> a ddl:Column ;
     ddl:hasName "product_id" .
 
-<RecoveryQuestions/user_id> a ddl:Column ;
+<709b1eb4-1078-5edf-9cd5-7fcf8b64817f> a ddl:Column ;
     ddl:hasName "user_id" ;
-    ddl:references <Users/id> .
+    ddl:references <b274b546-e0f4-5b6d-aff5-77b14e6c6485> .
 
-<UserData/id> a ddl:Column ;
+<b274b546-e0f4-5b6d-aff5-77b14e6c6485> a ddl:Column ;
     ddl:hasName "id" .
 
-<Users/id> a ddl:Column ;
+<e22d9c22-feaa-5b10-b711-cff0eb31f6ed> a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
+
+<4d3186a7-5871-540a-96d4-c3f7e8bcc8be> a ddl:Column ;
     ddl:hasName "id" .
 
