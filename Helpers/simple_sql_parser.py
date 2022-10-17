@@ -10,11 +10,11 @@ class SqlParser:
         output = []
         query = Q(string)
         for component in query:
-            if self.is_prefix(component):
+            if self.can_specify_table(component):
                 output.append(query.next())
         return output
 
-    def is_prefix(self, string: str) -> bool:
+    def can_specify_table(self, string: str) -> bool:
         return string.lower() in self.table_prefix
 
     def get_variables_with_prefix(self, query: str):
@@ -51,17 +51,17 @@ class SqlParser:
         else:
             return ('', input_string)
 
-    def get_table_alias(self, query: str):
+    def get_table_alias(self, query_string: str):
         output = []
-        query = Q(query)
+        query = Q(query_string)
 
         for component in query:
-            if self.is_prefix(component):
-                output.append(self.get_table_and_alias(query))
+            if self.can_specify_table(component):
+                output.append(self.get_next_table_and_alias(query))
 
         return output
 
-    def get_table_and_alias(self, query):
+    def get_next_table_and_alias(self, query):
         table = self.get_table(query)
         alias = self.get_alias(query)
         return table, alias
