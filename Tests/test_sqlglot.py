@@ -61,3 +61,26 @@ def test_sqlglot_insert_join():
     assert result == expected
 
 
+def test_sqlglot_modify_join():
+    query = """SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter 
+        from Users U 
+        JOIN UserData UD on U.id = UD.user_id 
+        JOIN NewsLetter NL on UD.id = NL.user_id 
+        GROUP BY UD.name,P.name"""
+
+    expected = (
+        "SELECT U.email, UD.name, question, P.name, SUM(quantity) AS total_quantity, wants_letter "
+        "FROM Users AS U "
+        "JOIN UserData AS UD ON U.id = UD.user_id "
+        "JOIN OtherTable AS NL ON UD.id = NL.user_id "
+        "GROUP BY UD.name, P.name")
+        
+    def transformer(node):
+        if isinstance(node, exp.Table) and node.name == "NewsLetter":
+            return parse_one("OtherTable")
+        return node
+
+    expression_tree = parse_one(query)
+    result = expression_tree.transform(transformer).sql()
+
+    assert result == expected
