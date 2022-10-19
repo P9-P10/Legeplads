@@ -1,138 +1,139 @@
 @prefix ddl: <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
+@prefix org: <www.test-organisation.org/> .
 
-<58c67f34-ec4e-5c21-919a-be1c8590ffbd> a ddl:SQLite ;
+org:34cbf2a2-1134-5dd8-8bcb-cd056dfc0c63 a ddl:SQLite ;
     ddl:hasName "AdvancedDatabase.sqlite" ;
-    ddl:hasStructure <b86d5963-e34f-5b4d-8cf3-027dd4961daf> ;
+    ddl:hasStructure org:644ef3d3-0acf-53ae-bafd-3667fe4ce97a ;
     ddl:withConnection "./Databases/AdvancedDatabase.sqlite" .
 
-<0dc8fb6e-07eb-5168-a004-0e08c742f216> a ddl:Column ;
-    ddl:hasName "answer" .
-
-<3d6836bb-c574-5ca3-b68f-88b7124213b1> a ddl:Column ;
-    ddl:hasName "order_time" .
-
-<3ed31a4f-6a80-5cf7-b874-15d3c0f9553f> a ddl:Column ;
-    ddl:hasName "address" .
-
-<3f295f93-079f-5621-9b06-6233bc3e4abf> a ddl:Table ;
-    ddl:foreignKey <1be3def8-6ad0-50d5-aa00-ac283ed6a1ae>,
-        <337dad1a-7bb9-5b11-b595-46c95955df27> ;
-    ddl:hasName "Orders" ;
-    ddl:hasStructure <1be3def8-6ad0-50d5-aa00-ac283ed6a1ae>,
-        <337dad1a-7bb9-5b11-b595-46c95955df27>,
-        <3601ddf8-aa96-514f-9bb9-e9ecc35cf026>,
-        <3d6836bb-c574-5ca3-b68f-88b7124213b1>,
-        <58178cf5-a2e2-5833-9e2a-9d0c10522099> ;
-    ddl:primaryKey <3601ddf8-aa96-514f-9bb9-e9ecc35cf026> .
-
-<58178cf5-a2e2-5833-9e2a-9d0c10522099> a ddl:Column ;
+org:0f2a290c-7aad-5b69-a578-5234ac9b78c9 a ddl:Column ;
     ddl:hasName "quantity" .
 
-<58dc3549-b06c-5e21-90f5-aa377deb61a8> a ddl:Column ;
-    ddl:hasName "password" .
-
-<69c97b77-f805-5ae3-85b7-9894cfaa06a2> a ddl:Table ;
-    ddl:foreignKey <2b447f60-4c63-5d8b-bd9b-b13095ab5d2c> ;
-    ddl:hasName "UserData" ;
-    ddl:hasStructure <2b447f60-4c63-5d8b-bd9b-b13095ab5d2c>,
-        <3ed31a4f-6a80-5cf7-b874-15d3c0f9553f>,
-        <836e93c3-850a-5413-872c-67b851e22101>,
-        <ade812a6-e337-5d0d-9a19-03187a67bfa9>,
-        <b274b546-e0f4-5b6d-aff5-77b14e6c6485>,
-        <c11497b2-bc46-5977-9b22-4bbbaebeac81> ;
-    ddl:primaryKey <b274b546-e0f4-5b6d-aff5-77b14e6c6485> .
-
-<836e93c3-850a-5413-872c-67b851e22101> a ddl:Column ;
-    ddl:hasName "birthday" .
-
-<92736622-390b-52ca-ab94-4b7f45891d49> a ddl:Column ;
-    ddl:hasName "question" .
-
-<973750c3-f66d-5ec8-a6c0-53e1c1fe6423> a ddl:Table ;
-    ddl:hasName "Users" ;
-    ddl:hasStructure <4d3186a7-5871-540a-96d4-c3f7e8bcc8be>,
-        <58dc3549-b06c-5e21-90f5-aa377deb61a8>,
-        <e3a7a3bd-30b2-59cd-927e-2ad9764e66d3>,
-        <ff84bae7-6026-515d-a94d-c031bf23f5ad> ;
-    ddl:primaryKey <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
-
-<ade812a6-e337-5d0d-9a19-03187a67bfa9> a ddl:Column ;
-    ddl:hasName "phone" .
-
-<b20c1a80-0470-5130-80ff-fa634feb1856> a ddl:Table ;
-    ddl:foreignKey <e22d9c22-feaa-5b10-b711-cff0eb31f6ed> ;
-    ddl:hasName "RecoveryQuestions" ;
-    ddl:hasStructure <0dc8fb6e-07eb-5168-a004-0e08c742f216>,
-        <92736622-390b-52ca-ab94-4b7f45891d49>,
-        <e22d9c22-feaa-5b10-b711-cff0eb31f6ed> ;
-    ddl:primaryKey <e22d9c22-feaa-5b10-b711-cff0eb31f6ed> .
-
-<b86d5963-e34f-5b4d-8cf3-027dd4961daf> a ddl:Schema ;
-    ddl:hasName "main" ;
-    ddl:hasStructure <3f295f93-079f-5621-9b06-6233bc3e4abf>,
-        <69c97b77-f805-5ae3-85b7-9894cfaa06a2>,
-        <973750c3-f66d-5ec8-a6c0-53e1c1fe6423>,
-        <b20c1a80-0470-5130-80ff-fa634feb1856>,
-        <ddd726cf-6b06-575a-a62a-d6847a81f30f>,
-        <f5b835cb-9a29-5e6d-bf2f-792e4fdf301c> .
-
-<c11497b2-bc46-5977-9b22-4bbbaebeac81> a ddl:Column ;
-    ddl:hasName "name" .
-
-<c2e1c9d8-e8fb-5db4-83de-f23a5eb74af1> a ddl:Column ;
-    ddl:hasName "name" .
-
-<ddd726cf-6b06-575a-a62a-d6847a81f30f> a ddl:Table ;
-    ddl:hasName "Products" ;
-    ddl:hasStructure <3189805a-0fe8-5abe-bbfc-fac33b5d99b7>,
-        <c2e1c9d8-e8fb-5db4-83de-f23a5eb74af1> ;
-    ddl:primaryKey <3189805a-0fe8-5abe-bbfc-fac33b5d99b7> .
-
-<e3a7a3bd-30b2-59cd-927e-2ad9764e66d3> a ddl:Column ;
+org:2ad0ae63-e9f1-5672-af73-cc3ccb6649dc a ddl:Column ;
     ddl:hasName "email" .
 
-<f171c713-78e6-5a35-9424-d9ff1907556d> a ddl:Column ;
+org:2ba081f3-3023-5d6a-a275-9599689cdc0b a ddl:Table ;
+    ddl:foreignKey org:c78dd9e7-e0bb-570e-b803-131a01ec2c7e ;
+    ddl:hasName "NewsLetter" ;
+    ddl:hasStructure org:a8681924-c9e5-5da2-96a3-304698fee68c,
+        org:c78dd9e7-e0bb-570e-b803-131a01ec2c7e ;
+    ddl:primaryKey org:c78dd9e7-e0bb-570e-b803-131a01ec2c7e .
+
+org:4ebba559-df7b-5b5d-b5c3-9f417d0859a4 a ddl:Table ;
+    ddl:hasName "Users" ;
+    ddl:hasStructure org:05103790-4143-5406-b5a4-00da6d7f858b,
+        org:2ad0ae63-e9f1-5672-af73-cc3ccb6649dc,
+        org:ef44df17-8aec-5e83-96d4-32d17b895538,
+        org:f7c999ea-9be9-58a2-829f-164a39b4f7e9 ;
+    ddl:primaryKey org:05103790-4143-5406-b5a4-00da6d7f858b .
+
+org:620b6dfa-e3ec-5fba-aecf-7928889c4394 a ddl:Column ;
+    ddl:hasName "order_time" .
+
+org:63fae5df-4b5b-55ba-8d64-b0c125c5f04b a ddl:Table ;
+    ddl:foreignKey org:029295d5-8afc-53b1-925d-4b260a319cf5 ;
+    ddl:hasName "UserData" ;
+    ddl:hasStructure org:029295d5-8afc-53b1-925d-4b260a319cf5,
+        org:550786d7-a9f0-5ba4-a6e6-e401b90e4916,
+        org:6d3d1273-4af1-5b87-8d88-a03efa910ec2,
+        org:9cfc5ed9-c587-5b62-8f5b-a5712ee9e1af,
+        org:f60a694e-37fd-5739-9114-4f180f4a8631,
+        org:f83c6830-fa87-5316-b861-92493ba94c75 ;
+    ddl:primaryKey org:550786d7-a9f0-5ba4-a6e6-e401b90e4916 .
+
+org:644ef3d3-0acf-53ae-bafd-3667fe4ce97a a ddl:Schema ;
+    ddl:hasName "main" ;
+    ddl:hasStructure org:2ba081f3-3023-5d6a-a275-9599689cdc0b,
+        org:4ebba559-df7b-5b5d-b5c3-9f417d0859a4,
+        org:63fae5df-4b5b-55ba-8d64-b0c125c5f04b,
+        org:72c3935f-b0c7-5b99-8cd2-8c2002622c26,
+        org:879abe78-7222-59ec-9881-9e0d47ec74d8,
+        org:9e06ad01-acde-57f4-bb21-68d5a3dcb00f .
+
+org:6d3d1273-4af1-5b87-8d88-a03efa910ec2 a ddl:Column ;
+    ddl:hasName "address" .
+
+org:72c3935f-b0c7-5b99-8cd2-8c2002622c26 a ddl:Table ;
+    ddl:foreignKey org:9bdfcd27-46aa-51db-bbbb-f3b66418080c ;
+    ddl:hasName "RecoveryQuestions" ;
+    ddl:hasStructure org:738786ef-915e-53bc-a79c-32c8606462de,
+        org:85a2f87a-d7f0-57f2-9dd8-7c6972928b89,
+        org:9bdfcd27-46aa-51db-bbbb-f3b66418080c ;
+    ddl:primaryKey org:9bdfcd27-46aa-51db-bbbb-f3b66418080c .
+
+org:738786ef-915e-53bc-a79c-32c8606462de a ddl:Column ;
+    ddl:hasName "answer" .
+
+org:7a2c286c-0f53-52eb-b870-8b7c022bedd0 a ddl:Column ;
+    ddl:hasName "name" .
+
+org:85a2f87a-d7f0-57f2-9dd8-7c6972928b89 a ddl:Column ;
+    ddl:hasName "question" .
+
+org:879abe78-7222-59ec-9881-9e0d47ec74d8 a ddl:Table ;
+    ddl:foreignKey org:6ffb1e2f-93e4-5959-8609-37997caeb3c2,
+        org:c6f459fe-dcf4-5ec2-be18-ef33a18ae09b ;
+    ddl:hasName "Orders" ;
+    ddl:hasStructure org:0f2a290c-7aad-5b69-a578-5234ac9b78c9,
+        org:620b6dfa-e3ec-5fba-aecf-7928889c4394,
+        org:6ffb1e2f-93e4-5959-8609-37997caeb3c2,
+        org:c6f459fe-dcf4-5ec2-be18-ef33a18ae09b,
+        org:d5f72e2d-44b0-57ee-9672-37968fa61017 ;
+    ddl:primaryKey org:d5f72e2d-44b0-57ee-9672-37968fa61017 .
+
+org:9cfc5ed9-c587-5b62-8f5b-a5712ee9e1af a ddl:Column ;
+    ddl:hasName "phone" .
+
+org:9e06ad01-acde-57f4-bb21-68d5a3dcb00f a ddl:Table ;
+    ddl:hasName "Products" ;
+    ddl:hasStructure org:7a2c286c-0f53-52eb-b870-8b7c022bedd0,
+        org:dca764ac-b69b-568c-ac75-9d47152abba4 ;
+    ddl:primaryKey org:dca764ac-b69b-568c-ac75-9d47152abba4 .
+
+org:a8681924-c9e5-5da2-96a3-304698fee68c a ddl:Column ;
     ddl:hasName "wants_letter" .
 
-<f5b835cb-9a29-5e6d-bf2f-792e4fdf301c> a ddl:Table ;
-    ddl:foreignKey <709b1eb4-1078-5edf-9cd5-7fcf8b64817f> ;
-    ddl:hasName "NewsLetter" ;
-    ddl:hasStructure <709b1eb4-1078-5edf-9cd5-7fcf8b64817f>,
-        <f171c713-78e6-5a35-9424-d9ff1907556d> ;
-    ddl:primaryKey <709b1eb4-1078-5edf-9cd5-7fcf8b64817f> .
+org:ef44df17-8aec-5e83-96d4-32d17b895538 a ddl:Column ;
+    ddl:hasName "password" .
 
-<ff84bae7-6026-515d-a94d-c031bf23f5ad> a ddl:Column ;
+org:f60a694e-37fd-5739-9114-4f180f4a8631 a ddl:Column ;
+    ddl:hasName "birthday" .
+
+org:f7c999ea-9be9-58a2-829f-164a39b4f7e9 a ddl:Column ;
     ddl:hasName "creation_date" .
 
-<1be3def8-6ad0-50d5-aa00-ac283ed6a1ae> a ddl:Column ;
-    ddl:hasName "product" ;
-    ddl:references <3189805a-0fe8-5abe-bbfc-fac33b5d99b7> .
+org:f83c6830-fa87-5316-b861-92493ba94c75 a ddl:Column ;
+    ddl:hasName "name" .
 
-<2b447f60-4c63-5d8b-bd9b-b13095ab5d2c> a ddl:Column ;
+org:029295d5-8afc-53b1-925d-4b260a319cf5 a ddl:Column ;
     ddl:hasName "user_id" ;
-    ddl:references <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
+    ddl:references org:05103790-4143-5406-b5a4-00da6d7f858b .
 
-<337dad1a-7bb9-5b11-b595-46c95955df27> a ddl:Column ;
+org:6ffb1e2f-93e4-5959-8609-37997caeb3c2 a ddl:Column ;
+    ddl:hasName "product" ;
+    ddl:references org:dca764ac-b69b-568c-ac75-9d47152abba4 .
+
+org:c6f459fe-dcf4-5ec2-be18-ef33a18ae09b a ddl:Column ;
     ddl:hasName "owner" ;
-    ddl:references <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
+    ddl:references org:05103790-4143-5406-b5a4-00da6d7f858b .
 
-<3601ddf8-aa96-514f-9bb9-e9ecc35cf026> a ddl:Column ;
+org:d5f72e2d-44b0-57ee-9672-37968fa61017 a ddl:Column ;
     ddl:hasName "id" .
 
-<3189805a-0fe8-5abe-bbfc-fac33b5d99b7> a ddl:Column ;
+org:550786d7-a9f0-5ba4-a6e6-e401b90e4916 a ddl:Column ;
+    ddl:hasName "id" .
+
+org:9bdfcd27-46aa-51db-bbbb-f3b66418080c a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references org:05103790-4143-5406-b5a4-00da6d7f858b .
+
+org:c78dd9e7-e0bb-570e-b803-131a01ec2c7e a ddl:Column ;
+    ddl:hasName "user_id" ;
+    ddl:references org:550786d7-a9f0-5ba4-a6e6-e401b90e4916 .
+
+org:dca764ac-b69b-568c-ac75-9d47152abba4 a ddl:Column ;
     ddl:hasName "product_id" .
 
-<709b1eb4-1078-5edf-9cd5-7fcf8b64817f> a ddl:Column ;
-    ddl:hasName "user_id" ;
-    ddl:references <b274b546-e0f4-5b6d-aff5-77b14e6c6485> .
-
-<b274b546-e0f4-5b6d-aff5-77b14e6c6485> a ddl:Column ;
-    ddl:hasName "id" .
-
-<e22d9c22-feaa-5b10-b711-cff0eb31f6ed> a ddl:Column ;
-    ddl:hasName "user_id" ;
-    ddl:references <4d3186a7-5871-540a-96d4-c3f7e8bcc8be> .
-
-<4d3186a7-5871-540a-96d4-c3f7e8bcc8be> a ddl:Column ;
+org:05103790-4143-5406-b5a4-00da6d7f858b a ddl:Column ;
     ddl:hasName "id" .
 

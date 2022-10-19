@@ -3,12 +3,10 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
-@prefix dash:  <http://datashapes.org/dash#> .
 @prefix ddl:   <http://www.cs-22-dt-9-03.org/datastore-description-language#> .
 
 ddl:
     a            owl:Ontology ;
-    owl:imports  <http://datashapes.org/dash> ;
     rdfs:label   "Datastore Description Language (DDL) Vocabulary"@en ;
     rdfs:comment "This vocabulary defines terms that can be used to describe datastores"@en ;
     sh:declare   [ sh:prefix    "ddl" ;

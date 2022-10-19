@@ -1,14 +1,12 @@
 from rdflib import Graph, URIRef, Literal, Namespace
-from rdflib.namespace import RDF, RDFS, FOAF, XSD, OWL
+from rdflib.namespace import RDF, SH
 import sqlite3
 import uuid
-
-ddl = Namespace("http://www.cs-22-dt-9-03.org/datastore-description-language#")
+from typing import List
 
 
 def run_query(conn, query):
-    response = conn.execute(query).fetchall()
-    return response
+    return conn.execute(query).fetchall()
 
 
 class SQLiteDatastore:
@@ -56,7 +54,7 @@ class SQLiteDatastore:
     def remove_table_details(data, table):
         return [row for row in data if table not in row[1]]
 
-    def to_graph(self, namespace_bindings: list[tuple], namespace_id: uuid.UUID) -> Graph:
+    def to_graph(self, namespace_bindings: list[tuple], uuid_id: uuid.UUID, org: str) -> Graph:
         result_graph = Graph()
 
         for name, namespace in namespace_bindings:
@@ -69,8 +67,8 @@ class SQLiteDatastore:
         foreign_keys = self.get_foreign_keys()
 
         # Create a unique id for the database, based on the input UUID
-        database_id = uuid.uuid5(namespace_id, self.connection_string)
-        database_uri = URIRef(str(database_id))
+        database_id = uuid.uuid5(uuid_id, self.connection_string)
+        database_uri = URIRef(org + str(database_id))
 
         result_graph.add((database_uri, RDF.type, ddl.SQLite))
         result_graph.add((database_uri, ddl.withConnection, Literal(self.connection_string)))
@@ -79,7 +77,7 @@ class SQLiteDatastore:
         # Add schemas to the graph
         for schema_id, name, location in schemas:
             schema_id = uuid.uuid5(database_id, name)
-            schema_uri = URIRef(str(schema_id))
+            schema_uri = URIRef(org + str(schema_id))
 
             result_graph.add((schema_uri, RDF.type, ddl.Schema))
             result_graph.add((schema_uri, ddl.hasName, Literal(str(name))))
@@ -89,10 +87,10 @@ class SQLiteDatastore:
         # Add tables to the graph
         for schema, table, column, is_primary_key in tables:
             schema_id = uuid.uuid5(database_id, schema)
-            schema_uri = URIRef(str(schema_id))
+            schema_uri = URIRef(org + str(schema_id))
 
             table_id = uuid.uuid5(schema_id, table)
-            table_uri = URIRef(str(table_id))
+            table_uri = URIRef(org + str(table_id))
 
             result_graph.add((table_uri, RDF.type, ddl.Table))
             result_graph.add((table_uri, ddl.hasName, Literal(str(table))))
@@ -101,13 +99,13 @@ class SQLiteDatastore:
         # Add columns to the graph
         for schema, table, column, is_primary_key in tables:
             schema_id = uuid.uuid5(database_id, schema)
-            schema_uri = URIRef(str(schema_id))
+            schema_uri = URIRef(org + str(schema_id))
 
             table_id = uuid.uuid5(schema_id, table)
-            table_uri = URIRef(str(table_id))
+            table_uri = URIRef(org + str(table_id))
 
             column_id = uuid.uuid5(table_id, column)
-            column_uri = URIRef(str(column_id))
+            column_uri = URIRef(org + str(column_id))
 
             result_graph.add((column_uri, RDF.type, ddl.Column))
             result_graph.add((column_uri, ddl.hasName, Literal(str(column))))
@@ -121,76 +119,53 @@ class SQLiteDatastore:
             schema_id = uuid.uuid5(database_id, schema)
 
             from_table_id = uuid.uuid5(schema_id, from_table)
-            from_table_uri = URIRef(str(from_table_id))
+            from_table_uri = URIRef(org + str(from_table_id))
 
             from_column_id = uuid.uuid5(from_table_id, from_column)
-            from_column_uri = URIRef(str(from_column_id))
+            from_column_uri = URIRef(org + str(from_column_id))
 
             to_table_id = uuid.uuid5(schema_id, to_table)
-            to_table_uri = URIRef(str(to_table_id))
+            to_table_uri = URIRef(org + str(to_table_id))
 
             to_column_id = uuid.uuid5(to_table_id, to_column)
-            to_column_uri = URIRef(str(to_column_id))
+            to_column_uri = URIRef(org + str(to_column_id))
 
             result_graph.add((from_table_uri, ddl.foreignKey, from_column_uri))
             result_graph.add((from_column_uri, ddl.references, to_column_uri))
 
-        # add_triples_for_databases(result_graph, databases)
-        # add_triples_for_tables(result_graph, tables)
-        # add_triples_for_columns()
-        # add_triples_for_foreign_keys()
-
         return result_graph
 
 
-def add_triples_for_tables(graph, tables):
-    unique_table_names = set([row[0] for row in tables])
+def graph_to_triples(graph: Graph) -> str:
+    result: List[str] = []
 
-    for table in unique_table_names:
-        table_uri = URIRef(str(table))
+    for s, p, o in graph:
+        result.append(f'{{subject:"{s}", predicate:"{p}", object:"{o}"}}')
 
-        graph.add((table_uri, RDF.type, ddl.Table))
-        graph.add((table_uri, ddl.hasName, Literal(str(table))))
-
-
-def add_triples_for_columns(graph, tables):
-    for t in tables:
-        (table, column, is_primary_key) = t
-        column_uri = URIRef(table + '/' + column)
-        table_uri = URIRef(table)
-
-        graph.add((column_uri, RDF.type, ddl.Column))
-        graph.add((column_uri, ddl.hasName, Literal(str(column))))
-        graph.add((table_uri, ddl.hasStructure, column_uri))
-
-        if is_primary_key:
-            graph.add((table_uri, ddl.primaryKey, column_uri))
+    return str(result) \
+        .replace('\'', "") \
+        .replace(ddl, 'ddl:') \
+        .replace(org, 'org:') \
+        .replace(str(RDF), 'rdf:') \
+        .replace(str(SH), 'sh:')
 
 
-def add_triples_for_foreign_keys(graph, foreign_keys):
-    for from_table, from_column, to_table, to_column in foreign_keys:
-        from_column_uri = URIRef(from_table + '/' + from_column)
-        from_table_uri = URIRef(from_table)
+if __name__ == "__main__":
+    ddl = Namespace("http://www.cs-22-dt-9-03.org/datastore-description-language#")
+    organisation = "www.test-organisation.org/"
 
-        to_column_uri = URIRef(to_table + '/' + to_column)
-        to_table_uri = URIRef(to_table)
+    org = Namespace(organisation)
 
-        graph.add((from_table_uri, ddl.foreignKey, from_column_uri))
-        graph.add((from_column_uri, ddl.references, to_column_uri))
+    bindings = [("ddl", ddl),
+                ("rdf", RDF),
+                ("org", org)]
 
+    uuid_id = uuid.uuid5(uuid.NAMESPACE_DNS, organisation)
 
-def add_triples_for_databases(graph, database_list):
-    for id, role, name in database_list:
-        pass
+    sqlite = SQLiteDatastore('./Databases/AdvancedDatabase.sqlite')
 
+    data_graph = sqlite.to_graph(bindings, uuid_id, organisation)
 
-bindings = [("ddl", ddl),
-            ("rdf", RDF)]
+    data_graph.serialize(destination="data_graph.ttl", format="turtle")
 
-uuid_id = uuid.uuid5(uuid.NAMESPACE_DNS, "cs-22-dt-9-03.org")
-
-sqlite = SQLiteDatastore('./Databases/AdvancedDatabase.sqlite')
-
-data_graph = sqlite.to_graph(bindings, uuid_id)
-
-data_graph.serialize(destination="data_graph.ttl", format="turtle")
+    print(graph_to_triples(data_graph))
