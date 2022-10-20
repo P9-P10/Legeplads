@@ -2,8 +2,7 @@ import re
 
 import sqlglot
 
-from Helpers.Change import TableChange, Change
-from Helpers.database_change_store import DatabaseChangeStore
+from Helpers.Change import Change
 from sqlglot import parse_one, exp
 
 
