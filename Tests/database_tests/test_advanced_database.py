@@ -23,12 +23,20 @@ def create_connection_with_changes():
     return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes)
 
 
+def create_connection_with_changes_should_not_remove_alias():
+    interface = create_connection_with_changes()
+    interface.changes[0].should_replace_table = True
+    interface.changes[1].should_replace_table = True
+    return interface
+
+
 def create_connection_without_changes():
     return Si(database_path + database_name + ".sqlite")
 
 
 connection_without_changes = create_connection_without_changes()
 connection_with_changes = create_connection_with_changes()
+connections_with_changes_should_not_remove_alias = create_connection_with_changes_should_not_remove_alias()
 
 
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
@@ -71,7 +79,7 @@ def test_select_with_sum(input_connection):
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
 def test_select_with_joins_from_all_databases_not_all_values_have_alias(input_connection):
     result = input_connection.run_query(Query(
-        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter "
+        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, Nl.wants_letter "
         "from Users U "
         "JOIN UserData UD on U.id = UD.user_id "
         "JOIN NewsLetter NL on UD.id = NL.user_id "
@@ -107,10 +115,13 @@ def test_insert_into_users(input_connection):
     assert result == [('TestMail@TestingTest.test', 'Password12345')]
 
 
-@pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
+@pytest.mark.parametrize("input_connection", [connection_without_changes,
+                                              connections_with_changes_should_not_remove_alias])
 def test_select_with_joins_and_aliases_on_all_tables(input_connection):
-    result = input_connection.run_query(Query("SELECT NL.user_id, UD.user_id, NL.wants_letter "
-                                              "FROM Users "
-                                              "JOIN NewsLetter AS NL ON Users.id = NL.user_id "
-                                              "JOIN UserData UD ON UD.id = NL.user_id"))
+    query = Query("SELECT NL.user_id, UD.user_id, NL.wants_letter "
+                  "FROM Users "
+                  "JOIN NewsLetter AS NL ON Users.id = NL.user_id "
+                  "JOIN UserData UD ON UD.id = NL.user_id")
+    result = input_connection.run_query(query)
     assert result == [(1, 1, 1), (2, 2, 0), (3, 3, 1), (4, 4, 1)]
+

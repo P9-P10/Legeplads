@@ -1,3 +1,5 @@
+from Applications.DatabaseRepresenations.Column import Column
+from Applications.DatabaseRepresenations.Table import Table
 from Helpers.Change import *
 
 def test_change_constructor_sets_old_and_new_tuples():

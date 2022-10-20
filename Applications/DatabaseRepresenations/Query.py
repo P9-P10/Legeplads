@@ -25,21 +25,21 @@ class Query:
                 return True
         return False
 
+    def __repr__(self):
+        return str(self)
+
     def apply_changes(self, changes: list[Change]):
         for change in changes:
             new_table, new_column = change.new
             old_table, old_column = change.old
 
-            if self.query_contains_selection(new_table, new_column):
-                self.remove_selection(old_table)
-            else:
-                self.transform_table(old_table, new_table)
-
+            # self.remove_alias_for_table(str(old_table))
+            self.replace_old_table_with_new_table(old_table, new_table)
 
     def query_contains_selection(self, table: Table, column: Column) -> bool:
         ast_string = repr(self.ast)
-        
-        if table in ast_string and column in ast_string:
+
+        if str(table) in ast_string and str(column) in ast_string:
             return True
         return False
 
@@ -50,7 +50,22 @@ class Query:
 
         self.ast = parse_one(''.join(join_sections))
 
-    def transform_table(self, old_table: Table, new_table: Table):
+    def remove_alias_for_table(self, table_name: str):
+        alias_map = {}
+        for alias in self.ast.find_all(exp.Alias):
+            if alias.find(exp.Table) is not None:
+                table = alias.find(exp.Table).name
+                table_alias = alias.find(exp.TableAlias).name
+                alias_map[table_alias] = table
+
+        def transformer(node):
+            if isinstance(node, exp.Column) and alias_map.get(node.table) == table_name:
+                return node.replace(exp.Column(this=exp.Identifier(this=node.name, quoted=False), table=''))
+            return node
+
+        self.ast = self.ast.transform(transformer)
+
+    def replace_old_table_with_new_table(self, old_table: Table, new_table: Table):
         def transform(node):
             if isinstance(node, exp.Table) and node.name == str(old_table):
                 return parse_one(str(new_table))
