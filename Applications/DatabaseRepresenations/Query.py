@@ -1,3 +1,5 @@
+from Applications.DatabaseRepresenations.Table import Table
+from Applications.DatabaseRepresenations.Column import Column
 import re
 
 import sqlglot
@@ -31,26 +33,26 @@ class Query:
             if self.query_contains_selection(new_table, new_column):
                 self.remove_selection(old_table)
             else:
-                self.transform_table(new_table, old_table)
+                self.transform_table(old_table, new_table)
 
 
-    def query_contains_selection(self, table, column):
+    def query_contains_selection(self, table: Table, column: Column) -> bool:
         ast_string = repr(self.ast)
         if str(table) in ast_string and str(column) in ast_string:
             return True
         return False
 
-    def remove_selection(self, table):
+    def remove_selection(self, table: Table):
         ast_string = self.ast.sql()
         join_sections = [x for x in re.split(r"(?=join)", ast_string, flags=re.IGNORECASE) if
                          str(table) not in x]
 
         self.ast = parse_one(''.join(join_sections))
 
-    def transform_table(self, new_name, old_name):
+    def transform_table(self, old_table: Table, new_table: Table):
         def transform(node):
-            if isinstance(node, exp.Table) and node.name == str(old_name):
-                return parse_one(str(new_name))
+            if isinstance(node, exp.Table) and node.name == str(old_table):
+                return parse_one(str(new_table))
             return node
 
         self.ast = self.ast.transform(transform)
