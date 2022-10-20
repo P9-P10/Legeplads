@@ -31,10 +31,12 @@ def test_apply_changes_occurrences_of_table():
     expected = "SELECT col1 FROM testTable JOIN correct_table"
 
     query = Query(query_string)
+
     database_change_store = DatabaseChangeStore()
     column_changes = [ColumnChange("col1", "col1", Table("correct_table"))]
     database_change_store.add_new_change(
         TableChange("other_table", column_changes))
+
     query.apply_changes(database_change_store)
 
     assert str(query) == expected
@@ -45,9 +47,11 @@ def test_apply_changes_does_not_create_duplicates():
                    "= UD.user_id JOIN NewsLetter NL ON UD.id = NL.user_id "
     expected = "SELECT name, wants_letter FROM Users JOIN UserData AS UD ON Users.id = UD.user_id"
     query = Query(query_string)
+
     wants_letter_change = ColumnChange("wants_letter", "wants_letter", Table("UserData"))
     table_change = TableChange("NewsLetter", [wants_letter_change])
     database_change_store = DatabaseChangeStore()
     database_change_store.add_new_change(table_change)
+
     query.apply_changes(database_change_store)
     assert str(query) == expected
