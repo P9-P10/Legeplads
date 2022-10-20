@@ -49,3 +49,32 @@ def test_apply_changes_does_not_create_duplicates():
 
     query.apply_changes([change])
     assert str(query) == expected
+
+
+def test_apply_changes_with_multiple_joins_on_same_table_does_not_remove_duplicates():
+    query_string = "SELECT NL.user_id, UD.user_id FROM Users JOIN UserData AS UD ON Users.id " \
+                   "= UD.user_id JOIN main.UserData NL ON UD.id = NL.user_id"
+
+    expected = "SELECT NL.user_id, UD.user_id FROM Users JOIN UserData AS UD ON Users.id " \
+               "= UD.user_id JOIN main.UserData AS NL ON UD.id = NL.user_id"
+
+    query = Query(query_string)
+    query.apply_changes(DatabaseChangeStore())
+    assert str(query) == expected
+
+
+def test_apply_changes_removes_alias():
+    query_string = "SELECT NL.user_id, UD.user_id, UD.wants_letter FROM Users JOIN NewsLetter AS NL ON Users.id " \
+                   "= NL.user_id JOIN UserData UD ON UD.id = NL.user_id"
+
+    expected = "SELECT NL.user_id, UD.user_id, NL.wants_letter FROM Users JOIN UserData AS NL ON Users.id " \
+               "= NL.user_id JOIN UserData UD ON UD.id = NL.user_id"
+
+    wants_letter_change = ColumnChange("wants_letter", "wants_letter", Table("UserData"))
+    table_change = TableChange("NewsLetter", [wants_letter_change])
+    database_change_store = DatabaseChangeStore()
+    database_change_store.add_new_change(table_change)
+
+    query = Query(query_string)
+    query.apply_changes(database_change_store)
+    assert str(query) == expected

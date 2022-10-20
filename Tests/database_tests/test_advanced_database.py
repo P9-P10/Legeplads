@@ -43,9 +43,9 @@ def test_simple_select(input_connection):
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
 def test_basic_select_with_join(input_connection):
     result = input_connection.run_query(Query("SELECT U.email,phone,birthday "
-                                        "FROM UserData "
-                                        "JOIN Users U on U.id = UserData.id "
-                                        "ORDER BY birthday"))
+                                              "FROM UserData "
+                                              "JOIN Users U on U.id = UserData.id "
+                                              "ORDER BY birthday"))
 
     assert result == [('Egon@olsenbanden.net', 57, '1962-10-05 06:38:29'),
                       ('bob@fancydomain.com', 12345, '1966-10-05 06:38:29'),
@@ -69,7 +69,7 @@ def test_select_with_sum(input_connection):
 
 
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
-def test_select_with_joins_from_all_databases(input_connection):
+def test_select_with_joins_from_all_databases_not_all_values_have_alias(input_connection):
     result = input_connection.run_query(Query(
         "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter "
         "from Users U "
@@ -96,12 +96,21 @@ def test_select_with_joins_from_all_databases(input_connection):
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
 def test_insert_into_users(input_connection):
     input_connection.run_query(Query("INSERT INTO Users(email, password) "
-                               "VALUES ('TestMail@TestingTest.test', 'Password12345');"))
+                                     "VALUES ('TestMail@TestingTest.test', 'Password12345');"))
 
     result = input_connection.run_query(Query("SELECT email,password FROM Users "
-                                        "WHERE email == 'TestMail@TestingTest.test' "
-                                        "AND password == 'Password12345';"))
+                                              "WHERE email == 'TestMail@TestingTest.test' "
+                                              "AND password == 'Password12345';"))
 
     input_connection.run_query(Query("DELETE FROM Users WHERE email== 'TestMail@TestingTest.test';"))
     assert len(result) == 1
     assert result == [('TestMail@TestingTest.test', 'Password12345')]
+
+
+@pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
+def test_select_with_joins_and_aliases_on_all_tables(input_connection):
+    result = input_connection.run_query(Query("SELECT NL.user_id, UD.user_id, NL.wants_letter "
+                                              "FROM Users "
+                                              "JOIN NewsLetter AS NL ON Users.id = NL.user_id "
+                                              "JOIN UserData UD ON UD.id = NL.user_id"))
+    assert result == [(1, 1, 1), (2, 2, 0), (3, 3, 1), (4, 4, 1)]

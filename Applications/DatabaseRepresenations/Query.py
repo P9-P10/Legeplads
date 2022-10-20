@@ -30,7 +30,8 @@ class Query:
 
     def query_contains_selection(self, table, column):
         ast_string = repr(self.ast)
-        if str(table) in ast_string and str(column) in ast_string:
+        
+        if table in ast_string and column in ast_string:
             return True
         return False
 
