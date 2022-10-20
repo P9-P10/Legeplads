@@ -29,6 +29,26 @@ def test_sqlglot_parse_one_result():
         (IDENTIFIER this: O, quoted: False)), expression: 
       (LITERAL this: bob, is_string: True))))"""
 
+def test_remove_aliases():
+    query = "SELECT owner, id FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    expected = "SELECT owner, id FROM Users JOIN Orders AS O ON Users.id = owner WHERE owner = 'bob'"
+
+    alias_map = {}
+
+    for alias in parse_one(query).find_all(exp.Alias):
+        table = alias.find(exp.Table).name
+        table_alias = alias.find(exp.TableAlias).name
+        alias_map[table_alias] = table
+
+
+    def transformer(node):
+        if isinstance(node, exp.Column) and node.table in alias_map.keys():
+            return node.replace(exp.Column(this=exp.Identifier(this="owner", quoted=False), table=''))
+        return node
+
+    transformed_tree = parse_one(query).transform(transformer)
+    assert transformed_tree.sql() == expected
+
 
 def test_sqlglot_find_all_aliases():
     query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
