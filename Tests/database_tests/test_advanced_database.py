@@ -1,10 +1,11 @@
 from Applications.DatabaseRepresenations.Query import Query
+from Applications.DatabaseRepresenations.Table import Table
+from Applications.DatabaseRepresenations.Column import Column
 from Applications.sqliteInterfaceWIthChanges import SqLiteInterfaceWithChanges
 from Applications.sqliteinterface import SqLiteInterface as Si
 import pytest
 
 from Helpers.Change import *
-from Helpers.database_change_store import DatabaseChangeStore
 
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
@@ -12,13 +13,14 @@ o_database_name = "OptimizedAdvancedDatabase"
 
 
 def create_connection_with_changes():
-    database_change_store = DatabaseChangeStore()
-    new_table = Table("UserData")
-    wants_letter_change = ColumnChange("wants_letter", "wants_letter", new_table)
-    user_id_change = ColumnChange("user_id", "user_id", new_table)
-    change = TableChange("NewsLetter", [wants_letter_change, user_id_change])
-    database_change_store.add_new_change(change)
-    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", database_change_store)
+    newsletter = Table('NewsLetter')
+    userdata = Table('UserData')
+    wants_letter = Column('wants_letter')
+    user_id = Column('user_id')
+    wants_letter_change = Change((newsletter, wants_letter), (userdata, wants_letter))
+    user_id_change = Change((newsletter, user_id), (userdata, user_id))
+    changes = [wants_letter_change, user_id_change]
+    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes)
 
 
 def create_connection_without_changes():
