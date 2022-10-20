@@ -1,4 +1,4 @@
-class DeletionRule():
+class DeletionRule:
     def __init__(self, set_to_null=False, should_not_change=False, set_to_empty_string=False,
                  set_to_custom=(False, "")):
         self.set_to_custom = set_to_custom

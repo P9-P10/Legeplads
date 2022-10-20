@@ -1,172 +1,53 @@
-from Helpers.query import Query as Q
+import pytest
+
+from Applications.DatabaseRepresenations.Query import Query
+from Applications.DatabaseRepresenations.Table import Table
+from Helpers.Change import TableChange, ColumnChange
+from Helpers.database_change_store import DatabaseChangeStore
 
 
-def test_get_query_type_update():
-    query = Q("UPDATE Users SET Users.password = 'secure' WHERE Users.email =='test' ")
-    assert query.get_query_type() == "UPDATE"
+def test_query_to_string():
+    query = Query(query_as_string="SELECT * FROM testTable JOIN other_table")
+    assert str(query) == "SELECT * FROM testTable JOIN other_table"
 
 
-def test_get_query_type_delete():
-    query = Q("DELETE FROM Users WHERE Users.email =='test' ")
-    assert query.get_query_type() == "DELETE"
+def test_query_to_string_raises_error_if_not_valid_sql():
+    with pytest.raises(ValueError) as error:
+        Query(query_as_string="This is not valid SQL")
+        assert error.value == "The query is not valid SQL"
 
 
-def test_get_where_clause():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-    result = query.get_where_clause()
-    assert result == " O.owner = 'bob'"
+def test_apply_changes_should_not_update():
+    query_string = "SELECT * FROM testTable JOIN other_table"
+    expected = "SELECT * FROM testTable JOIN other_table"
+
+    query = Query(query_string)
+    query.apply_changes(DatabaseChangeStore())
+    assert str(query) == expected
 
 
-def test_get_query_type_select():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-    assert query.get_query_type() == "SELECT"
+def test_apply_changes_occurrences_of_table():
+    query_string = "SELECT col1 FROM testTable JOIN other_table"
+    expected = "SELECT col1 FROM testTable JOIN correct_table"
+
+    query = Query(query_string)
+    database_change_store = DatabaseChangeStore()
+    column_changes = [ColumnChange("col1", "col1", Table("correct_table"))]
+    database_change_store.add_new_change(
+        TableChange("other_table", column_changes))
+    query.apply_changes(database_change_store)
+
+    assert str(query) == expected
 
 
-def test_split_query_components():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-    print(query.split_query_components())
-    assert query.split_query_components() == ['SELECT', '*', 'FROM', 'Users', 'JOIN', 'Orders', 'O', 'on', 'Users.id',
-                                              '=', 'O.owner', 'WHERE', 'O.owner', '=', "'bob'"]
-
-
-def test_split_query_components_contains_newLine():
-    query = Q("""SELECT * FROM Users JOIN Orders O on
-    Users.id = O.owner WHERE O.owner = 'bob'""")
-    print(query.split_query_components())
-    assert query.split_query_components() == ['SELECT', '*', 'FROM', 'Users', 'JOIN', 'Orders', 'O', 'on', 'Users.id',
-                                              '=', 'O.owner', 'WHERE', 'O.owner', '=', "'bob'"]
-
-
-def test_current_returns_first_element_of_query():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.current() == "SELECT"
-
-
-def test_current_returns_empty_string_with_empty_query():
-    query = Q("")
-
-    assert query.current() == ""
-
-
-def test_current_is_idempotent():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    first_current_value = query.current()
-    assert query.current() == first_current_value
-    assert query.current() == first_current_value
-    assert query.current() == first_current_value
-
-
-def test_current_stays_at_last_value():
-    query = Q("SELECT * FROM")
-
-    assert query.current() == "SELECT"
-    query.next()
-    assert query.current() == "*"
-    query.next()
-    assert query.current() == "FROM"
-    query.next()
-    assert query.current() == "FROM"
-
-
-def test_peek_returns_next_value_by_default():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.peek() == "*"
-
-
-def test_peek_returns_value_at_given_position_relative_to_current():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.peek(3) == "Users"
-    assert query.peek(11) == "WHERE"
-
-
-def test_peek_does_not_change_value_of_current():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.current() == "SELECT"
-    query.peek()
-    assert query.current() == "SELECT"
-
-
-def test_peek_is_idempotent():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    first_peek_value = query.peek()
-    assert query.peek() == first_peek_value
-    assert query.peek(2) == "FROM"
-    assert query.peek() == first_peek_value
-    assert query.peek(89) == None
-    assert query.peek() == first_peek_value
-
-
-def test_peek_is_idempotent():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    first_peek_value = query.peek()
-    assert query.peek() == first_peek_value
-    assert query.peek() == first_peek_value
-    assert query.peek() == first_peek_value
-
-
-def test_peek_returns_None_with_empty_query():
-    query = Q("")
-
-    assert query.peek() == None
-
-
-def test_peek_returns_None_when_current_is_last_element():
-    query = Q("SELECT * FROM")
-    query.next()
-    query.next()
-    assert query.current() == "FROM"
-    assert query.peek() == None
-
-
-def test_next_returns_next_value_by_default():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.next() == "*"
-
-
-def test_next_returns_value_at_given_position_relative_to_current():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.next(2) == "FROM"
-    assert query.next(2) == "JOIN"
-    assert query.next(7) == "WHERE"
-
-
-def test_next_returns_None_when_current_is_last_element():
-    query = Q("SELECT * FROM")
-    query.next()
-    query.next()
-    assert query.current() == "FROM"
-    assert query.next() is None
-
-
-def test_next_called_after_peek_returns_same_value():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.peek() == query.next()
-
-
-def test_peek_called_after_next_returns_different_value():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert not query.next() == query.peek()
-
-
-def test_next_changes_current_to_value_returned_by_peek():
-    query = Q("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
-
-    assert query.current() == "SELECT"
-
-    second_value_peek = query.peek()
-    second_value_from_next = query.next()
-    second_value = query.current()
-
-    assert second_value_from_next == second_value_peek
-    assert second_value == second_value_from_next
+def test_apply_changes_does_not_create_duplicates():
+    query_string = "SELECT name, wants_letter FROM Users JOIN UserData AS UD ON Users.id " \
+                   "= UD.user_id JOIN NewsLetter NL ON UD.id = NL.user_id "
+    expected = "SELECT name, wants_letter FROM Users JOIN UserData AS UD ON Users.id = UD.user_id"
+    query = Query(query_string)
+    wants_letter_change = ColumnChange("wants_letter", "wants_letter", Table("UserData"))
+    table_change = TableChange("NewsLetter", [wants_letter_change])
+    database_change_store = DatabaseChangeStore()
+    database_change_store.add_new_change(table_change)
+    query.apply_changes(database_change_store)
+    assert str(query) == expected

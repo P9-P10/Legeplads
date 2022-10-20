@@ -1,5 +1,6 @@
 import sqlite3
 
+from Applications.DatabaseRepresenations.Query import Query
 from Applications.dbinterface import DBInterface
 
 
@@ -8,9 +9,9 @@ class SqLiteInterface(DBInterface):
         super().__init__(path_to_database)
         self.sql = sqlite3.connect(self.path_to_database)
 
-    def run_query(self, query):
+    def run_query(self, query:Query):
         conn = self.sql.cursor()
-        conn.execute(query)
+        conn.execute(str(query))
         response = conn.fetchall()
         self.sql.commit()
         return response
