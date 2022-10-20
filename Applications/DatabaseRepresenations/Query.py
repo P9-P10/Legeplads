@@ -17,6 +17,12 @@ class Query:
     def __str__(self):
         return self.ast.sql()
 
+    def __eq__(self, other):
+        if isinstance(other, Query):
+            if str(other) == str(self):
+                return True
+        return False
+
     def apply_changes(self, changes: list[Change]):
         for change in changes:
             new_table, new_column = change.new
