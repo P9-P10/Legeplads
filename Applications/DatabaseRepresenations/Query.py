@@ -30,7 +30,8 @@ class Query:
 
     def apply_changes(self, changes: list[Change], tables=None):
         if tables is not None:
-            self.fully_qualify_column_names(tables)
+            self.fully_qualify_column_names(
+                [table for table in tables if table.name in self.query_as_string])
         if changes is not None:
             self.apply_each_change(changes)
 
@@ -65,7 +66,9 @@ class Query:
         def transformer(node):
             if isinstance(node, exp.Column):
                 if self.node_has_no_table(node):
-                    return self.apply_alias_to_node(node, tables, alias_map)
+                    return self.apply_alias_to_node(node, self.get_alias_for_column(tables, alias_map, node.name))
+                elif node.table in [table.name for table in tables]:
+                    return self.apply_alias_to_node(node, self.get_alias_for_table(node.table, alias_map))
             return node
 
         self.ast = self.ast.transform(transformer)
@@ -73,10 +76,10 @@ class Query:
     def node_has_no_table(self, node):
         return node.table == ""
 
-    def apply_alias_to_node(self, node, tables, alias_map):
+    def apply_alias_to_node(self, node, alias):
         return node.replace(exp.Column(
             this=exp.Identifier(this=node.name),
-            table=exp.Identifier(this=self.get_alias_for_column(tables, alias_map, node.name))))
+            table=exp.Identifier(this=alias)))
 
     def get_table_for_column(self, tables, column_name):
         for table in tables:
@@ -87,6 +90,9 @@ class Query:
         for column in table.columns:
             if column.name == column_name:
                 return True
+
+    def get_alias_for_table(self, table_name, table_map):
+        return table_map[table_name]
 
     def get_alias_for_column(self, tables, aliases, column_name):
         column_table = self.get_table_for_column(tables, column_name)

@@ -6,10 +6,12 @@ from Applications.sqliteinterface import SqLiteInterface as Si
 import pytest
 
 from Helpers.Change import *
+from Helpers.database_map import DBMapper
 
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
 o_database_name = "OptimizedAdvancedDatabase"
+dbmap = DBMapper(Si(database_path + o_database_name + ".sqlite"))
 
 
 def create_connection_with_changes():
@@ -23,10 +25,7 @@ def create_connection_with_changes():
     changes = [wants_letter_change, user_id_change]
 
     # Tables
-    news_letter = Table("NewsLetter", [Column("wants_letter")])
-    orders = Table("Orders", [Column("quantity")])
-    recovery_questions = Table("RecoveryQuestions", [Column("question")])
-    tables = [news_letter, orders, recovery_questions]
+    tables = dbmap.create_database_map()
 
     return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes, tables)
 
@@ -64,7 +63,7 @@ def test_basic_select_with_join(input_connection):
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
 def test_select_with_sum(input_connection):
     result = input_connection.run_query(Query(
-        "SELECT name, email,SUM(o.quantity) as Total_quantity "
+        "SELECT name, email,SUM(O.quantity) as Total_quantity "
         "FROM Users "
         "JOIN Orders O on Users.id = O.owner "
         "JOIN UserData UD on Users.id = UD.user_id "
@@ -106,11 +105,15 @@ def test_insert_into_users(input_connection):
     input_connection.run_query(Query("INSERT INTO Users(email, password) "
                                      "VALUES ('TestMail@TestingTest.test', 'Password12345');"))
 
-    result = input_connection.run_query(Query("SELECT email,password FROM Users "
-                                              "WHERE email == 'TestMail@TestingTest.test' "
-                                              "AND password == 'Password12345';"))
+    try:
+        result = input_connection.run_query(Query("SELECT email,password FROM Users "
+                                                  "WHERE email == 'TestMail@TestingTest.test' "
+                                                  "AND password == 'Password12345';"))
 
-    input_connection.run_query(Query("DELETE FROM Users WHERE email== 'TestMail@TestingTest.test';"))
+    finally:
+        input_connection.run_query(Query("DELETE FROM Users WHERE email== 'TestMail@TestingTest.test';"))
+
+
     assert len(result) == 1
     assert result == [('TestMail@TestingTest.test', 'Password12345')]
 

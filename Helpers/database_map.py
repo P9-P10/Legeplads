@@ -19,7 +19,7 @@ class DBMapper:
                 map[table].append(column)
 
         tables = []
-        for key, value in map:
+        for key, value in map.items():
             tables.append(Table(key, [Column(col) for col in value]))
         self.tables = tables
         self.map = map
