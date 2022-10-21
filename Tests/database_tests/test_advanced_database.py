@@ -13,6 +13,7 @@ o_database_name = "OptimizedAdvancedDatabase"
 
 
 def create_connection_with_changes():
+    # Changes
     newsletter = Table('NewsLetter')
     userdata = Table('UserData')
     wants_letter = Column('wants_letter')
@@ -20,14 +21,14 @@ def create_connection_with_changes():
     wants_letter_change = Change((newsletter, wants_letter), (userdata, wants_letter))
     user_id_change = Change((newsletter, user_id), (userdata, user_id))
     changes = [wants_letter_change, user_id_change]
-    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes)
 
+    # Tables
+    news_letter = Table("NewsLetter", [Column("wants_letter")])
+    orders = Table("Orders", [Column("quantity")])
+    recovery_questions = Table("RecoveryQuestions", [Column("question")])
+    tables = [news_letter, orders, recovery_questions]
 
-def create_connection_with_changes_should_not_remove_alias():
-    interface = create_connection_with_changes()
-    interface.changes[0].should_replace_table = True
-    interface.changes[1].should_replace_table = True
-    return interface
+    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes, tables)
 
 
 def create_connection_without_changes():
@@ -36,7 +37,6 @@ def create_connection_without_changes():
 
 connection_without_changes = create_connection_without_changes()
 connection_with_changes = create_connection_with_changes()
-connections_with_changes_should_not_remove_alias = create_connection_with_changes_should_not_remove_alias()
 
 
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
@@ -79,7 +79,7 @@ def test_select_with_sum(input_connection):
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
 def test_select_with_joins_from_all_databases_not_all_values_have_alias(input_connection):
     result = input_connection.run_query(Query(
-        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, Nl.wants_letter "
+        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter "
         "from Users U "
         "JOIN UserData UD on U.id = UD.user_id "
         "JOIN NewsLetter NL on UD.id = NL.user_id "
@@ -116,7 +116,7 @@ def test_insert_into_users(input_connection):
 
 
 @pytest.mark.parametrize("input_connection", [connection_without_changes,
-                                              connections_with_changes_should_not_remove_alias])
+                                              connection_with_changes])
 def test_select_with_joins_and_aliases_on_all_tables(input_connection):
     query = Query("SELECT NL.user_id, UD.user_id, NL.wants_letter "
                   "FROM Users "
@@ -124,4 +124,3 @@ def test_select_with_joins_and_aliases_on_all_tables(input_connection):
                   "JOIN UserData UD ON UD.id = NL.user_id")
     result = input_connection.run_query(query)
     assert result == [(1, 1, 1), (2, 2, 0), (3, 3, 1), (4, 4, 1)]
-

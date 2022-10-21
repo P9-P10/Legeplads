@@ -6,8 +6,11 @@ from Helpers.Change import Change
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
-    def __init__(self, path_to_database, changes: list[Change]):
+    def __init__(self, path_to_database, changes: list[Change], tables=None):
         super().__init__(path_to_database)
+        if tables is None:
+            tables = []
+        self.tables = tables
         self.changes = changes
         self.sql = sqlite3.connect(path_to_database)
 
@@ -19,4 +22,4 @@ class SqLiteInterfaceWithChanges(SqLiteInterface):
         return super().run_query(query)
 
     def apply_changes(self, query: Query):
-        query.apply_changes(self.changes)
+        query.apply_changes(self.changes, self.tables)

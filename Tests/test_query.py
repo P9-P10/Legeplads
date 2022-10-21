@@ -84,3 +84,65 @@ def test_apply_changes_with_multiple_joins_on_same_table_does_not_remove_duplica
 
     actual.apply_changes([])
     assert actual == expected
+
+
+def test_apply_changes_adds_aliases():
+    actual = Query(
+        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter "
+        "from Users U "
+        "JOIN UserData UD on U.id = UD.user_id "
+        "JOIN NewsLetter NL on UD.id = NL.user_id "
+        "JOIN Orders O on U.id = O.owner "
+        "JOIN Products P on P.product_id = O.product "
+        "JOIN RecoveryQuestions RQ on U.id = RQ.user_id "
+        "GROUP BY UD.name,P.name")
+
+    expected = Query(
+        "SELECT U.email, UD.name, RQ.question, P.name,SUM(O.quantity) as total_quantity, NL.wants_letter "
+        "from Users U "
+        "JOIN UserData UD on U.id = UD.user_id "
+        "JOIN NewsLetter NL on UD.id = NL.user_id "
+        "JOIN Orders O on U.id = O.owner "
+        "JOIN Products P on P.product_id = O.product "
+        "JOIN RecoveryQuestions RQ on U.id = RQ.user_id "
+        "GROUP BY UD.name,P.name")
+
+    news_letter = Table("NewsLetter", [Column("wants_letter")])
+    orders = Table("Orders", [Column("quantity")])
+    recovery_questions = Table("RecoveryQuestions", [Column("question")])
+    tables = [news_letter, orders, recovery_questions]
+    actual.apply_changes([], tables)
+    assert actual == expected
+
+
+def test_fully_qualify_column_names():
+    actual = Query("SELECT name FROM UserData")
+
+    expected = Query("SELECT UserData1.name FROM UserData AS UserData1")
+    actual.fully_qualify_column_names([Table("UserData", [Column("name")])])
+
+    assert actual == expected
+
+
+def test_create_needed_alias():
+    actual = Query("SELECT name FROM UserData")
+
+    expected = Query("SELECT name FROM UserData AS UserData1")
+
+    actual.create_needed_aliases()
+
+    assert actual == expected
+
+
+def test_create_needed_alias_multiple_tables_without_alias():
+    actual = Query("SELECT name "
+                   "FROM UserData "
+                   "JOIN RecoveryQuestions on UserData.user_id = RecoveryQuestions.user_id")
+
+    expected = Query("SELECT name "
+                     "FROM UserData AS UserData1 "
+                     "JOIN RecoveryQuestions as RecoveryQuestions1 on UserData.user_id = RecoveryQuestions.user_id")
+
+    actual.create_needed_aliases()
+
+    assert actual == expected
