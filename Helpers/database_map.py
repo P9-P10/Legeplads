@@ -1,5 +1,7 @@
 from Applications.DatabaseRepresenations.Query import Query
 from Applications.sqliteinterface import SqLiteInterface
+from Applications.DatabaseRepresenations.Table import Table
+from Applications.DatabaseRepresenations.Column import Column
 
 class DBMapper:
     def __init__(self, dbinterface: SqLiteInterface):
@@ -16,8 +18,12 @@ class DBMapper:
             else:
                 map[table].append(column)
 
+        tables = []
+        for key, value in map:
+            tables.append(Table(key, [Column(col) for col in value]))
+        self.tables = tables
         self.map = map
-        return map
+        return tables
 
     def get_table_details(self):
         return self.dbinterface.run_query(Query(""" 
