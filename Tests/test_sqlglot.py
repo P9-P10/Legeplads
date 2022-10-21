@@ -32,7 +32,7 @@ def test_sqlglot_parse_one_result():
 
 
 def test_remove_aliases():
-    query = "SELECT owner, id FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    query = "SELECT O.owner, id FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
     expected = "SELECT owner, id FROM Users JOIN Orders AS O ON Users.id = owner WHERE owner = 'bob'"
 
     alias_map = {}
