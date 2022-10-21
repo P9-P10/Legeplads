@@ -1,4 +1,4 @@
-from Applications.sqliteinterface import SqLiteInterface as Si
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si
 import pytest
 
 database_name = "SimpleDatabase"

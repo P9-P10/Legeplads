@@ -1,5 +1,5 @@
 from Applications.DatabaseRepresenations.Query import Query
-from Applications.sqliteinterface import SqLiteInterface
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
 from Applications.DatabaseRepresenations.Table import Table
 from Applications.DatabaseRepresenations.Column import Column
 

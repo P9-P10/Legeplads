@@ -1,7 +1,7 @@
 import sqlite3
 
 from Applications.DatabaseRepresenations.Query import Query
-from Applications.sqliteinterface import SqLiteInterface
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
 from Helpers.Change import Change
 
 
