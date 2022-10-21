@@ -1,7 +1,7 @@
 import sqlite3
 
 from Applications.DatabaseRepresenations.Query import Query
-from Applications.dbinterface import DBInterface
+from Applications.Database_intefaces.dbinterface import DBInterface
 
 
 class SqLiteInterface(DBInterface):

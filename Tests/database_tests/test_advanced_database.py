@@ -1,8 +1,8 @@
 from Applications.DatabaseRepresenations.Query import Query
 from Applications.DatabaseRepresenations.Table import Table
 from Applications.DatabaseRepresenations.Column import Column
-from Applications.sqliteInterfaceWIthChanges import SqLiteInterfaceWithChanges
-from Applications.sqliteinterface import SqLiteInterface as Si
+from Applications.Database_intefaces.sqliteInterfaceWIthChanges import SqLiteInterfaceWithChanges
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si
 import pytest
 
 from Helpers.Change import *
