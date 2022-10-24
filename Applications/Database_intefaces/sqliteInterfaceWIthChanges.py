@@ -3,6 +3,7 @@ import sqlite3
 from Applications.DatabaseRepresenations.Query import Query
 from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
 from Helpers.Change import Change
+from Applications.query_transformer import transform
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
@@ -22,4 +23,4 @@ class SqLiteInterfaceWithChanges(SqLiteInterface):
         return super().run_query(query)
 
     def apply_changes(self, query: Query):
-        query.apply_changes(self.changes, self.tables)
+        transform(query, self.changes, self.tables)

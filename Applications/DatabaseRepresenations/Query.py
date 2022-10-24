@@ -26,25 +26,9 @@ class Query:
     def __repr__(self):
         return str(self)
 
-    def apply_changes(self, changes: list[Change], tables=None):
-        if tables:
-            self.fully_qualify_column_names(self.tables_in_query(tables))
-        self.apply_each_change(changes)
 
     def tables_in_query(self, tables):
         return [table for table in tables if table.name in self.query_as_string]
-
-    def apply_each_change(self, changes):
-        for change in changes:
-            new_table = change.get_new_table()
-            old_table = change.get_old_table()
-
-            self.replace_table(old_table, new_table)
-
-    def fully_qualify_column_names(self, tables: list[Table]):
-        self.create_needed_aliases()
-        alias_map = self.create_alias_map()
-        self.apply_missing_aliases(tables, alias_map)
 
     def transform_ast(self, transformer):
         self.ast = self.ast.transform(transformer)
@@ -56,27 +40,12 @@ class Query:
             return node
 
         self.transform_ast(transform)
-
-    def create_alias_map(self):
-        alias_map = {}
-        for alias in self.get_aliases():
-            self.add_alias_if_exists(alias, alias_map)
-        return alias_map
-
+    
     def get_aliases(self):
         return self.get_all_instances(exp.Alias)
 
     def get_all_instances(self, type):
         return self.ast.find_all(type)
-
-    def add_alias_if_exists(self, alias, alias_map):
-        table = self.get_table(alias)
-        if table:
-            self.add_alias(alias, alias_map, table)
-
-    def add_alias(self, alias, alias_map, table):
-        table_alias = self.get_table_alias(alias)
-        alias_map[table.name] = table_alias.name
 
     def get_table(self, object):
         return self.get_next_instance(object, exp.Table)
