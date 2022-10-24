@@ -123,18 +123,16 @@ def test_fully_qualify_column_names():
 
     assert actual == expected
 
-
-def test_create_needed_alias():
+def test_fully_qualify_column_names_creates_needed_alias():
     actual = Query("SELECT name FROM UserData")
 
     expected = Query("SELECT name FROM UserData AS UserData1")
 
-    actual.create_needed_aliases()
+    actual.fully_qualify_column_names([])
 
     assert actual == expected
 
-
-def test_create_needed_alias_multiple_tables_without_alias():
+def test_fully_qualify_column_names_creates_aliases_for_multiple_tables():
     actual = Query("SELECT name "
                    "FROM UserData "
                    "JOIN RecoveryQuestions on UserData.user_id = RecoveryQuestions.user_id")
@@ -143,6 +141,6 @@ def test_create_needed_alias_multiple_tables_without_alias():
                      "FROM UserData AS UserData1 "
                      "JOIN RecoveryQuestions as RecoveryQuestions1 on UserData.user_id = RecoveryQuestions.user_id")
 
-    actual.create_needed_aliases()
+    actual.fully_qualify_column_names([])
 
     assert actual == expected
