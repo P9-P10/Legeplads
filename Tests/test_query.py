@@ -52,78 +52,6 @@ def test_query_to_string_raises_error_if_not_valid_sql():
         assert error.value == "The query is not valid SQL"
 
 
-def test_apply_changes_should_not_update_if_there_are_no_changes():
-    actual = Query("SELECT * FROM testTable JOIN other_table")
-    expected = Query("SELECT * FROM testTable JOIN other_table")
-
-    actual.apply_changes([])
-
-    assert actual == expected
-
-
-def test_apply_changes_occurrences_of_table():
-    actual = Query("SELECT col1 FROM testTable JOIN other_table")
-    expected = Query("SELECT col1 FROM testTable JOIN correct_table")
-
-    change = Change((Table('other_table'), Column('col1')), (Table('correct_table'), Column('col1')))
-    actual.apply_changes([change])
-
-    assert actual == expected
-
-
-def test_apply_changes_with_multiple_joins_on_same_table_does_not_remove_duplicates():
-    actual = Query("SELECT NL.user_id, UD.user_id "
-                   "FROM Users "
-                   "JOIN UserData AS UD ON Users.id= UD.user_id "
-                   "JOIN main.UserData NL ON UD.id = NL.user_id")
-
-    expected = Query("SELECT NL.user_id, UD.user_id "
-                     "FROM Users "
-                     "JOIN UserData AS UD ON Users.id= UD.user_id "
-                     "JOIN main.UserData AS NL ON UD.id = NL.user_id")
-
-    actual.apply_changes([])
-    assert actual == expected
-
-
-def test_apply_changes_adds_aliases():
-    actual = Query(
-        "SELECT U.email, UD.name, question, P.name,SUM(quantity) as total_quantity, wants_letter "
-        "from Users U "
-        "JOIN UserData UD on U.id = UD.user_id "
-        "JOIN NewsLetter NL on UD.id = NL.user_id "
-        "JOIN Orders O on U.id = O.owner "
-        "JOIN Products P on P.product_id = O.product "
-        "JOIN RecoveryQuestions RQ on U.id = RQ.user_id "
-        "GROUP BY UD.name,P.name")
-
-    expected = Query(
-        "SELECT U.email, UD.name, RQ.question, P.name,SUM(O.quantity) as total_quantity, NL.wants_letter "
-        "from Users U "
-        "JOIN UserData UD on U.id = UD.user_id "
-        "JOIN NewsLetter NL on UD.id = NL.user_id "
-        "JOIN Orders O on U.id = O.owner "
-        "JOIN Products P on P.product_id = O.product "
-        "JOIN RecoveryQuestions RQ on U.id = RQ.user_id "
-        "GROUP BY UD.name,P.name")
-
-    news_letter = Table("NewsLetter", [Column("wants_letter")])
-    orders = Table("Orders", [Column("quantity")])
-    recovery_questions = Table("RecoveryQuestions", [Column("question")])
-    tables = [news_letter, orders, recovery_questions]
-    actual.apply_changes([], tables)
-    assert actual == expected
-
-
-def test_fully_qualify_column_names():
-    actual = Query("SELECT name FROM UserData")
-
-    expected = Query("SELECT UserData1.name FROM UserData AS UserData1")
-    actual.fully_qualify_column_names([Table("UserData", [Column("name")])])
-
-    assert actual == expected
-
-
 def test_create_needed_alias():
     actual = Query("SELECT name FROM UserData")
 
@@ -146,13 +74,3 @@ def test_create_needed_alias_multiple_tables_without_alias():
     actual.create_needed_aliases()
 
     assert actual == expected
-
-
-def test_add_joins_when_needed():
-    actual = Query("SELECT U.email, UD.name, question, wants_letter "
-                   "from Users U "
-                   "JOIN UserData UD on U.id = UD.user_id "
-                   "JOIN NewsLetter NL on UD.id = NL.user_id "
-                   "GROUP BY UD.name,P.name")
-    Change()
-    actual.apply_changes([])
