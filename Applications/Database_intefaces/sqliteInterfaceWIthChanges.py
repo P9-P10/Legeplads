@@ -7,11 +7,14 @@ from Applications.query_transformer import transform
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
-    def __init__(self, path_to_database, changes: list[Change], tables=None):
+    def __init__(self, path_to_database, changes: list[Change],old_tables=None, new_tables=None):
         super().__init__(path_to_database)
-        if tables is None:
-            tables = []
-        self.tables = tables
+        if new_tables is None:
+            new_tables = []
+        if old_tables is None:
+            old_tables = []
+        self.old_tables = old_tables
+        self.new_tables = new_tables
         self.changes = changes
         self.sql = sqlite3.connect(path_to_database)
 
@@ -23,4 +26,4 @@ class SqLiteInterfaceWithChanges(SqLiteInterface):
         return super().run_query(query)
 
     def apply_changes(self, query: Query):
-        transform(query, self.changes, self.tables)
+        transform(query, self.changes, self.old_tables, self.new_tables)

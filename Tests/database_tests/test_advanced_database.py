@@ -25,9 +25,10 @@ def create_connection_with_changes():
     changes = [wants_letter_change, user_id_change]
 
     # Tables
-    tables = dbmap.create_database_map()
+    new_tables = dbmap.create_database_map()
+    old_tables = []
 
-    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes, tables)
+    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes, old_tables, new_tables)
 
 
 def create_connection_without_changes():
@@ -112,7 +113,6 @@ def test_insert_into_users(input_connection):
 
     finally:
         input_connection.run_query(Query("DELETE FROM Users WHERE email== 'TestMail@TestingTest.test';"))
-
 
     assert len(result) == 1
     assert result == [('TestMail@TestingTest.test', 'Password12345')]

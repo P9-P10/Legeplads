@@ -6,6 +6,7 @@ import sqlglot
 from Helpers.Change import Change
 from sqlglot import parse_one, exp
 
+
 class Query:
     def __init__(self, query_as_string: str):
         self.query_as_string = query_as_string
@@ -26,7 +27,6 @@ class Query:
     def __repr__(self):
         return str(self)
 
-
     def tables_in_query(self, tables):
         return [table for table in tables if table.name in self.query_as_string]
 
@@ -40,7 +40,7 @@ class Query:
             return node
 
         self.transform_ast(transform)
-    
+
     def get_aliases(self):
         return self.get_all_instances(exp.Alias)
 
@@ -59,11 +59,13 @@ class Query:
     def apply_missing_aliases(self, tables, alias_map):
         if not tables:
             return
-        
+
         def transformer(node):
             if isinstance(node, exp.Column):
                 if self.node_has_no_table(node):
-                    return self.apply_alias_to_node(node, self.get_alias_for_column(tables, alias_map, node.name))
+                    alias = self.get_alias_for_column(tables, alias_map, node.name)
+                    if alias is not None:
+                        return self.apply_alias_to_node(node, alias)
                 elif node.table in [table.name for table in tables]:
                     return self.apply_alias_to_node(node, self.get_alias_for_table(node.table, alias_map))
             return node
@@ -107,9 +109,25 @@ class Query:
 
     def get_alias_for_column(self, tables, aliases, column_name):
         column_table = self.get_table_for_column(tables, column_name)
+        if column_table is None:
+            return None
         return aliases[column_table]
 
     def get_table_for_column(self, tables, column_name):
         for table in tables:
             if table.has_column(Column(column_name)):
                 return table.name
+
+    def change_column_in_comparisons(self, alias, old_column, new_column):
+
+        def column_transform(node):
+            if isinstance(node, exp.Column) and node.name == old_column.name and node.table == alias:
+                return node.replace(exp.Column(this=exp.Identifier(this=new_column.name), table=exp.Identifier(this=node.table)))
+            return node
+
+        def transform(node):
+            if isinstance(node, exp.EQ):
+                return node.transform(column_transform)
+            return node
+
+        self.transform_ast(transform)
