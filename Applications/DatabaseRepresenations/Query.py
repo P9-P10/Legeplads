@@ -120,9 +120,15 @@ class Query:
 
     def change_column_in_comparisons(self, alias, old_column, new_column):
 
+        def is_column_with_correct_table_and_name(node):
+            return isinstance(node, exp.Column) and node.name == old_column.name and node.table == alias
+
+        def create_node_with_alias_and_name(node):
+            return exp.Column(this=exp.Identifier(this=new_column.name), table=exp.Identifier(this=node.table))
+
         def column_transform(node):
-            if isinstance(node, exp.Column) and node.name == old_column.name and node.table == alias:
-                return node.replace(exp.Column(this=exp.Identifier(this=new_column.name), table=exp.Identifier(this=node.table)))
+            if is_column_with_correct_table_and_name(node):
+                return node.replace(create_node_with_alias_and_name(node))
             return node
 
         def transform(node):
