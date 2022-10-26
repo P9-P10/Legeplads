@@ -6,14 +6,15 @@ from Helpers.Change import Change
 def transform(query: Query, changes: list[Change], old_structure: list[Table], new_structure: list[Table]):
     query.create_needed_aliases()
     alias_map = create_alias_map(query)
+    apply_structure_changes(query, old_structure, new_structure, alias_map)
+    apply_each_change(query, changes, alias_map)
 
+
+def apply_structure_changes(query, old_structure, new_structure, alias_map):
     if new_structure:
         fully_qualify_column_names(query, query.tables_in_query(new_structure), alias_map)
-
     if old_structure:
         fully_qualify_column_names(query, query.tables_in_query(old_structure), alias_map)
-
-    apply_each_change(query, changes, alias_map)
 
 
 def fully_qualify_column_names(query, tables: list[Table], alias_map):
