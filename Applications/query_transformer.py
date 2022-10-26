@@ -46,8 +46,12 @@ def apply_each_change(query, changes, alias_map):
         old_table = change.get_old_table()
 
         query.replace_table(old_table, new_table)
-        constraint = change.get_constraint()
-        if constraint:
-            query.change_column_in_comparisons(alias_map.get(str(old_table)),
-                                               old_column=constraint.left_column,
-                                               new_column=constraint.right_column)
+        apply_constraints(query, change, alias_map, old_table)
+
+
+def apply_constraints(query, change, alias_map, old_table):
+    constraint = change.get_constraint()
+    if constraint:
+        query.change_column_in_comparisons(alias_map.get(str(old_table)),
+                                           old_column=constraint.left_column,
+                                           new_column=constraint.right_column)
