@@ -1,6 +1,5 @@
 class Change:
-    def __init__(self, old, new, should_replace_table=False):
-        self.should_replace_table = should_replace_table
+    def __init__(self, old, new):
         self.old = old
         self.new = new
 
