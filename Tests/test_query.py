@@ -51,26 +51,43 @@ def test_query_to_string_raises_error_if_not_valid_sql():
         Query("This is not valid SQL")
         assert error.value == "The query is not valid SQL"
 
+def test_query_get_tables():
+    # Should return both tables that have an alias, and those that do not
+    query = Query(
+        "SELECT email, UD.name, wants_letter "
+        "from Users "
+        "JOIN UserData UD on Users.id = UD.user_id "
+        "JOIN NewsLetter NL on UD.id = NL.user_id "
+        "GROUP BY UD.name")
 
-def test_create_needed_alias():
-    actual = Query("SELECT name FROM UserData")
+    users_table = Table("Users")
+    userdata_table = Table("UserData")
+    userdata_table.set_alias("UD")
+    newsletter_table = Table("NewsLetter")
+    newsletter_table.set_alias("NL")
 
-    expected = Query("SELECT name FROM UserData AS UserData1")
+    expected = [users_table, userdata_table, newsletter_table]
 
-    actual.create_needed_aliases()
+    assert query.get_tables() == expected
 
-    assert actual == expected
+def test_query_get_columns():
+    # Should return all columns present in the query, if they have an alias or table prefix this should be included
+    query = Query(
+    "SELECT email, UD.name, wants_letter "
+    "from Users "
+    "JOIN UserData UD on Users.id = UD.user_id "
+    "JOIN NewsLetter NL on UD.id = NL.user_id "
+    "GROUP BY UD.name")
 
-
-def test_create_needed_alias_multiple_tables_without_alias():
-    actual = Query("SELECT name "
-                   "FROM UserData "
-                   "JOIN RecoveryQuestions on UserData.user_id = RecoveryQuestions.user_id")
-
-    expected = Query("SELECT name "
-                     "FROM UserData AS UserData1 "
-                     "JOIN RecoveryQuestions as RecoveryQuestions1 on UserData.user_id = RecoveryQuestions.user_id")
-
-    actual.create_needed_aliases()
-
-    assert actual == expected
+    # Transform to set and then back to list so that order does not matter
+    expected = set([
+        Column("wants_letter"), 
+        Column("id", "Users"),
+        Column("user_id", "UD"),
+        Column("email"), 
+        Column("name", "UD"), 
+        Column("user_id", "NL"),
+        Column("id", "UD"),
+    ])
+    
+    assert query.get_columns() == expected

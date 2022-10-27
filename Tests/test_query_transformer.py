@@ -52,3 +52,22 @@ def test_transform_joins():
     transform(actual, changes, old_tables, new_tables)
 
     assert actual == expected
+
+
+def test_transform_does_not_remove_existing_valid_prefixes():
+    actual = Query("SELECT col2, col3, T3.col6 FROM T3 JOIN T1 on T1.col1 = T3.col5")
+
+    expected = Query("SELECT col2,col3, T3.col6 FROM T3 JOIN T2 on T2.col4 = T3.col5")
+    t1 = Table("T1", [Column("col1"), Column("col2"), Column("col3")])
+    t2 = Table("T2", [Column("col4"), Column("col2")])
+    t3 = Table("T3", [Column("col5"), Column("col3"), Column("col6")])
+    equality_constraint = EqualityConstraint(t1, Column("col1"), t2, Column("col4"))
+
+    new_tables = [t2, t3]
+    changes = [Change((t1, Column("col2")), (t2, Column("col2")),
+                      constraint=equality_constraint),
+               Change((t1, Column("col3")), (t3, Column("col3")))]
+    old_tables = [t1, t3]
+    transform(actual, changes, old_tables, new_tables)
+
+    assert actual == expected

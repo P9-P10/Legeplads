@@ -9,14 +9,17 @@ class Column:
     def __eq__(self, other):
         if isinstance(other, Column):
             if str(other) == str(self):
-                return True
+                if self.alias and other.alias:
+                    return self.alias == other.alias
+                else:
+                    return True
         return False
 
     def __repr__(self):
-        return str(self)
+        return f'Column(name: {self.name}, alias: {self.alias})'
 
     def __hash__(self):
-        return hash(self.name)
+        return hash((self.name, self.alias))
 
     def add_alias(self, alias):
         self.alias = alias

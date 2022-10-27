@@ -27,41 +27,73 @@ class Query:
     def __repr__(self):
         return str(self)
 
-    def matching_tables_in_query(self, tables):
-        return [table for table in tables if table.name in self.query_as_string]
-
-    def tables_in_query(self):
-        return [table.name for table in self.ast.find_all(exp.Table)]
-
-    def columns_in_query(self):
-        return [(column.name, column.table) for column in self.ast.find_all(exp.Column)]
-
     def transform_ast(self, transformer):
         self.ast = self.ast.transform(transformer)
 
     def replace_table(self, old_table: Table, new_table: Table):
+        self.replace_matching_identifers(old_table.name, new_table.name)
+
+    def replace_matching_identifers(self, old_name, new_name):
         def transform(node):
-            if isinstance(node, exp.Table) and node.name == str(old_table):
-                return parse_one(str(new_table))
-            if isinstance(node, exp.Column) and node.table == str(old_table):
-                return node.replace(exp.Column(this=exp.Identifier(this=node.name),
-                                               table=exp.Identifier(this=str(new_table))))
+            if isinstance(node, exp.Identifier) and node.name == old_name:
+                return node.replace(self.create_identifier(new_name))
             return node
 
-
         self.transform_ast(transform)
+    
+    def create_table(self, name):
+        return exp.Table(this=self.create_identifier(name))
 
     def replace_column(self, old_column: Column, new_column: Column):
         def transform(node):
             if isinstance(node, exp.Column) and node.name == str(old_column):
-                if new_column.get_alias():
-                    return node.replace(exp.Column(this=exp.Identifier(this=new_column.name),
-                                                   table=exp.Identifier(this=new_column.get_alias())))
-                else:
-                    return node.replace(exp.Column(this=exp.Identifier(this=new_column.name)))
+                alias = self.get_alias_for_column(node, new_column)
+                return node.replace(self.create_column(new_column.name, alias))
             return node
 
         self.transform_ast(transform)
+
+    def get_alias_for_column(self, node: exp.Column, new_column: Column) -> str:
+        # Only replace alias if one is defined on the new column
+        if new_column.get_alias():
+            alias = new_column.get_alias()
+        else:
+            alias = node.table
+        return alias
+
+    def create_column(self, name, table = None):
+        if table:
+            return exp.Column(
+                this=self.create_identifier(name),
+                table=self.create_identifier(table)
+            )
+        else:
+            return exp.Column(this=self.create_identifier(name))
+
+    def create_identifier(self, name: str):
+        return exp.Identifier(this=name)
+
+    def get_tables(self):
+        # Returns all tables in the query, if they have an alias, this is also included
+        # The tables do not have their columns
+        all_tables = self.get_all_tables()
+        tables_with_aliases = self.get_tables_with_aliases()
+        tables_without_aliases = [table for table in all_tables if table not in tables_with_aliases]
+
+        return tables_without_aliases + tables_with_aliases
+
+    def get_tables_with_aliases(self):
+        table_alias_nodes = self.get_aliases()
+        return [self.create_table_from_alias_node(node) for node in table_alias_nodes]
+
+    def create_table_from_alias_node(self, alias_node: exp.Alias) -> Table:
+        table = Table(alias_node.this.name)
+        table.set_alias(alias_node.alias)
+        return table
+
+    def get_all_tables(self):
+        table_nodes = self.get_all_instances(exp.Table)
+        return [Table(node.name) for node in table_nodes]
 
     def get_aliases(self):
         return self.get_all_instances(exp.Alias)
@@ -69,93 +101,18 @@ class Query:
     def get_all_instances(self, type):
         return self.ast.find_all(type)
 
-    def get_table(self, object):
-        return self.get_next_instance(object, exp.Table)
+    def get_columns(self):
+        column_nodes = self.get_all_instances(exp.Column)
+        return self.remove_duplicates([self.create_column_from_node(node) for node in column_nodes])
 
-    def get_table_alias(self, object):
-        return self.get_next_instance(object, exp.TableAlias)
+    def create_column_from_node(self, node: exp.Column) -> Column:
+        if node.table:
+            return Column(node.name, node.table)
+        else:
+            return Column(node.name)
 
-    def get_next_instance(self, object, type):
-        return object.find(type)
-
-    def apply_missing_aliases(self, tables, alias_map):
-        if not tables:
-            return
-
-        def transformer(node):
-            if isinstance(node, exp.Column):
-                if self.node_has_no_table(node):
-                    alias = self.get_alias_for_column(tables, alias_map, node.name)
-                    if alias is not None:
-                        return self.apply_alias_to_node(node, alias)
-                elif node.table in [table.name for table in tables]:
-                    return self.apply_alias_to_node(node, self.get_alias_for_table(node.table, alias_map))
-            return node
-
-        self.transform_ast(transformer)
-
-    def node_has_no_table(self, node):
-        return node.table == ""
-
-    def apply_alias_to_node(self, node, alias):
-        return node.replace(self.create_column(node.name, alias))
-
-    def create_column(self, name, table):
-        return exp.Column(
-            this=self.create_identifier(name),
-            table=self.create_identifier(table)
-        )
-
-    def create_identifier(self, name: str):
-        return exp.Identifier(this=name)
-
-    def create_needed_aliases(self):
-        def transform(node):
-            if isinstance(node, exp.Table):
-                if not isinstance(node.parent, exp.Alias):
-                    return self.create_alias_on_node(node)
-            return node
-
-        self.transform_ast(transform)
-
-    def create_alias_on_node(self, node):
-        return node.replace(exp.Alias(
-            this=exp.Table(
-                this=exp.Identifier(this=node.name, quoted=False)),
-            alias=exp.TableAlias(
-                this=exp.Identifier(this=node.name + "1"))
-        ))
-
-    def get_alias_for_table(self, table_name, table_map):
-        return table_map[table_name]
-
-    def get_alias_for_column(self, tables, aliases, column_name):
-        column_table = self.get_table_for_column(tables, column_name)
-        if column_table is None:
-            return None
-        return aliases[column_table]
-
-    def get_table_for_column(self, tables, column_name):
-        for table in tables:
-            if table.has_column(Column(column_name)):
-                return table.name
+    def remove_duplicates(self, input_list):
+        return set(input_list)
 
     def change_column_in_comparisons(self, alias, old_column, new_column):
-
-        def is_column_with_correct_table_and_name(node):
-            return isinstance(node, exp.Column) and node.name == old_column.name and node.table == alias
-
-        def create_node_with_alias_and_name(node):
-            return exp.Column(this=exp.Identifier(this=new_column.name), table=exp.Identifier(this=node.table))
-
-        def column_transform(node):
-            if is_column_with_correct_table_and_name(node):
-                return node.replace(create_node_with_alias_and_name(node))
-            return node
-
-        def transform(node):
-            if isinstance(node, exp.EQ):
-                return node.transform(column_transform)
-            return node
-
-        self.transform_ast(transform)
+        self.replace_matching_identifers(old_column.name, new_column.name)
