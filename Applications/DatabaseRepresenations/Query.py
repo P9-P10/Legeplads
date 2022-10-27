@@ -27,8 +27,14 @@ class Query:
     def __repr__(self):
         return str(self)
 
-    def tables_in_query(self, tables):
+    def matching_tables_in_query(self, tables):
         return [table for table in tables if table.name in self.query_as_string]
+
+    def tables_in_query(self):
+        return [table.name for table in self.ast.find_all(exp.Table)]
+
+    def columns_in_query(self):
+        return [(column.name, column.table) for column in self.ast.find_all(exp.Column)]
 
     def transform_ast(self, transformer):
         self.ast = self.ast.transform(transformer)
@@ -37,6 +43,22 @@ class Query:
         def transform(node):
             if isinstance(node, exp.Table) and node.name == str(old_table):
                 return parse_one(str(new_table))
+            if isinstance(node, exp.Column) and node.table == str(old_table):
+                return node.replace(exp.Column(this=exp.Identifier(this=node.name),
+                                               table=exp.Identifier(this=str(new_table))))
+            return node
+
+
+        self.transform_ast(transform)
+
+    def replace_column(self, old_column: Column, new_column: Column):
+        def transform(node):
+            if isinstance(node, exp.Column) and node.name == str(old_column):
+                if new_column.get_alias():
+                    return node.replace(exp.Column(this=exp.Identifier(this=new_column.name),
+                                                   table=exp.Identifier(this=new_column.get_alias())))
+                else:
+                    return node.replace(exp.Column(this=exp.Identifier(this=new_column.name)))
             return node
 
         self.transform_ast(transform)

@@ -1,5 +1,6 @@
 class Column:
-    def __init__(self, name):
+    def __init__(self, name, alias=None):
+        self.alias = alias
         self.name = name
 
     def __str__(self):
@@ -13,6 +14,12 @@ class Column:
 
     def __repr__(self):
         return str(self)
-    
+
     def __hash__(self):
         return hash(self.name)
+
+    def add_alias(self, alias):
+        self.alias = alias
+
+    def get_alias(self):
+        return self.alias

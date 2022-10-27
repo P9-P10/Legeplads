@@ -11,7 +11,8 @@ from Helpers.database_map import DBMapper
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
 o_database_name = "OptimizedAdvancedDatabase"
-dbmap = DBMapper(Si(database_path + o_database_name + ".sqlite"))
+old_dbmap = DBMapper(Si(database_path + database_name + ".sqlite"))
+new_dbmap = DBMapper(Si(database_path + o_database_name + ".sqlite"))
 
 
 def create_connection_with_changes():
@@ -25,8 +26,8 @@ def create_connection_with_changes():
     changes = [wants_letter_change, user_id_change]
 
     # Tables
-    new_tables = dbmap.create_database_map()
-    old_tables = []
+    new_tables = new_dbmap.create_database_map()
+    old_tables = old_dbmap.create_database_map()
 
     return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes, old_tables, new_tables)
 
@@ -103,10 +104,10 @@ def test_select_with_joins_from_all_databases_not_all_values_have_alias(input_co
 
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
 def test_insert_into_users(input_connection):
-    input_connection.run_query(Query("INSERT INTO Users(email, password) "
-                                     "VALUES ('TestMail@TestingTest.test', 'Password12345');"))
-
     try:
+        input_connection.run_query(Query("INSERT INTO Users(email, password) "
+                                         "VALUES ('TestMail@TestingTest.test', 'Password12345');"))
+
         result = input_connection.run_query(Query("SELECT email,password FROM Users "
                                                   "WHERE email == 'TestMail@TestingTest.test' "
                                                   "AND password == 'Password12345';"))
