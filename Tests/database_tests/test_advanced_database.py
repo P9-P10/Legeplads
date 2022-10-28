@@ -7,6 +7,7 @@ import pytest
 
 from Helpers.Change import *
 from Helpers.database_map import DBMapper
+from Scripts.database_creation_tool import run_all_databases
 
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
@@ -38,6 +39,11 @@ def create_connection_without_changes():
 
 connection_without_changes = create_connection_without_changes()
 connection_with_changes = create_connection_with_changes()
+
+
+@pytest.fixture(scope="session")
+def set_up():
+    run_all_databases()
 
 
 @pytest.mark.parametrize("input_connection", [connection_without_changes, connection_with_changes])
