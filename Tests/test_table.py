@@ -86,3 +86,21 @@ def test_get_column_returns_none_if_column_not_in_columns():
     column2 = Column("col2")
     table = Table("name", [Column("col1"), column2])
     assert table.get_column("does_not_exist") is None
+
+def test_copy_is_equal_to_original():
+    original = Table("original", [Column("col1"), Column("col2")])
+    copy = original.copy()
+
+    assert copy == original
+
+def test_copy_does_not_mutate_original():
+    original = Table("original", [Column("col1"), Column("col2")])
+    copy = original.copy()
+
+    copy.set_alias("Copy")
+    copy.columns.append(Column("col3"))
+
+    assert copy.get_alias() == "Copy"
+    assert original.get_alias() == None
+    assert copy.columns == [Column("col1"), Column("col2"), Column("col3")]
+    assert original.columns == [Column("col1"), Column("col2")]

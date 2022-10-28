@@ -26,3 +26,6 @@ class Column:
 
     def get_alias(self):
         return self.alias
+
+    def copy(self):
+        return Column(self.name, self.alias)

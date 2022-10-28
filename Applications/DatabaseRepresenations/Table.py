@@ -48,3 +48,13 @@ class Table:
         for column in self.columns:
             if column.name == column_name:
                 return column
+
+    def copy(self):
+        if self.columns:
+            new_columns = [col.copy() for col in self.columns]
+        else:
+            new_columns = None
+            
+        new_table = Table(self.name, new_columns)
+        new_table.set_alias(self.alias)
+        return new_table

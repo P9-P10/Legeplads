@@ -28,3 +28,18 @@ def test_alias():
     column.add_alias("Alias")
 
     assert column.get_alias() == "Alias"
+
+def test_copy_is_equal_to_original():
+    original = Column("Column", "Col")
+    copy = original.copy()
+
+    assert copy == original
+
+def test_copy_does_not_mutate_original():
+    original = Column("Original", "Org")
+    copy = original.copy()
+
+    copy.add_alias("Copy")
+
+    assert copy.get_alias() == "Copy"
+    assert original.get_alias() == "Org"

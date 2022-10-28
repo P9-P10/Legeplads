@@ -120,7 +120,7 @@ class Query:
         else:
             return False
 
-    def add_to_select(self, columns: [Column]):
+    def add_to_select(self, columns: list[Column]):
 
         def create_columns_from_list():
             return [self.create_column(column.name, column.alias) for column in columns]
