@@ -2,37 +2,32 @@ from tokenize import Number
 from Applications.DatabaseRepresenations.Column import Column
 from Applications.DatabaseRepresenations.Query import Query
 from Applications.DatabaseRepresenations.Table import Table
+from Applications.DatabaseRepresenations.Structure import DatabaseStructure
 from Helpers.Change import Change
 
 
 def transform(query: Query, changes: list[Change], old_structure: list[Table], new_structure: list[Table]):
+    old_structure = DatabaseStructure(old_structure)
     if query.has_star_expression():
         transform_star_expression(old_structure, query)
 
-    new_changes = create_changes_to_transform_ambiguous_columns(query, changes, old_structure)
+    new_changes = create_changes_to_transform_ambiguous_columns(query, changes, old_structure.get_all_tables())
     all_changes = changes + new_changes
     apply_each_change(query, all_changes)
 
 
 def transform_star_expression(old_structure, query):
     for table in query.get_tables():
-        columns = get_columns_from_table(table, old_structure)
-        query.add_to_select(columns)
+        columns = old_structure.get_columns_in_table(table.name)
+        transformation = apply_prefix_transformation(table)
+        columns_with_aliases = [column.transform(transformation) for column in columns]
+        query.add_to_select(columns_with_aliases)
 
-
-def get_columns_from_table(table: Table, old_structure: list[Table]) -> list[Column]:
-    for current_table in old_structure:
-        if current_table.name == table.name:
-            for column in current_table.columns:
-                add_alias_or_table_name(column, table)
-            return current_table.columns
-
-def add_alias_or_table_name(column: Column, table: Table):
-    if table.alias:
-        column.add_alias(table.alias)
-    else:
-        column.add_alias(table.name)
-
+def apply_prefix_transformation(table: Table):
+    def fun(column: Column):
+        alias = table.alias if table.alias else table.name
+        column.add_alias(alias)
+    return fun
 
 def create_changes_to_transform_ambiguous_columns(query, changes, old_structure):
     tables = query.get_tables()

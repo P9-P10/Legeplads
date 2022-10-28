@@ -104,3 +104,25 @@ def test_copy_does_not_mutate_original():
     assert original.get_alias() == None
     assert copy.columns == [Column("col1"), Column("col2"), Column("col3")]
     assert original.columns == [Column("col1"), Column("col2")]
+
+
+def test_transform_creates_new_table_with_transform_applied():
+    original = Table("original", [Column("col1"), Column("col2")])
+
+    transformation1 = lambda table: table.set_alias("Org")
+    transformation2 = lambda table: table.columns.append(Column("col3"))
+
+    transformed_table_1 = original.transform(transformation1)
+    transformed_table_2 = original.transform(transformation2)
+    
+    # only one instance should be affected by the transformation
+    assert original.get_alias() == None
+    assert transformed_table_1.get_alias() == "Org"
+    assert transformed_table_2.get_alias() == None
+
+    assert original.columns == [Column("col1"), Column("col2")]
+    assert transformed_table_1.columns == [Column("col1"), Column("col2")]
+    assert transformed_table_2.columns == [Column("col1"), Column("col2"), Column("col3")]
+
+def test_transform_columns_creates_new_table_with_transform_applied_to_all_columns():
+    pass

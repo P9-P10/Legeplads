@@ -1,4 +1,5 @@
 from Applications.DatabaseRepresenations.Column import Column
+from Applications.query_transformer import transform
 
 
 def test_column_comparison_fails_if_other_is_not_column():
@@ -43,3 +44,12 @@ def test_copy_does_not_mutate_original():
 
     assert copy.get_alias() == "Copy"
     assert original.get_alias() == "Org"
+
+def test_transform_creates_new_column_with_transform_applied():
+    original = Column("Original")
+    transformation = lambda col: col.add_alias("Org")
+
+    transformed_column = original.transform(transformation)
+
+    assert transformed_column.get_alias() == "Org"
+    assert original.get_alias() == None

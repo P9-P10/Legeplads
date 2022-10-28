@@ -29,3 +29,8 @@ class Column:
 
     def copy(self):
         return Column(self.name, self.alias)
+
+    def transform(self, transformation):
+        copy = self.copy()
+        transformation(copy)
+        return copy

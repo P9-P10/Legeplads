@@ -1,0 +1,41 @@
+from multiprocessing.sharedctypes import Value
+from Applications.DatabaseRepresenations.Table import Table
+from Applications.DatabaseRepresenations.Column import Column
+
+class Structure:
+    pass
+
+class DatabaseStructure(Structure):
+    def __init__(self, tables: list[Table]):
+        self.tables = self.copy_list(tables)
+        self.table_names = [table.name for table in self.tables]
+        self.column_dict = self.create_column_dict()
+
+    def copy_list(self, list):
+        return [elem.copy() for elem in list]
+
+    def create_column_dict(self):
+        column_dict = {}
+        for table in self.tables:
+            column_dict[table.name] = table.columns
+        return column_dict
+
+    def get_columns_in_table(self, table_name: str) -> list[Column]:
+        self.raise_error_on_invalid_table(table_name)
+        return self.column_dict[table_name]
+
+    def get_all_tables(self) -> list[Table]:
+        return self.tables
+
+    def get_table(self, table_name: str) -> Table:
+        self.raise_error_on_invalid_table(table_name)
+        for table in self.tables:
+            if table.name == table_name:
+                return table
+
+    def raise_error_on_invalid_table(self, table_name: str):
+        if table_name not in self.table_names:
+            raise ValueError(f'Table {table_name} is not in the structure')
+
+    
+        

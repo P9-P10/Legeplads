@@ -58,3 +58,9 @@ class Table:
         new_table = Table(self.name, new_columns)
         new_table.set_alias(self.alias)
         return new_table
+
+    # It may be possible to move this to a parent class
+    def transform(self, transformation):
+        copy = self.copy()
+        transformation(copy)
+        return copy
