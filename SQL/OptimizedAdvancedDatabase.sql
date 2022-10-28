@@ -60,11 +60,10 @@ CREATE TABLE RecoveryQuestions
     FOREIGN KEY (user_id) REFERENCES Users (id)
 );
 
-INSERT INTO Users(email, password)
-VALUES ('test@mail.mail', 'Securepass'),
-       ('bob@fancydomain.com', 'BobTheBodyBuilder');
 INSERT INTO Users(email, password, creation_date)
-VALUES ('JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan', '2020-10-05 06:38:29'),
+VALUES ('test@mail.mail', 'Securepass','2020-10-05 06:38:29'),
+       ('bob@fancydomain.com', 'BobTheBodyBuilder','2022-10-05 06:38:29'),
+       ('JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan', '2020-10-05 06:38:29'),
        ('Egon@olsenbanden.net', 'Hundehoveder', '2001-10-05 06:38:29');
 
 

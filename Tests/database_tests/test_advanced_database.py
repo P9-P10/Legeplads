@@ -153,7 +153,7 @@ def test_select_with_star(input_connection):
                   "FROM Users "
                   "JOIN NewsLetter NL on Users.id = NL.user_id")
     result = input_connection.run_query(query)
-    assert result == [(1, 'test@mail.mail', 'Securepass', '2022-10-06 08:28:21', 1, 1),
-                      (2, 'bob@fancydomain.com', 'BobTheBodyBuilder', '2022-10-06 08:28:21', 2, 0),
+    assert result == [(1, 'test@mail.mail', 'Securepass', '2020-10-05 06:38:29', 1, 1),
+                      (2, 'bob@fancydomain.com', 'BobTheBodyBuilder', '2022-10-05 06:38:29', 2, 0),
                       (3, 'JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan', '2020-10-05 06:38:29', 3, 1),
                       (4, 'Egon@olsenbanden.net', 'Hundehoveder', '2001-10-05 06:38:29', 4, 1)]
