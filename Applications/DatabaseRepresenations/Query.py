@@ -113,6 +113,3 @@ class Query:
 
     def remove_duplicates(self, input_list):
         return set(input_list)
-
-    def change_column_in_comparisons(self, alias, old_column, new_column):
-        self.replace_matching_identifers(old_column.name, new_column.name)

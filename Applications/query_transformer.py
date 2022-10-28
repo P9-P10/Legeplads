@@ -64,14 +64,11 @@ def apply_each_change(query, changes):
         new_column = change.get_new_column()
         old_table = change.get_old_table()
         old_column = change.get_old_column()
+        constraint = change.get_constraint()
 
         query.replace_table(old_table, new_table)
         query.replace_column(old_column, new_column)
-        apply_constraints(query, change, new_table)
-
-def apply_constraints(query, change, old_table):
-    constraint = change.get_constraint()
-    if constraint:
-        query.change_column_in_comparisons(str(old_table),
-                                           old_column=constraint.left_column,
-                                           new_column=constraint.right_column)
+        
+        if constraint:
+            query.replace_matching_identifers(constraint.left_column.name, constraint.right_column.name)
+   
