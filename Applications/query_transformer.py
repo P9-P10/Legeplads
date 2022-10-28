@@ -6,6 +6,9 @@ from Helpers.Change import Change
 
 
 def transform(query: Query, changes: list[Change], old_structure: list[Table], new_structure: list[Table]):
+    if query.has_star_expression():
+        transform_star_expression(old_structure, query)
+
     tables = query.get_tables()
     columns = query.get_columns()
 
@@ -23,10 +26,28 @@ def transform(query: Query, changes: list[Change], old_structure: list[Table], n
     apply_each_change(query, all_changes)
 
 
+def transform_star_expression(old_structure, query):
+    for table in query.get_tables():
+        columns = get_columns_from_table(table, old_structure)
+        query.add_to_select(columns)
+
+
+def get_columns_from_table(table: Table, old_structure: [Table]) -> [Column]:
+    for current_table in old_structure:
+        if current_table.name == table.name:
+            for column in current_table.columns:
+                if table.alias:
+                    column.add_alias(table.alias)
+                else:
+                    column.add_alias(table.name)
+            return current_table.columns
+
+
 def resolve_columns_without_alias(columns: list[Column], tables: list[Table]) -> list[Column]:
     # This function requires that there are no ambiguous columns in the input query
     columns_without_alias = [column for column in columns if not column.alias]
     return [create_column_with_table_alias(tables, column) for column in columns_without_alias]
+
 
 def create_column_with_table_alias(tables, column):
     new_column = Column(column.name)
@@ -34,6 +55,7 @@ def create_column_with_table_alias(tables, column):
     if table:
         new_column.add_alias(table.name)
     return new_column
+
 
 def find_table_for_column(column: Column, tables: list[Table]) -> Table:
     for table in tables:
@@ -58,11 +80,13 @@ def apply_changes_to_table(table: Table, changes: list[Change]) -> Table:
     else:
         return table
 
+
 def get_change_for_table(table: Table, changes: list[Change]) -> Change | None:
     for change in changes:
         if change.get_old_table() == table:
             return change
     return None
+
 
 def apply_changes_to_column(column: Column, changes: list[Change]) -> Column:
     change_for_column = get_change_for_column(column, changes)
@@ -83,14 +107,17 @@ def apply_changes_to_column(column: Column, changes: list[Change]) -> Column:
     else:
         return column
 
+
 def get_change_for_column(column: Column, changes: list[Change]) -> Change | None:
     for change in changes:
         if change.get_old_column() == column:
             return change
     return None
 
+
 def find_ambiguous_columns(columns: list[Column], tables: list[Table]) -> list[Column]:
     return [column for column in columns if count_tables_containing_column(column, tables) > 1]
+
 
 def count_tables_containing_column(column: Column, tables: list[Table]) -> int:
     count = 0
@@ -99,8 +126,11 @@ def count_tables_containing_column(column: Column, tables: list[Table]) -> int:
             count += 1
     return count
 
-def find_alias_for_ambiguous_columns(columns: list[Column], columns_before_changes: list[Column], tables_before_changes: list[Table]) -> list[Column]:
+
+def find_alias_for_ambiguous_columns(columns: list[Column], columns_before_changes: list[Column],
+                                     tables_before_changes: list[Table]) -> list[Column]:
     return [column_with_previous_alias(columns_before_changes, tables_before_changes, column) for column in columns]
+
 
 def column_with_previous_alias(columns_before_changes, tables_before_changes, column):
     new_column = Column(column.name, column.alias)
@@ -108,6 +138,7 @@ def column_with_previous_alias(columns_before_changes, tables_before_changes, co
     if alias_before_changes:
         new_column.add_alias(alias_before_changes)
     return new_column
+
 
 def get_previous_alias(column: Column, columns_before_changes: list[Column], tables_before_changes: list[Table]) -> str:
     previous_table_name = get_previous_table(column, columns_before_changes)
@@ -119,23 +150,27 @@ def get_previous_table(column, columns_before_changes):
         if old_column.name == column.name:
             return old_column.alias
 
+
 def get_alias_for_table(table_name: str, tables: list[Table]) -> str:
     for table in tables:
         if table.name == table_name:
             return table.alias
     return None
 
+
 def create_changes_for_ambiguous_columns(ambiguous_columns, resolved_columns):
     return [
-        create_change_for_resolving_ambiguity(col_with_table, col_with_alias) 
+        create_change_for_resolving_ambiguity(col_with_table, col_with_alias)
         for col_with_table, col_with_alias in zip(ambiguous_columns, resolved_columns)
     ]
+
 
 def create_change_for_resolving_ambiguity(col_with_table, col_with_alias):
     table_name = col_with_table.alias
     alias = col_with_alias.alias
     column_name = col_with_alias.name
     return Change((Table(table_name), Column(column_name)), (Table(table_name), Column(column_name, alias)))
+
 
 def apply_each_change(query, changes):
     for change in changes:
@@ -150,4 +185,3 @@ def apply_each_change(query, changes):
 
         if constraint:
             query.replace_matching_identifers(constraint.left_column.name, constraint.right_column.name)
-   

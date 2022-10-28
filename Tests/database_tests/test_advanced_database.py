@@ -128,3 +128,32 @@ def test_select_with_joins_and_aliases_on_all_tables(input_connection):
                   "JOIN UserData UD ON UD.id = NL.user_id")
     result = input_connection.run_query(query)
     assert result == [(1, 1, 1), (2, 2, 0), (3, 3, 1), (4, 4, 1)]
+
+
+@pytest.mark.parametrize("input_connection", [connection_without_changes,
+                                              connection_with_changes])
+def test_select_with_subquery_and_join_with_same_properties_as_query(input_connection):
+    query = Query("SELECT user_id,wants_letter "
+                  "FROM Users "
+                  "JOIN NewsLetter O on Users.id = O.user_id "
+                  "WHERE Users.id IN "
+                  "("
+                  "SELECT id "
+                  "FROM UserData "
+                  "WHERE 3 > user_id"
+                  ")")
+    result = input_connection.run_query(query)
+    assert result == [(1, 1), (2, 0)]
+
+
+@pytest.mark.parametrize("input_connection", [connection_without_changes,
+                                              connection_with_changes])
+def test_select_with_star(input_connection):
+    query = Query("SELECT * "
+                  "FROM Users "
+                  "JOIN NewsLetter NL on Users.id = NL.user_id")
+    result = input_connection.run_query(query)
+    assert result == [(1, 'test@mail.mail', 'Securepass', '2022-10-06 08:28:21', 1, 1),
+                      (2, 'bob@fancydomain.com', 'BobTheBodyBuilder', '2022-10-06 08:28:21', 2, 0),
+                      (3, 'JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan', '2020-10-05 06:38:29', 3, 1),
+                      (4, 'Egon@olsenbanden.net', 'Hundehoveder', '2001-10-05 06:38:29', 4, 1)]

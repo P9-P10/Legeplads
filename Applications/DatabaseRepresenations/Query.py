@@ -40,7 +40,7 @@ class Query:
             return node
 
         self.transform_ast(transform)
-    
+
     def create_table(self, name):
         return exp.Table(this=self.create_identifier(name))
 
@@ -61,7 +61,7 @@ class Query:
             alias = node.table
         return alias
 
-    def create_column(self, name, table = None):
+    def create_column(self, name, table=None):
         if table:
             return exp.Column(
                 this=self.create_identifier(name),
@@ -113,3 +113,24 @@ class Query:
 
     def remove_duplicates(self, input_list):
         return set(input_list)
+
+    def has_star_expression(self) -> bool:
+        if self.ast.find(exp.Star):
+            return True
+        else:
+            return False
+
+    def add_to_select(self, columns: [Column]):
+
+        def create_columns_from_list():
+            return [self.create_column(column.name, column.alias) for column in columns]
+
+        def transform(node):
+            if isinstance(node, exp.Select) and not node.find(exp.Star):
+                node.expressions.extend(create_columns_from_list())
+                return node
+            elif isinstance(node, exp.Star):
+                return create_columns_from_list()
+            return node
+
+        self.transform_ast(transform)
