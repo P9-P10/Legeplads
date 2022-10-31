@@ -1,6 +1,6 @@
 import sqlite3
 
-from Applications.DatabaseRepresenations.Query import Query
+from Structures.Query import Query
 from Applications.Database_intefaces.dbinterface import DBInterface
 
 

@@ -1,5 +1,5 @@
-from Applications.DatabaseRepresenations.Table import Table
-from Applications.DatabaseRepresenations.Column import Column
+from Structures.Table import Table
+from Structures.Column import Column
 
 
 def test_table_comparison_fails_if_other_is_not_table():

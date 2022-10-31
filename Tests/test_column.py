@@ -1,4 +1,4 @@
-from Applications.DatabaseRepresenations.Column import Column
+from Structures.Column import Column
 from Applications.query_transformer import transform
 
 

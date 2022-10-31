@@ -1,8 +1,8 @@
 import pytest
 
-from Applications.DatabaseRepresenations.Query import Query
-from Applications.DatabaseRepresenations.Table import Table
-from Applications.DatabaseRepresenations.Column import Column
+from Structures.Query import Query
+from Structures.Table import Table
+from Structures.Column import Column
 from Helpers.Change import Change
 
 

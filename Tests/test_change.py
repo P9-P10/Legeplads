@@ -1,5 +1,5 @@
-from Applications.DatabaseRepresenations.Column import Column
-from Applications.DatabaseRepresenations.Table import Table
+from Structures.Column import Column
+from Structures.Table import Table
 from Helpers.Change import *
 import pytest
 

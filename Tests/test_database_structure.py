@@ -1,6 +1,6 @@
-from Applications.DatabaseRepresenations.Column import Column
-from Applications.DatabaseRepresenations.DatabaseStructure import DatabaseStructure
-from Applications.DatabaseRepresenations.Table import Table
+from Structures.Column import Column
+from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Table import Table
 import pytest
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-from Applications.DatabaseRepresenations.Structure import Structure
+from Structures.Structure import Structure
 
 class TestStructure(Structure):
     def copy(self):

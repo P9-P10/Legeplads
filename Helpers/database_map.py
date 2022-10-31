@@ -1,7 +1,7 @@
-from Applications.DatabaseRepresenations.Query import Query
+from Structures.Query import Query
 from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
-from Applications.DatabaseRepresenations.Table import Table
-from Applications.DatabaseRepresenations.Column import Column
+from Structures.Table import Table
+from Structures.Column import Column
 
 class DBMapper:
     def __init__(self, dbinterface: SqLiteInterface):

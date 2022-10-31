@@ -1,5 +1,5 @@
-from Applications.DatabaseRepresenations.Column import Column
-from Applications.DatabaseRepresenations.Structure import Structure
+from Structures.Column import Column
+from Structures.Structure import Structure
 
 
 class Table(Structure):

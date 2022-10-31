@@ -1,6 +1,6 @@
-from Applications.DatabaseRepresenations.Structure import Structure
-from Applications.DatabaseRepresenations.Table import Table
-from Applications.DatabaseRepresenations.Column import Column
+from Structures.Structure import Structure
+from Structures.Table import Table
+from Structures.Column import Column
 
 class DatabaseStructure(Structure):
     def __init__(self, tables: list[Table]):

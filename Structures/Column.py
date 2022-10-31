@@ -1,4 +1,4 @@
-from Applications.DatabaseRepresenations.Structure import Structure
+from Structures.Structure import Structure
 
 class Column(Structure):
     def __init__(self, name, alias=None):
