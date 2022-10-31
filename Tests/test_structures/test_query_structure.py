@@ -54,8 +54,8 @@ def test_get_columns_with_name_returns_matching_columns():
     assert query_structure.get_columns_with_name("B_1") == [Column("B_1"), Column("B_1")]
 
 def test_resolve_columns_adds_table_name_to_columns_with_alias():
-    tables = [Table("A", alias="alias_A"), Table("B", alias="alias_B")]
-    columns = [Column("A_1", "alias_A"), Column("B_1", "alias_B")]
+    tables = [Table("A", alias="alias_A"), Table("B", alias="alias_B"), Table("C")]
+    columns = [Column("A_1", "alias_A"), Column("B_1", "alias_B"), Column("C_1", "C")]
     query_structure = QueryStructure(tables, columns)
 
     database_structure = DatabaseStructure([])
@@ -64,6 +64,7 @@ def test_resolve_columns_adds_table_name_to_columns_with_alias():
 
     assert query_structure.get_columns_with_name("A_1")[0].table_name == "A"
     assert query_structure.get_columns_with_name("B_1")[0].table_name == "B"
+    assert query_structure.get_columns_with_name("C_1")[0].table_name == "C"
 
 def test_resolve_columns_adds_table_names_to_columns_without_alias_based_on_database_structure():
     tables = [Table("A", alias="alias_A"), Table("B", alias="alias_B"), Table("C")]
