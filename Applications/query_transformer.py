@@ -2,7 +2,7 @@ from tokenize import Number
 from Applications.DatabaseRepresenations.Column import Column
 from Applications.DatabaseRepresenations.Query import Query
 from Applications.DatabaseRepresenations.Table import Table
-from Applications.DatabaseRepresenations.Structure import DatabaseStructure
+from Applications.DatabaseRepresenations.DatabaseStructure import DatabaseStructure
 from Helpers.Change import Change
 
 

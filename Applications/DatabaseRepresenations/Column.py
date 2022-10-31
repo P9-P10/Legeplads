@@ -1,4 +1,6 @@
-class Column:
+from Applications.DatabaseRepresenations.Structure import Structure
+
+class Column(Structure):
     def __init__(self, name, alias=None):
         self.alias = alias
         self.name = name
@@ -29,8 +31,3 @@ class Column:
 
     def copy(self):
         return Column(self.name, self.alias)
-
-    def transform(self, transformation):
-        copy = self.copy()
-        transformation(copy)
-        return copy

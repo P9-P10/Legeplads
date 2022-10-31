@@ -125,4 +125,15 @@ def test_transform_creates_new_table_with_transform_applied():
     assert transformed_table_2.columns == [Column("col1"), Column("col2"), Column("col3")]
 
 def test_transform_columns_creates_new_table_with_transform_applied_to_all_columns():
-    pass
+    original = Table("original", [Column("col1"), Column("col2")])
+    transformation = lambda col: col.add_alias("Org")
+
+    transformed_table = original.transform_columns(transformation)
+
+    # Originals columns are not changed
+    assert transformed_table.get_column("col1").get_alias() == "Org"
+    assert transformed_table.get_column("col2").get_alias() == "Org"
+
+    # Transformed tables columns are changed
+    assert transformed_table.get_column("col1").get_alias() == "Org"
+    assert transformed_table.get_column("col2").get_alias() == "Org"

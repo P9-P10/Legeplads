@@ -1,6 +1,5 @@
-from multiprocessing.sharedctypes import Value
 from Applications.DatabaseRepresenations.Column import Column
-from Applications.DatabaseRepresenations.Structure import DatabaseStructure
+from Applications.DatabaseRepresenations.DatabaseStructure import DatabaseStructure
 from Applications.DatabaseRepresenations.Table import Table
 import pytest
 
@@ -37,7 +36,7 @@ def test_get_all_tables_returns_tables_in_structure(default_structure):
 
 def test_get_table_return_table(default_structure):
     assert default_structure.get_table("A") == create_default_table("A")
-    
+
 def test_get_table_throws_if_there_is_no_such_table(default_structure):
     with pytest.raises(ValueError) as e_info:
         default_structure.get_table("D")

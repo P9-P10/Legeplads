@@ -1,7 +1,8 @@
 from Applications.DatabaseRepresenations.Column import Column
+from Applications.DatabaseRepresenations.Structure import Structure
 
 
-class Table:
+class Table(Structure):
     def __init__(self, name, columns=None):
         if columns is None:
             columns = []
@@ -59,8 +60,8 @@ class Table:
         new_table.set_alias(self.alias)
         return new_table
 
-    # It may be possible to move this to a parent class
-    def transform(self, transformation):
-        copy = self.copy()
-        transformation(copy)
-        return copy
+    def transform_columns(self, column_transformation):
+        def transformation(table):
+            table.columns = [column.transform(column_transformation) for column in table.columns]
+
+        return self.transform(transformation)
