@@ -40,3 +40,14 @@ def test_get_table_return_table(default_structure):
 def test_get_table_throws_if_there_is_no_such_table(default_structure):
     with pytest.raises(ValueError) as e_info:
         default_structure.get_table("D")
+
+def test_get_table_for_column_returns_none_if_there_is_no_table_with_the_column(default_structure):
+    default_structure.get_table_for_column(Column("D_1")) == None
+
+def test_get_table_for_column_returns_table_containing_given_column(default_structure):
+    assert default_structure.get_table_for_column(Column("B_2")) == create_default_table("B")
+
+def test_copy_is_equal_to_original(default_structure):
+    copy = default_structure.copy()
+
+    assert copy == default_structure

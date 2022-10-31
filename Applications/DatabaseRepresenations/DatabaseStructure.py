@@ -8,6 +8,11 @@ class DatabaseStructure(Structure):
         self.table_names = [table.name for table in self.tables]
         self.column_dict = self.create_column_dict()
 
+    def __eq__(self, other):
+        if not isinstance(other, DatabaseStructure):
+            return False
+        return all([self_table == other_table for self_table, other_table in zip(self.tables, other.tables)])
+
     def copy_list(self, list):
         return [elem.copy() for elem in list]
 
@@ -30,9 +35,18 @@ class DatabaseStructure(Structure):
             if table.name == table_name:
                 return table
 
+    def get_table_for_column(self, column: Column) -> Table:
+        for table in self.tables:
+            if table.has_column(column):
+                return table
+        return None
+
     def raise_error_on_invalid_table(self, table_name: str):
         if table_name not in self.table_names:
             raise ValueError(f'Table {table_name} is not in the structure')
+
+    def copy(self):
+        return DatabaseStructure([table.copy() for table in self.tables])
 
     
         
