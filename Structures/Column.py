@@ -1,9 +1,10 @@
 from Structures.Structure import Structure
 
 class Column(Structure):
-    def __init__(self, name, alias=None):
+    def __init__(self, name, alias=None, table_name=None):
         self.alias = alias
         self.name = name
+        self.table_name = table_name
 
     def __str__(self):
         return self.name
@@ -18,7 +19,7 @@ class Column(Structure):
         return False
 
     def __repr__(self):
-        return f'Column(name: {self.name}, alias: {self.alias})'
+        return f'Column(name: {self.name}, alias: {self.alias} {"" if not self.table_name else ",table: " + self.table_name})'
 
     def __hash__(self):
         return hash((self.name, self.alias))
@@ -29,5 +30,8 @@ class Column(Structure):
     def get_alias(self):
         return self.alias
 
+    def set_table_name(self, table_name):
+        self.table_name = table_name
+
     def copy(self):
-        return Column(self.name, self.alias)
+        return Column(self.name, self.alias, self.table_name)

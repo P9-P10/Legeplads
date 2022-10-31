@@ -1,26 +1,12 @@
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
 from Structures.Table import Table
+from Tests.test_structures.helpers import default_tables, create_default_table
 import pytest
 
 @pytest.fixture
 def default_structure():
     return DatabaseStructure(default_tables())
-
-def default_tables():
-    table_a = create_default_table("A")
-    table_b = create_default_table("B")
-    table_c = create_default_table("C")
-    return [table_a, table_b, table_c]
-
-def create_default_table(name, column_number = 4):
-    return create_table(name, [name + '_' + str(val) for val in range(1, column_number + 1)])
-
-def create_table(name, columns):
-    return Table(name, [create_column(col) for col in columns])
-
-def create_column(name):
-    return Column(name)
 
 def test_get_columns_in_table(default_structure):
     expected = [Column("A_1"), Column("A_2"), Column("A_3"), Column("A_4")]

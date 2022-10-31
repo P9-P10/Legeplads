@@ -4,6 +4,7 @@ from Structures.Query import Query
 from Structures.Table import Table
 from Structures.DatabaseStructure import DatabaseStructure
 from Helpers.Change import Change
+from Structures.QueryStructure import QueryStructure
 
 
 def transform(query: Query, changes: list[Change], old_structure: list[Table], new_structure: list[Table]):
@@ -33,7 +34,13 @@ def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Ch
     tables = query.get_tables()
     columns = query.get_columns()
 
-    columns_with_tables = resolve_columns_without_alias(columns, old_structure)
+    query_structure = QueryStructure(tables, columns)
+    query_structure.resolve_columns(old_structure)
+
+    def table_name_as_alias_transformation(column):
+        column.alias = column.table_name
+
+    columns_with_tables = [column.transform(table_name_as_alias_transformation) for column in query_structure.get_columns() if not column.alias]
     tables_after_changes = [apply_changes_to_table(table, changes) for table in tables]
     columns_with_new_tables = [apply_changes_to_column(column, changes) for column in columns_with_tables]
     
@@ -43,27 +50,11 @@ def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Ch
     new_changes = create_changes_for_ambiguous_columns(ambiguous_columns, resolved_columns)
     return new_changes
 
-def resolve_columns_without_alias(columns: list[Column], tables: DatabaseStructure) -> list[Column]:
-    # This function requires that there are no ambiguous columns in the input query
-    no_alias_condition = lambda col: not col.alias
-    columns_without_alias = select_columns(columns, no_alias_condition)
-    return [column.transform(add_table_as_alias_transformation(tables)) for column in columns_without_alias]
-
-def select_columns(columns: list[Column], condition):
-    return [column for column in columns if condition(column)]
-
-def add_table_as_alias_transformation(database: DatabaseStructure):
-    def fun(column: Column):
-        table = database.get_table_for_column(column)
-        if table:
-            column.add_alias(table.name)
-    return fun
-
 def apply_changes_to_table(table: Table, changes: list[Change]) -> Table:
     new_table = get_new_table(table, changes)
 
     if new_table:
-        changed_table = new_table.transform(add_alias_to_table_transformation(table))
+        changed_table = new_table.transform(add_alias_to_table_transformation(table.alias))
         return changed_table
     else:
         return table
@@ -74,12 +65,12 @@ def get_new_table(table: Table, changes: list[Change]) -> Change | None:
             return change.get_new_table()
     return None
 
-def add_alias_to_table_transformation(table):
+def add_alias_to_table_transformation(table_alias):
     def fun(changed_table):
         changed_table.set_alias(changed_table.alias)
             # Keep the old alias if the change does not define a new alias
-        if table.alias and not changed_table.alias:
-            changed_table.set_alias(table.alias)
+        if table_alias and not changed_table.alias:
+            changed_table.set_alias(table_alias)
     return fun
 
 def apply_changes_to_column(column: Column, changes: list[Change]) -> Column:

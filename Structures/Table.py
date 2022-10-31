@@ -3,12 +3,12 @@ from Structures.Structure import Structure
 
 
 class Table(Structure):
-    def __init__(self, name, columns=None):
+    def __init__(self, name, columns=None, alias=None):
         if columns is None:
             columns = []
         self.name = name
         self.columns = columns
-        self.alias = None
+        self.alias = alias
 
     def __str__(self):
         return self.name
@@ -25,6 +25,9 @@ class Table(Structure):
 
     def __repr__(self):
         return f'Table(name: {self.name}, alias: {self.alias}, columns: {[repr(col) for col in self.columns]})'
+
+    def __hash__(self):
+        return hash((self.name, self.alias, tuple(self.columns)))
 
     def has_column(self, column: Column):
         return column in self.columns

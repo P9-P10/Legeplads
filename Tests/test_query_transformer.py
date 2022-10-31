@@ -4,6 +4,7 @@ from Structures.Table import Table
 from Structures.Column import Column
 from Helpers.Change import Change
 from Helpers.equality_constraint import EqualityConstraint
+from Structures.DatabaseStructure import DatabaseStructure
 
 
 def test_transform_changes_occurrences_of_table():
@@ -11,7 +12,9 @@ def test_transform_changes_occurrences_of_table():
     expected = Query("SELECT col1 FROM testTable JOIN correct_table")
 
     changes = [Change((Table('other_table'), Column('col1')), (Table('correct_table'), Column('col1')))]
-    transform(actual, changes, [], [])
+
+    old_structure = [Table("testTable",[]), Table("other_table", [Column("col1")])]
+    transform(actual, changes, old_structure, [])
 
     assert actual == expected
 
@@ -34,16 +37,6 @@ def test_transform_changes_occurrences_of_column_but_not_prefix():
     old_structure = [Table("test_table",[Column("col1"),Column("col88")])]
     new_structure = [Table("correct_table", [Column("col2")])]
     transform(actual, changes, old_structure, new_structure)
-
-    assert actual == expected
-
-
-
-def test_transform_fully_qualifies_known_column_names():
-    actual = Query("SELECT name FROM UserData")
-
-    expected = Query("SELECT name FROM UserData")
-    transform(actual, [], [], [Table("UserData", [Column("name")])])
 
     assert actual == expected
 
