@@ -39,22 +39,19 @@ class Proxy:
         try:
             print("Id: " + str(test_id) + " Connection attempt started on: " + str(parsed_address) + " : " + str(
                 parsed_port))
-            socket_handler = socket.create_connection((parsed_address,parsed_port))
-            secure_context = ssl.create_default_context()
-            secure_socket = secure_context.wrap_socket(socket_handler, server_hostname=parsed_address)
-            #secure_socket.connect((parsed_address, parsed_port))
-            secure_socket.send(received_data)
+            proxy_socket = socket.create_connection((parsed_address,parsed_port))
+            proxy_socket.send(received_data)
             while True:
-                reply = secure_socket.recv(self.buffer_size)
+                reply = proxy_socket.recv(self.buffer_size)
                 if reply:
                     connection.send(reply)
                 else:
                     break
-            secure_socket.close()
+            proxy_socket.close()
             connection.close()
 
         except socket.error as current_error:
-            secure_socket.close()
+            proxy_socket.close()
             connection.close()
             print("Id: " + str(test_id) + str(current_error))
             sys.exit(1)
