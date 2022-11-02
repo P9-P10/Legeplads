@@ -54,8 +54,7 @@ def apply_changes_to_table(table: Table, changes: list[Change]) -> Table:
     new_table = get_new_table(table, changes)
 
     if new_table:
-        changed_table = new_table.transform(add_alias_to_table_transformation(table.alias))
-        return changed_table
+        return new_table.copy()
     else:
         return table
 
@@ -64,14 +63,6 @@ def get_new_table(table: Table, changes: list[Change]) -> Change | None:
         if change.get_old_table() == table:
             return change.get_new_table()
     return None
-
-def add_alias_to_table_transformation(table_alias):
-    def fun(changed_table):
-        changed_table.set_alias(changed_table.alias)
-            # Keep the old alias if the change does not define a new alias
-        if table_alias and not changed_table.alias:
-            changed_table.set_alias(table_alias)
-    return fun
 
 def apply_changes_to_column(column: Column, changes: list[Change]) -> Column:
     change_for_column = get_change_for_column(column, changes)
