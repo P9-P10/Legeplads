@@ -70,9 +70,9 @@ class Proxy:
         # got a message do something :)
 
     def proxy_server(self, parsed_address, parsed_port, connection, received_data):
+        self.proxy_id += 1
+        local_id = self.proxy_id
         try:
-            self.proxy_id += 1
-            local_id = self.proxy_id
             print("Id: " + str(local_id) + " Connection attempt started on: " + str(parsed_address) + " : " + str(
                 parsed_port))
             proxy_socket = socket.create_connection((parsed_address, parsed_port))
