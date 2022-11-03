@@ -46,15 +46,6 @@ def test_query_copy_is_equal_to_original(default_query_structure):
 
     assert copy == original
 
-def test_get_columns_with_name_returns_empty_list_if_no_matching_columns(default_query_structure):
-    assert default_query_structure.get_columns_with_name("D_1") == []
-
-def test_get_columns_with_name_returns_matching_columns(default_tables):
-    columns = [Column("A_1"), Column("B_1"), Column("C_1"), Column("B_1")]
-    query_structure = QueryStructure(default_tables, columns)
-
-    assert query_structure.get_columns_with_name("B_1") == [Column("B_1"), Column("B_1")]
-
 def test_resolve_columns_adds_table_name_to_columns_with_alias(default_db_structure):
     tables = [Table("A", alias="alias_A"), Table("B", alias="alias_B"), Table("C")]
     columns = [Column("A_1", "alias_A"), Column("B_1", "alias_B"), Column("C_1", "C")]
@@ -62,9 +53,9 @@ def test_resolve_columns_adds_table_name_to_columns_with_alias(default_db_struct
 
     query_structure.resolve_columns(default_db_structure)
 
-    assert query_structure.get_columns_with_name("A_1")[0].table_name == "A"
-    assert query_structure.get_columns_with_name("B_1")[0].table_name == "B"
-    assert query_structure.get_columns_with_name("C_1")[0].table_name == "C"
+    assert query_structure.get_column("A_1").table_name == "A"
+    assert query_structure.get_column("B_1").table_name == "B"
+    assert query_structure.get_column("C_1").table_name == "C"
 
 def test_resolve_columns_adds_table_names_to_columns_without_alias_based_on_database_structure(default_db_structure):
     tables = [Table("A", alias="alias_A"), Table("B", alias="alias_B"), Table("C")]
@@ -73,6 +64,6 @@ def test_resolve_columns_adds_table_names_to_columns_without_alias_based_on_data
 
     query_structure.resolve_columns(default_db_structure)
 
-    assert query_structure.get_columns_with_name("A_1")[0].table_name == "A"
-    assert query_structure.get_columns_with_name("B_1")[0].table_name == "B"
-    assert query_structure.get_columns_with_name("C_1")[0].table_name == "C"
+    assert query_structure.get_column("A_1").table_name == "A"
+    assert query_structure.get_column("B_1").table_name == "B"
+    assert query_structure.get_column("C_1").table_name == "C"
