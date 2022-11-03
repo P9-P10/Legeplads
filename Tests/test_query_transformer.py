@@ -14,7 +14,8 @@ def test_transform_changes_occurrences_of_table():
     changes = [Change((Table('other_table'), Column('col1')), (Table('correct_table'), Column('col1')))]
 
     old_structure = [Table("testTable",[]), Table("other_table", [Column("col1")])]
-    transform(actual, changes, old_structure, [])
+    new_structure = [Table("correct_table", [])]
+    transform(actual, changes, old_structure, new_structure)
 
     assert actual == expected
 

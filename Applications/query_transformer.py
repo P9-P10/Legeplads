@@ -5,14 +5,16 @@ from Structures.Table import Table
 from Structures.DatabaseStructure import DatabaseStructure
 from Helpers.Change import Change
 from Structures.QueryStructure import QueryStructure
+from Structures.Relation import Relation, Attribute
 
 
 def transform(query: Query, changes: list[Change], old_structure: list[Table], new_structure: list[Table]):
     old_structure = DatabaseStructure(old_structure)
+    new_structure = DatabaseStructure(new_structure)
     if query.has_star_expression():
         transform_star_expression(old_structure, query)
 
-    new_changes = create_changes_to_transform_ambiguous_columns(query, changes, old_structure)
+    new_changes = create_changes_to_transform_ambiguous_columns(query, changes, old_structure, new_structure)
     all_changes = changes + new_changes
     apply_each_change(query, all_changes)
 
@@ -30,12 +32,16 @@ def prefix_transformation(table: Table):
         column.add_alias(alias)
     return fun
 
-def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Change], old_structure: DatabaseStructure):
+def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Change], old_structure: DatabaseStructure, new_structure: DatabaseStructure):
     tables = query.get_tables()
     columns = query.get_columns()
 
     query_structure = QueryStructure(tables, columns)
     query_structure.resolve_columns(old_structure)
+    query_structure.create_relations(old_structure)
+    relations = query_structure.relations
+    for change in changes:
+        query_structure.change_relations(change, new_structure)
 
     def table_name_as_alias_transformation(column):
         column.alias = column.table_name
@@ -49,6 +55,7 @@ def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Ch
 
     new_changes = create_changes_for_ambiguous_columns(ambiguous_columns, resolved_columns)
     return new_changes
+
 
 def apply_changes_to_table(table: Table, changes: list[Change]) -> Table:
     new_table = get_new_table(table, changes)
