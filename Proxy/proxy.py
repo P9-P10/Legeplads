@@ -49,10 +49,8 @@ class Proxy:
             msg = connection.recv(self.buffer_size)
         except socket.timeout as e:
             err = e.args[0]
-            # this next if/else is a bit redundant, but illustrates how the
-            # timeout exception is setup
+            # Handles timout errors, to ensure that the program does not freeze when it does not receive data.
             if err == 'timed out':
-                sleep(1)
                 return None
             else:
                 print(e)
@@ -67,7 +65,6 @@ class Proxy:
                 return None
             else:
                 return msg
-        # got a message do something :)
 
     def proxy_server(self, parsed_address, parsed_port, connection, received_data):
         self.proxy_id += 1
