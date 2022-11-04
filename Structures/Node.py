@@ -6,6 +6,9 @@ class EntityNode:
         self.name = name
         self.alias = alias
 
+    def __repr__(self):
+        return f'Node(Name: {self.name} Alias: {self.alias})'
+
     def get_name(self):
         return self.name
 

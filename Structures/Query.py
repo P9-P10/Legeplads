@@ -89,8 +89,9 @@ class Query:
         table_nodes = self.get_all_instances(exp.Table)
         return [Table(node.name) for node in table_nodes]
 
+
     def get_aliases(self):
-        return self.get_all_instances(exp.Alias)
+        return self.get_alias_nodes()
 
     def get_all_instances(self, type):
         return self.ast.find_all(type)
@@ -128,3 +129,30 @@ class Query:
             return node
 
         self.transform_ast(transform)
+
+    def get_alias_nodes(self):
+        return self.get_all_instances(exp.Alias)
+
+    def get_table_nodes(self):
+        return self.get_all_instances(exp.Table)
+
+    def get_column_nodes(self):
+        return self.get_all_instances(exp.Column)
+
+    def extract_subqueries(self):
+        # Get subqueries by getting all but the first select expression
+        subqueries = list(self.get_all_instances(exp.Select))[1:]
+        # Insert a placeholder for the subqueries
+        for subquery in subqueries:
+            subquery.replace(self.create_identifier("__subquery_placeholder__"))
+        # Transform the subquery ASTs to instances of Query
+        return [Query(subq.sql()) for subq in subqueries]
+
+    def insert_subqueries(self, subqueries):
+        def transform(node):
+            if isinstance(node, exp.Identifier) and node.name == "__subquery_placeholder__":
+                return node.replace(subqueries.pop(0).ast)
+            return node
+
+        self.transform_ast(transform)
+        

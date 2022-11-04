@@ -1,84 +1,83 @@
+from collections import defaultdict
 from Structures.DatabaseStructure import DatabaseStructure
 from Structures.Structure import Structure
 from Structures.Table import Table
 from Structures.Column import Column
 from Structures.Relation import Relation, Attribute
 from Helpers.Change import Change
+from Structures.Node import TableNode, ColumnNode
 
 class QueryStructure(Structure):
-    def __init__(self, tables: list[Table], columns: list[Column]):
-        self.tables = tables
-        self.columns = columns
-        self.table_alias_map = {}
+    def __init__(self, table_nodes: list[TableNode], column_nodes: list[ColumnNode], db_structure: DatabaseStructure):
+        self.table_nodes = table_nodes
+        self.column_nodes = column_nodes
+        self.db_structure = db_structure
+        self.table_to_alias_map = {}
+        self.alias_to_table_map = {}
         self.alias_count = 1
         self.additional_changes = []
-
-    def __eq__(self, other):
-        if not isinstance(other, QueryStructure):
-            return False
+        self.relations = []
         
-        return set(self.tables) == set(other.tables) and set(self.columns) == set(other.columns)
-
-    def copy(self):
-        return QueryStructure(self.tables, self.columns)
 
     def get_columns(self):
         return self.columns
+
 
     def get_column(self, column_name: str):
         for column in self.columns:
             if column.name == column_name:
                 return column
 
-    def resolve_columns(self, db_structure: DatabaseStructure):
+
+    def create_alias_maps(self):
         # Populate dictionary to map aliases to table names
-        for table in self.tables:
-            if table.alias:
-                self.table_alias_map[table.alias] = table.name
+        for table_node in self.table_nodes:
+            if table_node.has_alias():
+                self.alias_to_table_map[table_node.get_alias()] = table_node.get_name()
+                self.table_to_alias_map[table_node.get_name()] = table_node.get_alias()
 
-        for column in self.columns:
-            if column.alias:
+
+    def create_relations(self):
+        self.create_alias_maps()
+        table_to_columns_map = self.map_tables_to_columns()
+
+        for table_node in self.table_nodes:
+            # Aggregate functions show up as tables, but they have no name
+            # Relations should not be create for aggregates
+            if table_node.get_name():
+                database_table = self.db_structure.get_table(table_node.get_name())
+                attributes = []
+                for column_node in table_to_columns_map[table_node.get_name()]:
+                    attributes.append(Attribute(column_node, database_table.get_column(column_node.get_name()), column_node.has_alias()))
+                alias = "" if not table_node.has_alias() else table_node.get_alias()
+                self.relations.append(Relation(table_node, database_table, attributes, alias))
+
+
+    def map_tables_to_columns(self):
+        # Tables have multiple columns, so the values of the dict should be lists
+        # The defaultdict ensures that all values are the empty list by default
+        # This removes the need to handle assigning a singleton list on adding the first element for a key 
+        table_to_columns_map = defaultdict(list)
+        for column_node in self.column_nodes:
+            if column_node.has_alias():
+                alias = column_node.get_alias()
                 # If it has an alias, it should either be in the alias map, or it should be a table name
-                if column.alias in self.table_alias_map.keys():
-                    column.set_table_name(self.table_alias_map[column.alias])
+                if alias in self.alias_to_table_map.keys():
+                    table_name = self.alias_to_table_map[alias]
                 else:
-                    column.set_table_name(column.alias)
+                    table_name = alias
+                table_to_columns_map[table_name].append(column_node)
             else:
-                column.set_table_name(db_structure.get_table_for_column(column).name)
+                # Do a brute force search
+                for table in self.db_structure.get_all_tables():
+                    for column in table.columns:
+                        if column.name == column_node.get_name():
+                            table_to_columns_map[table.name].append(column_node)
+        return table_to_columns_map
 
-    def create_relations(self, old_structure: DatabaseStructure):
-        relations = []
-        for query_table in self.tables:
-            # Aggregate functions may show up as tables if they have an alias, but they have no name
-            if self.has_name(query_table):
-                database_table = self.get_table_from_structure(query_table, old_structure)
-                attributes = self.create_attributes_for_relation(database_table)
-                alias = "" if not query_table.alias else query_table.alias
-                relations.append(Relation(database_table, attributes, alias))
-        
-        self.relations = relations
 
-    def has_name(self, table: Table):
-        # Aggregate functions may show up as tables if they have an alias, but they have no name
-        return True if table.name else False
-
-    def get_table_from_structure(self, table: Table, structure: DatabaseStructure):
-        return structure.get_table(table.name)
-
-    def create_attributes_for_relation(self, database_table: Table):
-        attributes = []
-        # Requires finding the column in the table, and finding the alias from the list of columns in the query
-        for column_in_query in self.get_columns_in_table(database_table):
-            for db_col in database_table.columns:
-                if db_col.name == column_in_query.name:
-                    # Set use alias flag to true if query_column defines an alias
-                    use_alias = column_in_query.alias is not None
-                    attributes.append(Attribute(db_col, use_alias))
-                    
-        return attributes
-
-    def get_columns_in_table(self, table: Table):
-        return [column for column in self.columns if column.table_name == table.name]
+    def get_table_from_structure(self, table: Table, db_structure: DatabaseStructure):
+        return db_structure.get_table(table.name)
 
     def change_relations(self, change: Change, new_structure: DatabaseStructure):
         for relation in self.relations:
@@ -93,11 +92,14 @@ class QueryStructure(Structure):
                 if table_changed:
                     self.resolve_ambiguos_tables(relation)
 
+
     def change_affects_relation(self, change: Change, relation: Relation):
         return relation.table.name == change.get_old_table().name
 
+
     def table_changed(self, change: Change, relation: Relation):
         return not change.get_new_table().name == relation.table.name
+
 
     def change_attributes(self, change: Change, new_structure: DatabaseStructure, relation: Relation):
         for attribute in relation.attributes:
@@ -112,6 +114,7 @@ class QueryStructure(Structure):
                 if db_col.name == column_name:
                     attribute.column = db_col
 
+
     def resolve_ambiguos_tables(self, relation: Relation):
         for other_relation in self.relations:
             # Do not compare with the same relation
@@ -121,6 +124,7 @@ class QueryStructure(Structure):
                 # In this case, all attributes from both relations have to use an alias, and the alias can not be the table name
                 self.ensure_alias_on_all_attributes(other_relation)
                 self.ensure_alias_on_all_attributes(relation)
+
 
     def ensure_alias_on_all_attributes(self, relation: Relation):
         # Create an alias for the relation if it does not already have one
