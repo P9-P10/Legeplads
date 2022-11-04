@@ -58,3 +58,29 @@ def test_transform_joins():
     transform(actual, changes, old_tables, new_tables)
 
     assert actual == expected
+
+def test_transform_select_start_without_ambiguity():
+    actual = Query("SELECT * FROM test_table")
+    expected = Query("SELECT col1, col2 FROM test_table")
+
+    changes = []
+    old_structure = [Table("test_table",[Column("col1"),Column("col2")])]
+    new_structure = old_structure
+
+    transform(actual, changes, old_structure, new_structure)
+
+    assert actual == expected
+
+
+def test_transform_select_start_with_ambiguity():
+    actual = Query("SELECT * FROM table_one join table_two on table_two.col2 = table_one.col2")
+    expected = Query("SELECT col1, table_one.col2, table_two.col2, col3 "
+                     "FROM table_one join table_two on table_two.col2 = table_one.col2")
+
+    changes = []
+    old_structure = [Table("table_one",[Column("col1"), Column("col2")]), Table("table_two",[Column("col2"), Column("col3")])]
+    new_structure = old_structure
+
+    transform(actual, changes, old_structure, new_structure)
+
+    assert actual == expected

@@ -1,5 +1,3 @@
-from audioop import add
-from tokenize import Number
 from Structures.Column import Column
 from Structures.Query import Query
 from Structures.Table import Table
@@ -22,10 +20,16 @@ def transform(query: Query, changes: list[Change], old_structure: list[Table], n
 
 def transform_star_expression(old_structure: DatabaseStructure, query: Query):
     for table in query.get_tables():
-        columns = old_structure.get_columns_in_table(table.name)
-        transformation = prefix_transformation(table)
-        columns_with_aliases = [column.transform(transformation) for column in columns]
-        query.add_to_select(columns_with_aliases)
+        current_columns = query.get_columns()
+        new_columns = old_structure.get_columns_in_table(table.name)
+        for new_column in new_columns:
+            if new_column.name in [other_column.name for other_column in current_columns]:
+                if table.alias:
+                    new_column.add_alias(table.alias)
+                else:
+                    new_column.add_alias(table.name)
+
+        query.add_to_select(new_columns)
 
 def prefix_transformation(table: Table):
     def fun(column: Column):

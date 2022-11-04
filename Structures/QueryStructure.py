@@ -86,12 +86,12 @@ class QueryStructure(Structure):
                 # Check if the change changes the table of the relation
                 table_changed = self.table_changed(change, relation)
                 # Change the relation to point to the table in the new structure
-                relation.table = new_structure.get_table(change.get_new_table().name)
+                relation.table = self.get_table_from_structure(change.get_new_table(), new_structure)
                 self.change_attributes(change, new_structure, relation)
                 # Relation is now changed, and that may have made it, or some of its attributes, ambiguous
                 # That is only the case if the same table is refered to several times, which in turn only occurs if the table has changed
                 if table_changed:
-                    self.resolve_ambiguities(relation)
+                    self.resolve_ambiguos_tables(relation)
 
     def change_affects_relation(self, change: Change, relation: Relation):
         return relation.table.name == change.get_old_table().name
@@ -101,18 +101,18 @@ class QueryStructure(Structure):
 
     def change_attributes(self, change: Change, new_structure: DatabaseStructure, relation: Relation):
         for attribute in relation.attributes:
-                    # Change column reference to columns in the new structure
+            # Change column reference to columns in the new structure
             if attribute.column.name == change.get_old_column().name:
-                        # If the column has changed, change the reference to the new column
+                # If the column has changed, change the reference to the new column
                 column_name = change.get_new_column().name
             else:
-                        # otherwise change it to the column with the same name
+                # otherwise change it to the column with the same name
                 column_name = change.get_old_column().name
             for db_col in new_structure.get_table(change.get_new_table().name).columns:
                 if db_col.name == column_name:
                     attribute.column = db_col
 
-    def resolve_ambiguities(self, relation: Relation):
+    def resolve_ambiguos_tables(self, relation: Relation):
         for other_relation in self.relations:
             # Do not compare with the same relation
             if other_relation == relation:
