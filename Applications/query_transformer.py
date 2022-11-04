@@ -23,7 +23,9 @@ def transform_star_expression(old_structure: DatabaseStructure, query: Query):
         current_columns = query.get_columns()
         new_columns = old_structure.get_columns_in_table(table.name)
         for new_column in new_columns:
+            # Check if a column with the same name is already in the query
             if new_column.name in [other_column.name for other_column in current_columns]:
+                # If the table defines an alias use that, otherwise use the table name
                 if table.alias:
                     new_column.add_alias(table.alias)
                 else:

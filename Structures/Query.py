@@ -1,11 +1,7 @@
 from Structures.Table import Table
 from Structures.Column import Column
-
 import sqlglot
-
-from Helpers.Change import Change
 from sqlglot import parse_one, exp
-
 
 class Query:
     def __init__(self, query_as_string: str):
@@ -41,8 +37,6 @@ class Query:
 
         self.transform_ast(transform)
 
-    def create_table(self, name):
-        return exp.Table(this=self.create_identifier(name))
 
     def replace_column(self, old_column: Column, new_column: Column):
         def transform(node):
