@@ -1,10 +1,7 @@
-from Structures.Structure import Structure
-
-class Column(Structure):
-    def __init__(self, name, alias=None, table_name=None):
+class Column:
+    def __init__(self, name, alias=None):
         self.alias = alias
         self.name = name
-        self.table_name = table_name
 
     def __str__(self):
         return self.name
@@ -29,9 +26,3 @@ class Column(Structure):
 
     def get_alias(self):
         return self.alias
-
-    def set_table_name(self, table_name):
-        self.table_name = table_name
-
-    def copy(self):
-        return Column(self.name, self.alias, self.table_name)

@@ -1,8 +1,6 @@
 from Structures.Column import Column
-from Structures.Structure import Structure
 
-
-class Table(Structure):
+class Table:
     def __init__(self, name, columns=None, alias=None):
         if columns is None:
             columns = []
@@ -52,19 +50,3 @@ class Table(Structure):
         for column in self.columns:
             if column.name == column_name:
                 return column
-
-    def copy(self):
-        if self.columns:
-            new_columns = [col.copy() for col in self.columns]
-        else:
-            new_columns = None
-            
-        new_table = Table(self.name, new_columns)
-        new_table.set_alias(self.alias)
-        return new_table
-
-    def transform_columns(self, column_transformation):
-        def transformation(table):
-            table.columns = [column.transform(column_transformation) for column in table.columns]
-
-        return self.transform(transformation)

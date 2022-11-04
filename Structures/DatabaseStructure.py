@@ -1,10 +1,9 @@
-from Structures.Structure import Structure
 from Structures.Table import Table
 from Structures.Column import Column
 
-class DatabaseStructure(Structure):
+class DatabaseStructure:
     def __init__(self, tables: list[Table]):
-        self.tables = self.copy_list(tables)
+        self.tables = tables
         self.table_names = [table.name for table in self.tables]
         self.column_dict = self.create_column_dict()
 
@@ -12,9 +11,6 @@ class DatabaseStructure(Structure):
         if not isinstance(other, DatabaseStructure):
             return False
         return all([self_table == other_table for self_table, other_table in zip(self.tables, other.tables)])
-
-    def copy_list(self, list):
-        return [elem.copy() for elem in list]
 
     def create_column_dict(self):
         column_dict = {}
@@ -45,8 +41,6 @@ class DatabaseStructure(Structure):
         if table_name not in self.table_names:
             raise ValueError(f'Table {table_name} is not in the structure')
 
-    def copy(self):
-        return DatabaseStructure([table.copy() for table in self.tables])
 
     
         
