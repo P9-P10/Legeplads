@@ -1,22 +1,23 @@
+import base64
 import socket
 import sys
 from _thread import *
-from random import randint
 from threading import Thread
 from time import sleep
-import errno
+
 from mysql.connector import connect, Error
 
 
 class Proxy:
     proxy_id = 0
 
-    def __init__(self, port, max_connections=10, buffer_size=8192):
+    def __init__(self, port, max_connections=50, buffer_size=1024):
         self.port = port
         self.max_connections = max_connections
         self.buffer_size = buffer_size
 
     def start(self):
+        threads = []
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Binds Host and Port
@@ -26,23 +27,63 @@ class Proxy:
         except socket.error:
             print(Exception)
             sys.exit(2)
-
         while True:
             try:
                 connection, local_address = sock.accept()  # Accepts incoming connections
-                connection.settimeout(2)
-                print("Received data from: " + local_address[0])
-                received_data = self.receive_message(connection)
-                if not received_data:
-                    print("Issue has arrised, bummer.")
-                    continue
-                parsed_address, parsed_port = self.connection_string_parser(received_data)
-                start_new_thread(self.proxy_server, (parsed_address, parsed_port, connection, received_data))
-
+                t = Thread(target=self.proxy_thread, args=(connection,))
+                t.start()
+                threads.append(t)
             except KeyboardInterrupt:
                 sock.close()
-                print("\n \n Shutting down \n \n")
-                sys.exit(1)
+                for thread in threads:
+                    thread.join()
+
+    def proxy_thread(self, connection):
+        connection.settimeout(2)
+        received_data = self.receive_message(connection)
+        if received_data:
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # If we receive a CONNECT request
+            if "connect" in str(received_data).lower():
+                # Connect to port 443
+                try:
+                    parsed_address, parsed_port = self.connection_string_parser(received_data)
+                    # If successful, send 200 code response
+                    print("Now connecting to: " + parsed_address + " On port: " + str(parsed_port))
+                    client.connect((parsed_address, parsed_port))
+                    reply = "HTTP/1.0 200 Connection established\r\n"
+                    reply += "Proxy-agent: Pyx\r\n"
+                    reply += "\r\n"
+                    connection.sendall(reply.encode())
+                except socket.error as err:
+                    # If the connection could not be established, exit
+                    # Should properly handle the exit with http error code here
+                    print(err)
+
+                # Indiscriminately forward bytes
+                connection.setblocking(False)
+                client.setblocking(False)
+                while True:
+                    try:
+                        request = connection.recv(self.buffer_size)
+                        parsed_utf = request.decode("ascii", "ignore")
+
+                        if parsed_utf and parsed_utf != "":
+                            print(parsed_utf)
+                            print(request.decode("utf-8"))
+                        else:
+                            print(request)
+                        print("\n")
+
+                        client.sendall(request)
+                    except socket.error as err:
+
+                        pass
+                    try:
+                        reply = client.recv(self.buffer_size)
+                        connection.sendall(reply)
+                    except socket.error as err:
+                        pass
 
     def receive_message(self, connection):
         try:
@@ -52,6 +93,7 @@ class Proxy:
             # Handles timout errors, to ensure that the program does not freeze when it does not receive data.
             if err == 'timed out':
                 return None
+
             else:
                 print(e)
                 return None
@@ -65,28 +107,6 @@ class Proxy:
                 return None
             else:
                 return msg
-
-    def proxy_server(self, parsed_address, parsed_port, connection, received_data):
-        self.proxy_id += 1
-        local_id = self.proxy_id
-        try:
-            print("Id: " + str(local_id) + " Connection attempt started on: " + str(parsed_address) + " : " + str(
-                parsed_port))
-            proxy_socket = socket.create_connection((parsed_address, parsed_port))
-            proxy_socket.send(received_data)
-            while True:
-                reply = self.receive_message(proxy_socket)
-                if reply:
-                    connection.send(reply)
-                else:
-                    break
-            proxy_socket.close()
-            connection.close()
-
-        except socket.error as current_error:
-            connection.close()
-            print("Id: " + str(local_id) + " " + str(current_error))
-            sys.exit(1)
 
     def get_connection_information_from_data(self, received_data: bytes):
 
