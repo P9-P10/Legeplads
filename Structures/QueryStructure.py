@@ -75,44 +75,40 @@ class QueryStructure:
         return table_to_columns_map
 
 
-    def get_table_from_structure(self, table: Table, db_structure: DatabaseStructure):
-        return db_structure.get_table(table.name)
-
-
     def change_relations(self, change: Change, new_structure: DatabaseStructure):
         for relation in self.relations:
             if self.change_affects_relation(change, relation):
-                # Check if the change changes the table of the relation
-                table_changed = self.table_changed(change, relation)
                 # Change the relation to point to the table in the new structure
-                relation.table = self.get_table_from_structure(change.get_new_table(), new_structure)
+                # TODO: Instead move the affected attribute to the new relation, creating it if needed.
+                # If the entire table has changed, there will be not attributes left on it 
+                # This may require more granular changes
+                relation.change_table(new_structure.get_table(change.get_new_table().name))
                 self.change_attributes(change, new_structure, relation)
                 # Relation is now changed, and that may have made it, or some of its attributes, ambiguous
                 # That is only the case if the same table is refered to several times, which in turn only occurs if the table has changed
-                if table_changed:
+                if change.table_changed():
                     self.resolve_ambiguos_tables(relation)
 
 
     def change_affects_relation(self, change: Change, relation: Relation):
-        return relation.table.name == change.get_old_table().name
-
-
-    def table_changed(self, change: Change, relation: Relation):
-        return not change.get_new_table().name == relation.table.name
+        return relation.get_name() == change.get_old_table().name
 
 
     def change_attributes(self, change: Change, new_structure: DatabaseStructure, relation: Relation):
         for attribute in relation.attributes:
             # Change column reference to columns in the new structure
-            if attribute.column.name == change.get_old_column().name:
+            if self.change_affects_attribute(change, attribute):
                 # If the column has changed, change the reference to the new column
                 column_name = change.get_new_column().name
             else:
                 # otherwise change it to the column with the same name
-                column_name = change.get_old_column().name
-            for db_col in new_structure.get_table(change.get_new_table().name).columns:
-                if db_col.name == column_name:
-                    attribute.column = db_col
+                column_name = attribute.column.name
+            table = new_structure.get_table(change.get_new_table().name)
+            attribute.change_column(table.get_column(column_name))
+
+
+    def change_affects_attribute(self, change: Change, attribute: Attribute):
+        return attribute.get_name() == change.get_old_column().name
 
 
     def resolve_ambiguos_tables(self, relation: Relation):
@@ -133,12 +129,11 @@ class QueryStructure:
             relation.alias = relation.table.name + str(self.alias_count)
             # Increment the number to ensure no relations have the same alias, even if they have the same table name
             self.alias_count += 1
-            # Add the change to additional changes (so it can be used to actually change the query)
-            self.additional_changes.append(("add_table_alias", relation.table.name, relation.alias))
-        
+
         # Ensure that all attributes in the relation are configured to use the alias
         # Add a change to additional changes if an attribute did not previously use an alias
         for attr in relation.attributes:
             if not attr.use_alias:
-                attr.use_alias = True
-                self.additional_changes.append(("add_column_alias", (relation.table.name, attr.column.name), relation.alias))
+                #attr.use_alias = True
+                attr.column.add_alias(relation.alias)
+                attr.set_use_alias(True)

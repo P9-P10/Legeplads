@@ -7,6 +7,16 @@ def test_entity_node_get_name():
     node = EntityNode(None, "node_name")
     assert node.get_name() == "node_name"
 
+def test_entity_node_set_name_changes_name():
+    node = EntityNode(None, "name")
+    node.set_name("other_name")
+    assert node.get_name() == "other_name"
+
+def test_entity_node_set_alias_sets_alias():
+    node = EntityNode(None, "name", None)
+    node.set_alias("alias")
+    assert node.get_alias() == "alias"
+
 
 def test_entity_node_has_alias():
     node_without_alias = EntityNode(None, "no_alias")
@@ -89,6 +99,13 @@ def test_column_node_create_new_query_node_with_alias():
     assert column_node.create_new_query_node() == create_column("test_column", "alias")
 
 
+def test_column_node_set_name_changes_name_of_produced_query_node():
+    query_column = create_column("test_column", "alias")
+    column_node = ColumnNode(query_column)
+    column_node.set_name("other_column")
+    
+    assert column_node.create_new_query_node() == create_column("other_column", "alias")
+
 # This test is just to verify that comparison of classes from sqlglot behaved as expected
 def test_query_node_comparison_fail_if_alias_does_not_match():
     query_column = create_column("test_column", "alias")
@@ -135,3 +152,11 @@ def test_table_node_create_new_query_node_with_alias():
 def test_table_node_throws_if_not_given_correct_query_node_type():
     with pytest.raises(TypeError):
         TableNode(["this", "is", "not", "a", "table"])
+
+
+def test_table_node_set_name_changes_name_of_produced_query_node():
+    query_table = create_table("test_table", "alias")
+    table_node = TableNode(query_table)
+    table_node.set_name("other_table")
+    
+    assert table_node.create_new_query_node() == create_table("other_table", "alias")

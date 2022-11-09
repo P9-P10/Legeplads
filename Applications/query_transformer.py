@@ -20,9 +20,8 @@ def transform(query: Query, changes: list[Change], old_tables: list[Table], new_
     if query.has_star_expression():
         transform_star_expression(old_structure, query)
 
-    new_changes = create_changes_to_transform_ambiguous_columns(query, changes, old_structure, new_structure)
-    all_changes = changes + new_changes
-    apply_each_change(query, all_changes)
+    create_changes_to_transform_ambiguous_columns(query, changes, old_structure, new_structure)
+
     # Reinsert the transformed subqueries
     query.insert_subqueries(subqueries)
 
@@ -60,27 +59,4 @@ def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Ch
     query_structure.create_relations()
     for change in changes:
         query_structure.change_relations(change, new_structure)
-
-    new_changes = []
-    for additional_change in query_structure.additional_changes:
-        change_type, identifier, alias = additional_change
-        if change_type == "add_column_alias":
-            (table, column) = identifier
-            new_changes.append(Change((Table(table), Column(column)), (Table(table), Column(column, alias))))
-
-    return new_changes
-
-
-def apply_each_change(query, changes):
-    for change in changes:
-        new_table = change.get_new_table()
-        new_column = change.get_new_column()
-        old_table = change.get_old_table()
-        old_column = change.get_old_column()
-        constraint = change.get_constraint()
-
-        query.replace_table(old_table, new_table)
-        query.replace_column(old_column, new_column)
-
-        if constraint:
-            query.replace_matching_identifers(constraint.left_column.name, constraint.right_column.name)
+    

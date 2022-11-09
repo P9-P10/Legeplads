@@ -55,3 +55,29 @@ def test_get_constraint(change_with_constraint):
     equality_constraint = EqualityConstraint(old_table, old_column, new_table, new_column)
 
     assert change_with_constraint.get_constraint() == equality_constraint
+
+def test_table_changed_false_if_no_change():
+    old = (Table('old_table'), Column('old_column'))
+    new = (Table('old_table'), Column('new_column'))
+
+    assert Change(old, new).table_changed() == False
+
+
+def test_table_changed_true_if_change():
+    old = (Table('old_table'), Column('old_column'))
+    new = (Table('new_table'), Column('new_column'))
+
+    assert Change(old, new).table_changed() == True
+
+
+def test_column_changed_false_if_not_changed():
+    old = (Table('old_table'), Column('old_column'))
+    new = (Table('new_table'), Column('old_column'))
+
+    assert Change(old, new).column_changed() == False
+
+def test_column_changed_true_if_changed():
+    old = (Table('old_table'), Column('old_column'))
+    new = (Table('new_table'), Column('new_column'))
+
+    assert Change(old, new).column_changed() == True

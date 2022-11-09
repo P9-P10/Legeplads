@@ -12,6 +12,9 @@ class EntityNode:
     def get_name(self):
         return self.name
 
+    def set_name(self, new_name: str):
+        self.name = new_name
+
     def has_alias(self):
         return True if self.alias else False
 
@@ -19,6 +22,9 @@ class EntityNode:
         if not self.has_alias():
             raise AttributeError(f'Alias for node with name: {self.name} is not defined')
         return self.alias
+
+    def set_alias(self, new_alias: str):
+        self.alias = new_alias
 
     def get_query_node(self):
         return self.query_node
@@ -33,7 +39,9 @@ class ColumnNode(EntityNode):
         super().__init__(query_node, query_node.name, query_node.table)
 
     def create_new_query_node(self):
-        return create_column(self.name, self.alias)
+        new_node = self.query_node.replace(create_column(self.name, self.alias))
+        self.query_node = new_node
+        return new_node
 
 class TableNode(EntityNode):
     def __init__(self, query_node: exp.Alias | exp.Table):
@@ -46,10 +54,13 @@ class TableNode(EntityNode):
 
     def create_new_query_node(self):
         if self.has_alias():
-            return create_table(self.name, self.alias)
+            new_table = create_table(self.name, self.alias)
         else:
-            return create_table(self.name)
+            new_table = create_table(self.name)
 
+        new_node = self.query_node.replace(new_table)
+        self.query_node = new_node
+        return new_node
 
 def create_column(name, table=None):
     if table:
