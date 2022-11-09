@@ -15,7 +15,8 @@ def read_file_to_string(file):
     return str(file.read())
 
 
-database_creation("AdvancedDatabase")
-database_creation("AdvancedDatabaseButBad")
-database_creation("OptimizedAdvancedDatabase")
-database_creation("SimpleDatabase")
+def run_all_databases():
+    database_creation("AdvancedDatabase")
+    database_creation("AdvancedDatabaseButBad")
+    database_creation("OptimizedAdvancedDatabase")
+    database_creation("SimpleDatabase")

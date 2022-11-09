@@ -1,8 +1,5 @@
-from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si
-from Applications.Database_intefaces.sqliteinterface import DBConfig
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si, DBConfig
 import pytest
-
-from Structures.Query import Query
 
 database_name = "SimpleDatabase"
 database_path = "./Databases/"
@@ -14,7 +11,7 @@ def connection():
 
 
 def test_basic_select(connection):
-    result = connection.run_query(Query("SELECT email FROM Users"))
+    result = connection.run_query("SELECT email FROM Users")
 
     assert result == [('test@mail.mail',),
                       ('bob@fancydomain.com',),
@@ -23,10 +20,10 @@ def test_basic_select(connection):
 
 
 def test_basic_select_with_join(connection):
-    result = connection.run_query(Query(
+    result = connection.run_query(
         "SELECT U.email,phone,birthday FROM UserData "
         "JOIN Users U on U.id = UserData.id "
-        "ORDER BY birthday"))
+        "ORDER BY birthday")
 
     assert result == [('test@mail.mail', 1234, '22-22-22'), ('Egon@olsenbanden.net', 57, '22-22-22'),
                       ('bob@fancydomain.com', 12345, '33-33-33'),
