@@ -1,2 +1,116 @@
-from Applications.query_transformer import transform
+from Applications.query_transformer import Transformer
 import pytest
+from Structures.Query import Query
+from Structures.Table import Table
+from Structures.Column import Column
+from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Changes import AddTable, RemoveTable, MoveColumn
+from Applications.exceptions import InvalidSelectionException, InvalidTransformationException, InvalidQueryException
+
+@pytest.fixture
+def old_db():
+    a = Table("A", [Column("a"), Column("b"), Column("c")])
+    b = Table("B", [Column("d"), Column("e"), Column("f")])
+    # Both A and C contain a column with the name "c"
+    c = Table("C", [Column("c"), Column("g"), Column("h")])
+
+    return DatabaseStructure([a, b, c])
+
+
+@pytest.fixture
+def new_db():
+    b = Table("B", [Column("d"), Column("e"), Column("f")])
+    c = Table("C", [Column("g"), Column("h")])
+    # All columns from A have been moved to D, and table A has been removed. 
+    # Also the column "c" from C has also been moved to column "c" in D.
+    d = Table("D", [Column("a"), Column("b"), Column("c")])
+
+    return DatabaseStructure([b, c, d])
+
+
+@pytest.fixture
+def transformer(old_db, new_db):
+    return Transformer(old_db, new_db)
+
+def test_transform_raises_error_when_selecting_unavailable_columns(transformer):
+    query = Query("Select x from A")
+
+    with pytest.raises(InvalidQueryException):
+        transformer.transform(query, [])
+
+def test_transform_removes_table(transformer):
+    actual = Query("Select d, e from A, B")
+    expected = Query("Select d, e from B")
+    changes = [RemoveTable("A")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+def test_transform_removes_table_in_join(transformer):
+    actual = Query("Select d, e from B Join A")
+    expected = Query("Select d, e from B")
+    changes = [RemoveTable("A")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+def test_transform_raises_error_if_column_from_removed_table_is_in_selection(transformer):
+    actual = Query("Select a, d from A Join B")
+    changes = [RemoveTable("B")]
+
+    with pytest.raises(InvalidSelectionException):
+        transformer.transform(actual, changes)
+
+
+def test_transform_add_table_to_query_with_single_column(transformer):
+    actual = Query("Select * from A")
+    expected = Query("Select * from A join B")
+    changes = [AddTable("B")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_add_table_to_query_with_multiple_columns(transformer):
+    actual = Query("Select * from A Join B Join C")
+    expected = Query("Select * from A Join B Join C Join D")
+    changes = [AddTable("D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_remove_existing_table_and_add_new_table(transformer):
+    actual = Query("Select * from A")
+    expected = Query("Select * from D")
+    changes = [RemoveTable("A"), AddTable("D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_move_column(transformer):
+    actual = Query("Select a from A")
+    expected = Query("Select a from D")
+    changes = [MoveColumn("a", "A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_move_one_of_multiple_columns(transformer):
+    actual = Query("Select a, d from A Join B")
+    expected = Query("Select a, d from B Join D")
+    changes = [MoveColumn("a", "A", "D"), RemoveTable("A")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+

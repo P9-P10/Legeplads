@@ -2,7 +2,8 @@ import sqlite3
 
 from Structures.Query import Query
 from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
-from Applications.query_transformer import transform
+from Applications.query_transformer import Transformer
+from Structures.DatabaseStructure import DatabaseStructure
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
@@ -14,6 +15,7 @@ class SqLiteInterfaceWithChanges(SqLiteInterface):
             old_tables = []
         self.old_tables = old_tables
         self.new_tables = new_tables
+        self.transformer = Transformer(DatabaseStructure(self.old_tables), DatabaseStructure(self.new_tables))
         self.changes = changes
         self.sql = sqlite3.connect(path_to_database)
 
@@ -25,4 +27,4 @@ class SqLiteInterfaceWithChanges(SqLiteInterface):
         return super().run_query(query)
 
     def apply_changes(self, query: Query):
-        transform(query, self.changes, self.old_tables, self.new_tables)
+        self.transformer.transform(query, self.changes)

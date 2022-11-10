@@ -1,5 +1,4 @@
 from Structures.Column import Column
-from Applications.query_transformer import transform
 
 
 def test_column_comparison_fails_if_other_is_not_column():
