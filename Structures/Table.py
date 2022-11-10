@@ -30,6 +30,9 @@ class Table:
     def has_column(self, column: Column):
         return column in self.columns
 
+    def has_column_with_name(self, column_name: str) -> bool:
+        return column_name in [column.name for column in self.columns]
+
     def has_column_with_alias(self,column:Column,alias):
         for current_column in self.columns:
             if current_column == column:

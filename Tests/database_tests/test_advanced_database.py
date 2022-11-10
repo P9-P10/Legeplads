@@ -5,9 +5,9 @@ from Applications.Database_intefaces.sqliteInterfaceWIthChanges import SqLiteInt
 from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si
 import pytest
 
-from Helpers.Change import *
 from Helpers.database_map import DBMapper
 from Scripts.database_creation_tool import run_all_databases
+from Structures.Changes import AddTable, RemoveTable, MoveColumn
 
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
@@ -18,13 +18,12 @@ new_dbmap = DBMapper(Si(database_path + o_database_name + ".sqlite"))
 
 def create_connection_with_changes():
     # Changes
-    newsletter = Table('NewsLetter')
-    userdata = Table('UserData')
-    wants_letter = Column('wants_letter')
-    user_id = Column('user_id')
-    wants_letter_change = Change((newsletter, wants_letter), (userdata, wants_letter))
-    user_id_change = Change((newsletter, user_id), (userdata, user_id))
-    changes = [wants_letter_change, user_id_change]
+    wants_letter_change = MoveColumn('wants_letter', 'NewsLetter', 'User')
+    user_id_change = MoveColumn('user_id', 'NewsLetter', 'UserData')
+    newsletter_change = RemoveTable('NewsLetter')
+
+    changes = [wants_letter_change, user_id_change, newsletter_change]
+
 
     # Tables
     new_tables = new_dbmap.create_database_map()

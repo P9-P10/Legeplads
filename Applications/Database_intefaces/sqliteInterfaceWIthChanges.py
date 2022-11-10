@@ -2,12 +2,11 @@ import sqlite3
 
 from Structures.Query import Query
 from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
-from Helpers.Change import Change
 from Applications.query_transformer import transform
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
-    def __init__(self, path_to_database, changes: list[Change],old_tables=None, new_tables=None):
+    def __init__(self, path_to_database, changes,old_tables=None, new_tables=None):
         super().__init__(path_to_database)
         if new_tables is None:
             new_tables = []
