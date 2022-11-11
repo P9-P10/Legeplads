@@ -1,11 +1,13 @@
 from Structures.Table import Table
 from Structures.Column import Column
 
+
 class DatabaseStructure:
-    def __init__(self, tables: list[Table]):
+    def __init__(self, tables: list[Table], name=None):
         self.tables = tables
         self.table_names = [table.name for table in self.tables]
         self.column_dict = self.create_column_dict()
+        self.name = name
 
     def __eq__(self, other):
         if not isinstance(other, DatabaseStructure):
@@ -40,7 +42,3 @@ class DatabaseStructure:
     def raise_error_on_invalid_table(self, table_name: str):
         if table_name not in self.table_names:
             raise ValueError(f'Table {table_name} is not in the structure')
-
-
-    
-        
