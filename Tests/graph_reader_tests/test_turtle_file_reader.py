@@ -15,8 +15,6 @@ def create_turtle_reader(path):
 
 def find_database_structure_in_result(result: [DatabaseStructure], query) -> DatabaseStructure:
     items = [item for item in result if item.name == query]
-    if len(items) > 1:
-        raise Exception("Multiple database structure of same name found")
     return items[0]
 
 
