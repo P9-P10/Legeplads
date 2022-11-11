@@ -18,7 +18,7 @@ new_dbmap = DBMapper(Si(database_path + o_database_name + ".sqlite"))
 
 def create_connection_with_changes():
     # Changes
-    wants_letter_change = MoveColumn('wants_letter', 'NewsLetter', 'User')
+    wants_letter_change = MoveColumn('wants_letter', 'NewsLetter', 'UserData')
     user_id_change = MoveColumn('user_id', 'NewsLetter', 'UserData')
     newsletter_change = RemoveTable('NewsLetter')
 

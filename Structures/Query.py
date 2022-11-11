@@ -79,6 +79,9 @@ class Query:
     def create_from_with_table(self, table_name: str):
         return exp.From(expressions=[self.create_table(table_name)])
 
+    def create_table_with_alias(self, table_name: str, table_alias: str):
+        return exp.Alias(this=self.create_table(table_name), alias=exp.TableAlias(this=self.create_identifier(table_alias)))
+
     # def get_tables(self):
     #     # Returns all tables in the query, if they have an alias, this is also included
     #     # The tables do not have their columns

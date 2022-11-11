@@ -12,3 +12,9 @@ class MoveColumn:
         self.column_name = column_name
         self.src_table_name = src_table_name
         self.dst_table_name = dst_table_name
+
+class RemoveColumn:
+    pass
+
+class AddColumn:
+    pass

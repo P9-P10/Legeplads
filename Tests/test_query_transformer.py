@@ -4,7 +4,7 @@ from Structures.Query import Query
 from Structures.Table import Table
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
-from Structures.Changes import AddTable, RemoveTable, MoveColumn
+from Structures.Changes import AddTable, RemoveTable, MoveColumn, RemoveColumn, AddColumn
 from Applications.exceptions import InvalidSelectionException, InvalidTransformationException, InvalidQueryException
 
 @pytest.fixture
@@ -37,6 +37,8 @@ def test_transform_raises_error_when_selecting_unavailable_columns(transformer):
 
     with pytest.raises(InvalidQueryException):
         transformer.transform(query, [])
+
+# TODO: Add test for removing table containing selected columns when doing SELECT *
 
 def test_transform_removes_table(transformer):
     actual = Query("Select d, e from A, B")
@@ -98,6 +100,8 @@ def test_transform_move_column(transformer):
     actual = Query("Select a from A")
     expected = Query("Select a from D")
     changes = [MoveColumn("a", "A", "D")]
+    # This is equivalent to 
+    # changes = [RemoveTable("A"), AddTable("D")]
 
     transformer.transform(actual, changes)
 
@@ -108,9 +112,33 @@ def test_transform_move_one_of_multiple_columns(transformer):
     actual = Query("Select a, d from A Join B")
     expected = Query("Select a, d from B Join D")
     changes = [MoveColumn("a", "A", "D"), RemoveTable("A")]
+    # This is equivalent to 
+    # changes = [AddTable("D"), RemoveTable("A")]
 
     transformer.transform(actual, changes)
 
     assert actual == expected
 
+def test_transform_move_column_with_alias(transformer):
+    actual = Query("Select Alias.a from A as Alias")
+    expected = Query("Select a from D")
+    changes = [MoveColumn("a", "A", "D")]
+    # This is NOT equivalent to
+    # changes = [AddTable("D"), RemoveTable("A")]
+    # Because of the alias
+    # When only doing add and remove, there is no way to determine alias equivalence.
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+@pytest.mark.skip(reason="This require more features")
+def test_transform_move_column_that_is_used_in_join_condition(transformer):
+    actual = Query("Select a, g from A Join C on A.c = C.c")
+    expected = Query("Select a, g from D Join C on D.c = C.c")
+    changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), RemoveTable("A")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
 
