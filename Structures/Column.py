@@ -16,7 +16,7 @@ class Column:
         return False
 
     def __repr__(self):
-        return f'Column(name: {self.name}, alias: {self.alias} {"" if not self.table_name else ",table: " + self.table_name})'
+        return f'Column(name: {self.name}, alias: {self.alias})'
 
     def __hash__(self):
         return hash((self.name, self.alias))
