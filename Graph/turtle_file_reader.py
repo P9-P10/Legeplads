@@ -77,29 +77,28 @@ class TurtleFileReader(GraphReader):
     def turtle_map_to_database_structures(self, turtle_map) -> [DatabaseStructure]:
         output = []
         for key, value in turtle_map.items():
-            i = 0
             for structure in value.hasStructure:
                 structure_representation = turtle_map[structure]
                 if structure_representation.type == "Schema":
                     database_name = turtle_map[structure_representation.hasStore].hasName
                     tables = self.get_tables(turtle_map, structure_representation)
-                    output.append(DatabaseStructure(tables, database_name))
+                    output.append(DatabaseStructure(tables, database_name, uri=key))
 
         return output
 
     def get_tables(self, turtle_map, structure_representation):
         output = []
-        for structure in structure_representation.hasStructure:
-            current_structure = turtle_map[structure]
+        for structure_uri in structure_representation.hasStructure:
+            current_structure = turtle_map[structure_uri]
             columns = self.get_columns(turtle_map, current_structure)
-            table = Table(current_structure.hasName, columns)
+            table = Table(current_structure.hasName, columns, uri=structure_uri)
             output.append(table)
         return output
 
     def get_columns(self, turtle_map, current_structure):
         output = []
-        for structure in current_structure.hasStructure:
-            representation = turtle_map[structure]
-            column = Column(representation.hasName)
+        for structure_uri in current_structure.hasStructure:
+            representation = turtle_map[structure_uri]
+            column = Column(representation.hasName, uri=structure_uri)
             output.append(column)
         return output

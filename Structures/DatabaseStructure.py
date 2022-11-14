@@ -3,11 +3,12 @@ from Structures.Column import Column
 
 
 class DatabaseStructure:
-    def __init__(self, tables: list[Table], name=None):
+    def __init__(self, tables: list[Table], name=None, uri=None):
         self.tables = tables
         self.table_names = [table.name for table in self.tables]
         self.column_dict = self.create_column_dict()
         self.name = name
+        self.URI = uri
 
     def __eq__(self, other):
         if not isinstance(other, DatabaseStructure):

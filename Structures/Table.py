@@ -1,12 +1,14 @@
 from Structures.Column import Column
 
+
 class Table:
-    def __init__(self, name, columns=None, alias=None):
+    def __init__(self, name, columns=None, alias=None, uri=None):
         if columns is None:
             columns = []
         self.name = name
         self.columns = columns
         self.alias = alias
+        self.URI = uri
 
     def __str__(self):
         return self.name
@@ -30,7 +32,7 @@ class Table:
     def has_column(self, column: Column):
         return column in self.columns
 
-    def has_column_with_alias(self,column:Column,alias):
+    def has_column_with_alias(self, column: Column, alias):
         for current_column in self.columns:
             if current_column == column:
                 if current_column.alias:
@@ -46,7 +48,7 @@ class Table:
     def get_alias(self):
         return self.alias
 
-    def get_column(self,column_name):
+    def get_column(self, column_name):
         for column in self.columns:
             if column.name == column_name:
                 return column
