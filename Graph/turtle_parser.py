@@ -1,14 +1,12 @@
-from os.path import exists
-
-from Graph.graph_reader import GraphReader
 from rdflib import Graph
 
+from Graph.graph_parser import GraphParser
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
 from Structures.Table import Table
 
 
-class TurtleFileReader(GraphReader):
+class TurtleParser(GraphParser):
     class TurtleRepresentation:
         def __init__(self):
             self.hasName = None
@@ -19,11 +17,8 @@ class TurtleFileReader(GraphReader):
             self.columnOptions = None
             self.isNotNull = False
 
-    def __init__(self, database_contents, changes=None):
-        super().__init__(database_contents, changes)
-
-    def get_changes(self):
-        pass
+    def __init__(self, database_contents: str, changes_as_string: str = ""):
+        super().__init__(database_contents, changes_as_string)
 
     def get_structure(self) -> [DatabaseStructure]:
         return self.turtle_parser()

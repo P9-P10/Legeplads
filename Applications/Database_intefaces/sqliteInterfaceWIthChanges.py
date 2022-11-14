@@ -1,14 +1,14 @@
 import sqlite3
 
 from Structures.Query import Query
-from Applications.Database_intefaces.sqliteinterface import SqLiteInterface, DBConfig
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
 from Helpers.Change import Change
 from Applications.query_transformer import transform
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
-    def __init__(self, dbconfig:DBConfig, changes: list[Change], old_tables=None, new_tables=None):
-        super().__init__(dbconfig)
+    def __init__(self, path, changes: list[Change], old_tables=None, new_tables=None):
+        super().__init__(path)
         if new_tables is None:
             new_tables = []
         if old_tables is None:

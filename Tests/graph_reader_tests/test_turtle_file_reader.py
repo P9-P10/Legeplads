@@ -1,7 +1,7 @@
 import pathlib
 
 from Helpers.filereader import FileReader
-from Graph.turtle_file_reader import TurtleFileReader
+from Graph.turtle_parser import TurtleParser
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
 from Structures.Table import Table
@@ -10,7 +10,7 @@ from Structures.Table import Table
 def create_turtle_reader(path):
     correct_path = str(pathlib.Path(__file__).parent.parent.parent / 'Tests' / 'graph_reader_tests') + '\\' + path
     file_reader = FileReader(correct_path)
-    return TurtleFileReader(file_reader.get_content())
+    return TurtleParser(file_reader.get_content())
 
 
 def find_database_structure_in_result(result: [DatabaseStructure], query) -> DatabaseStructure:
