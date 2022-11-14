@@ -13,8 +13,14 @@ class MoveColumn:
         self.src_table_name = src_table_name
         self.dst_table_name = dst_table_name
 
+class ReplaceTable:
+    def __init__(self, old_table_name: str, new_table_name: str):
+        self.old_table_name = old_table_name
+        self.new_table_name = new_table_name
+        
 class RemoveColumn:
     pass
 
 class AddColumn:
     pass
+

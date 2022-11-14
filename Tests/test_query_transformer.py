@@ -4,7 +4,7 @@ from Structures.Query import Query
 from Structures.Table import Table
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
-from Structures.Changes import AddTable, RemoveTable, MoveColumn, RemoveColumn, AddColumn
+from Structures.Changes import AddTable, RemoveTable, MoveColumn, RemoveColumn, AddColumn, ReplaceTable
 from Applications.exceptions import InvalidSelectionException, InvalidTransformationException, InvalidQueryException
 
 @pytest.fixture
@@ -132,13 +132,25 @@ def test_transform_move_column_with_alias(transformer):
 
     assert actual == expected
 
-@pytest.mark.skip(reason="This require more features")
-def test_transform_move_column_that_is_used_in_join_condition(transformer):
+
+def test_transform_move_column_that_is_used_in_join_condition_change_table_in_from(transformer):
     actual = Query("Select a, g from A Join C on A.c = C.c")
-    expected = Query("Select a, g from D Join C on D.c = C.c")
+    expected = Query("Select a, g from C join D where D.c = C.c")
     changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), RemoveTable("A")]
 
     transformer.transform(actual, changes)
 
     assert actual == expected
 
+
+# TODO: Add a change ReplaceTable, that specifies that all column from one table should be moved to the other, and that all occurences of the table should be replaced with the other
+@pytest.mark.skip(reason="This require more features")
+def test_transform_move_column_that_is_used_in_join_condition_change_table_in_joins(transformer):
+    actual = Query("Select a, g from C Join A on A.c = C.c")
+    expected = Query("Select a, g from C join D on D.c = C.c")
+    #changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), RemoveTable("A")]
+    changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected

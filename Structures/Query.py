@@ -76,11 +76,17 @@ class Query:
     def create_simple_join(self, table_name: str):
         return exp.Join(this=self.create_table(table_name))
 
+    def create_join_with_condition(self, table_name: str, condition: exp.Expression):
+        return exp.Join(this=self.create_table(table_name), on=condition)
+
     def create_from_with_table(self, table_name: str):
         return exp.From(expressions=[self.create_table(table_name)])
 
     def create_table_with_alias(self, table_name: str, table_alias: str):
         return exp.Alias(this=self.create_table(table_name), alias=exp.TableAlias(this=self.create_identifier(table_alias)))
+
+    def create_where_with_condition(self, condition: exp.Expression):
+        return exp.Where(this=condition)
 
     # def get_tables(self):
     #     # Returns all tables in the query, if they have an alias, this is also included
