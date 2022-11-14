@@ -1,6 +1,6 @@
 class GraphReader:
-    def __init__(self, connection_string):
-        self.connection_string = connection_string
+    def __init__(self, input_string):
+        self.input_string = input_string
         self.graph = None
 
     def get_structure(self):

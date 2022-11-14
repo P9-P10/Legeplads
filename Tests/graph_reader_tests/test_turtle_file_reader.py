@@ -2,6 +2,7 @@ import pathlib
 
 import pytest
 
+from Graph.filereader import FileReader
 from Graph.turtle_file_reader import TurtleFileReader
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
@@ -10,7 +11,8 @@ from Structures.Table import Table
 
 def create_turtle_reader(path):
     correct_path = str(pathlib.Path(__file__).parent.parent.parent / 'Tests' / 'graph_reader_tests') + '\\' + path
-    return TurtleFileReader(correct_path)
+    file_reader = FileReader(correct_path)
+    return TurtleFileReader(file_reader.get_content())
 
 
 def find_database_structure_in_result(result: [DatabaseStructure], query) -> DatabaseStructure:
@@ -40,16 +42,6 @@ expected_tables_optimized_advanced_database = [
 expected_tables_simple_database = [
     Table("UserData", [Column("phone"), Column("birthday"), Column("address"), Column("id")]),
     Table("Users", [Column("email"), Column("id"), Column("password")])]
-
-
-def test_init_raises_file_not_found_on_incorrect_file_path():
-    with pytest.raises(FileNotFoundError):
-        create_turtle_reader("Incorrect filepath")
-
-
-def test_init_does_not_raise_error_if_file_exists():
-    turtle_reader = create_turtle_reader("file_for_tests.ttl")
-    assert "file_for_tests.ttl" in turtle_reader.connection_string
 
 
 def test_get_structure_returns_data_base_structure():

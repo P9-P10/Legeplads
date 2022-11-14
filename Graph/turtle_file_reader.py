@@ -19,16 +19,8 @@ class TurtleFileReader(GraphReader):
             self.columnOptions = None
             self.isNotNull = False
 
-    def __init__(self, connection_string):
-        super().__init__(connection_string)
-        if not exists(connection_string):
-            raise FileNotFoundError("The file: " + connection_string + " does not exist.")
-
-        self.content = self.get_content()
-
-    def get_content(self):
-        with open(self.connection_string) as f:
-            return f.read()
+    def __init__(self, input_string):
+        super().__init__(input_string)
 
     def get_changes(self):
         pass
@@ -39,7 +31,7 @@ class TurtleFileReader(GraphReader):
     def turtle_parser(self) -> [DatabaseStructure]:
 
         graph = Graph()
-        parsed = graph.parse(data=self.content)
+        parsed = graph.parse(data=self.input_string)
 
         turtle_map = self.turtle_map_from_parsed_ttl(parsed)
 
