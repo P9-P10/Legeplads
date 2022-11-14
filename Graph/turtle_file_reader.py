@@ -19,8 +19,8 @@ class TurtleFileReader(GraphReader):
             self.columnOptions = None
             self.isNotNull = False
 
-    def __init__(self, input_string):
-        super().__init__(input_string)
+    def __init__(self, database_contents, changes=None):
+        super().__init__(database_contents, changes)
 
     def get_changes(self):
         pass

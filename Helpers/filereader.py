@@ -7,6 +7,6 @@ class FileReader:
         if not exists(location):
             raise FileNotFoundError("The file: " + location + " does not exist.")
 
-    def get_content(self):
+    def get_content(self)->str:
         with open(self.location) as f:
             return f.read()

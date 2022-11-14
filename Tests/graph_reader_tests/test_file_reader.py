@@ -2,7 +2,7 @@ import pathlib
 
 import pytest
 
-from Graph.filereader import FileReader
+from Helpers.filereader import FileReader
 
 
 def create_file_reader(path):

@@ -1,8 +1,6 @@
 import pathlib
 
-import pytest
-
-from Graph.filereader import FileReader
+from Helpers.filereader import FileReader
 from Graph.turtle_file_reader import TurtleFileReader
 from Structures.Column import Column
 from Structures.DatabaseStructure import DatabaseStructure
