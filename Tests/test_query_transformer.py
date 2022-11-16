@@ -119,6 +119,7 @@ def test_transform_move_one_of_multiple_columns(transformer):
 
     assert actual == expected
 
+
 def test_transform_move_column_with_alias(transformer):
     actual = Query("Select Alias.a from A as Alias")
     expected = Query("Select a from D")
@@ -137,19 +138,40 @@ def test_transform_move_column_that_is_used_in_join_condition_change_table_in_fr
     actual = Query("Select a, g from A Join C on A.c = C.c")
     expected = Query("Select a, g from C join D where D.c = C.c")
     changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), RemoveTable("A")]
+   # The changes below, produce the same result 
+   # changes = [ReplaceTable("A", "D")]
 
     transformer.transform(actual, changes)
 
     assert actual == expected
 
 
-# TODO: Add a change ReplaceTable, that specifies that all column from one table should be moved to the other, and that all occurences of the table should be replaced with the other
-@pytest.mark.skip(reason="This require more features")
-def test_transform_move_column_that_is_used_in_join_condition_change_table_in_joins(transformer):
+def test_transform_move_column_from_table_that_is_not_used_does_nothing(transformer):
+    actual = Query("Select * from C")
+    expected = Query("Select * from C")
+    changes = [MoveColumn("a", "A", "D")]
+   # The changes below, produce the same result 
+   # changes = [ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_replace_table_that_is_used_in_join(transformer):
     actual = Query("Select a, g from C Join A on A.c = C.c")
     expected = Query("Select a, g from C join D on D.c = C.c")
-    #changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), RemoveTable("A")]
-    changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), ReplaceTable("A", "D")]
+    changes = [ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_replace_table_not_in_the_query_does_nothing(transformer):
+    actual = Query("Select * from C")
+    expected = Query("Select * from C")
+    changes = [ReplaceTable("B", "D")]
 
     transformer.transform(actual, changes)
 

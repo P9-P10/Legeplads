@@ -21,6 +21,9 @@ class Attribute:
     def __repr__(self):
         return f'Attribute(Name: {self.name}, Relation_index: {self.relation_index})'
 
+    def change_relation(self, new_index: int):
+        self.relation_index = new_index
+
 class RangeTable:
     def __init__(self, from_expressions: list[exp.Expression], join_expressions: list[exp.Expression]):
         self.from_expressions = from_expressions
@@ -79,6 +82,9 @@ class RangeTable:
             if relation.name == alias:
                 return relation  
         # TODO raise exception if there is no match
+
+    def get_relation_with_index(self, index: int):
+        return self.relations[index]
 
 class Selection:
     def __init__(self, db_structure: DatabaseStructure, range_table: RangeTable, expressions: list[exp.Expression]):
@@ -157,10 +163,19 @@ class Selection:
 
 
 class Join:
-    def __init__(self, relation: Relation, attributes: list[Attribute], condition):
-        self.relation = relation
+    def __init__(self, relation_index: int, attributes: list[Attribute], condition):
+        self.relation_index = relation_index
         self.attributes = attributes
         self.condition = condition
+
+    def change_relation(self, new_index: int):
+        self.relation_index = new_index
+
+    def change_attributes(self, new_attributes: list[Attribute]):
+        self.attributes = new_attributes
+
+    def change_condition(self, new_condition):
+        self.condition = new_condition
 
 class JoinTree:
     def __init__(self, join_expressions: list[exp.Expression], range_table: RangeTable):
@@ -169,13 +184,13 @@ class JoinTree:
         # The joins should reference relations in the range_table, and the conditions should contain attributes
         self.joins = []
         for node in join_expressions:
-            relation = self.get_relation_from_node(node.this)
+            relation_index = self.get_relation_from_node(node.this).index
             attributes = self.get_attributes_from_join_condition(node)
             condition = None
             # Add the 'on' expression node to the tuple if it exists 
             if 'on' in node.args.keys():
                 condition = node.args['on'].copy()
-            self.joins.append(Join(relation, attributes, condition))
+            self.joins.append(Join(relation_index, attributes, condition))
 
 
     def get_relation_from_node(self, node: exp.Expression) -> Relation:
@@ -197,25 +212,10 @@ class JoinTree:
         return result
 
 
-    # This is copied from selection, and should be generalised
-    def change_source_relation_for_join_conditions(self, column_name: str, current_relation_name: str, new_relation_index: int):
-        indicies = self.range_table.index_of_entries_with_name(current_relation_name)
-        new_joins = []
-        for join in self.joins:
-            new_list = []
-            for attr in join.attributes:
-                if attr.name == column_name and attr.relation_index in indicies:
-                    new_attr = Attribute(column_name, new_relation_index)
-                else:
-                    new_attr = attr
-                new_list.append(new_attr)
-            new_joins.append(Join(join.relation, new_list, join.condition))
-
-        self.joins = new_joins
-
     def add_join_without_condition(self, table_name):
         relation = self.range_table.get_matching_relation(table_name, "")
-        self.joins.append(Join(relation, [], None))
+        self.joins.append(Join(relation.index, [], None))
+
 
     def create_join_expressions(self):
         # Empty query needed to create AST Nodes
@@ -233,12 +233,33 @@ class JoinTree:
                         relation_name = attr_relation.alias
                     column.replace(empty_query.create_column(attr.name, relation_name))
                 
-            new_joins.append(empty_query.create_join_with_condition(join.relation.name, join.condition))
+            new_joins.append(empty_query.create_join_with_condition(self.range_table.get_relation_with_index(join.relation_index).name, join.condition))
 
         return new_joins
 
+
     def remove_relations_with_name(self, relation_name: str):
-        self.joins = [join for join in self.joins if not join.relation.name == relation_name]
+        self.joins = [join for join in self.joins if not self.range_table.get_relation_with_index(join.relation_index).name == relation_name]
+
+    
+    def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
+        for join in self.joins:
+            for attr in join.attributes:
+                if attr.relation_index in indicies_to_replace:
+                    attr.change_relation(new_index)
+
+
+    def move_condition(self, indicies_to_replace: list[int], new_index: int):
+        for join in self.joins:
+            if join.relation_index == new_index:
+                new_join = join
+                break
+
+        for join in self.joins:
+            if join.relation_index in indicies_to_replace:
+                new_join.change_attributes(join.attributes)
+                new_join.change_condition(join.condition)
+
 
 class Transformer:
     def __init__(self, old_db_structure: DatabaseStructure, new_db_structure: DatabaseStructure):
@@ -270,7 +291,12 @@ class Transformer:
             elif isinstance(change, AddTable):
                 self.add_table_to_query(change.table_name)
             elif isinstance(change, MoveColumn):
-                self.move_column(change)
+                if change.src_table_name in self.range_table.relation_names:
+                    self.move_column(change)
+            elif isinstance(change, ReplaceTable):
+                if change.old_table_name in self.range_table.relation_names:
+                    new_index = self.get_index_of_new_relation(change.new_table_name)
+                    self.replace_table(change.old_table_name, new_index)
 
 
     def postprocess_query(self):
@@ -282,19 +308,29 @@ class Transformer:
 
 
     def move_column(self, change):
-        new_table_index = self.get_index_of_new_relation(change)
+        new_table_index = self.get_index_of_new_relation(change.dst_table_name)
         self.selection.change_source_relation_for_column(change.column_name, change.src_table_name, new_table_index)
-        self.join_tree.change_source_relation_for_join_conditions(change.column_name, change.src_table_name, new_table_index)
+        #self.join_tree.change_source_relation_for_join_conditions(change.column_name, change.src_table_name, new_table_index)
+        #self.replace_table(change.src_table_name, new_table_index)
+        indicies_to_replace = self.range_table.index_of_entries_with_name(change.src_table_name)
+        self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
 
 
-    def get_index_of_new_relation(self, change):
+    def get_index_of_new_relation(self, relation_name: str):
         # Is this condition even necessary? Do we ever want to use an existing relation?
-        if not self.range_table.contains(change.dst_table_name):
+        if not self.range_table.contains(relation_name):
             # Add it to the query
-            return self.add_table_to_query(change.dst_table_name)
+            return self.add_table_to_query(relation_name)
         else:
             # Find the first occurence of the table in the range_table
-            return self.range_table.index_of_entries_with_name(change.dst_table_name)[0]
+            return self.range_table.index_of_entries_with_name(relation_name)[0]
+
+
+    def replace_table(self, old_table_name: str, new_table_index: str):
+        indicies_to_replace = self.range_table.index_of_entries_with_name(old_table_name)
+        self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
+        self.join_tree.move_condition(indicies_to_replace, new_table_index)
+        self.remove_table_from_query(old_table_name)
 
 
     def adjust_query_select_expression(self):
