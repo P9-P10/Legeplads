@@ -2,6 +2,8 @@ import os
 import pathlib
 from os.path import exists
 
+import pytest
+
 from Helpers.config_manager import ConfigManager
 
 
@@ -19,9 +21,13 @@ def test_config_manager_init_file_does_not_exist_creates_file():
 
 def test_config_manager_init_file_does_not_exist_creates_file_with_correct_content():
     file_path = "NewFile"
-    cf = ConfigManager(file_path)
-    assert cf.get_config() == {'changes_location': '', 'database_versions_location': ''}
-    os.remove(file_path)
+    try:
+        cf = ConfigManager(file_path)
+    except ValueError:
+        assert cf.get_config() == {'changes_location': '', 'database_versions_location': ''}
+        assert "Please configure the config in" in v.value
+    finally:
+        os.remove(file_path)
 
 
 def test_config_manager_file_exists_loads_config():
