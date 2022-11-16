@@ -33,7 +33,7 @@ def transformer(old_db, new_db):
     return Transformer(old_db, new_db)
 
 def test_transform_raises_error_when_selecting_unavailable_columns(transformer):
-    query = Query("Select x from A")
+    query = Query("Select g from A")
 
     with pytest.raises(InvalidQueryException):
         transformer.transform(query, [])
