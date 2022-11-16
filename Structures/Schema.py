@@ -2,8 +2,8 @@ from Structures.Table import Table
 from Structures.Column import Column
 
 
-class DatabaseStructure:
-    def __init__(self, tables: list[Table], name=None, uri=None):
+class Schema:
+    def __init__(self, tables: list[Table], name=None, uri:int=None):
         self.tables = tables
         self.table_names = [table.name for table in self.tables]
         self.column_dict = self.create_column_dict()
@@ -11,7 +11,7 @@ class DatabaseStructure:
         self.URI = uri
 
     def __eq__(self, other):
-        if not isinstance(other, DatabaseStructure):
+        if not isinstance(other, Schema):
             return False
         return all([self_table == other_table for self_table, other_table in zip(self.tables, other.tables)])
 

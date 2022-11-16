@@ -2,7 +2,7 @@ from Structures.Column import Column
 
 
 class Table:
-    def __init__(self, name: str, columns: [Column] = None, alias: str = None, uri: str = None):
+    def __init__(self, name: str, columns: [Column] = None, alias: str = None, uri: int = None):
         if columns is None:
             columns = []
         self.name = name

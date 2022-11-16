@@ -4,7 +4,7 @@ from Structures.Table import Table
 from Structures.Column import Column
 from Helpers.Change import Change
 from Helpers.equality_constraint import EqualityConstraint
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 
 
 def test_transform_changes_occurrences_of_table():

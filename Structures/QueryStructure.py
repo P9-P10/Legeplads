@@ -1,5 +1,5 @@
 from collections import defaultdict
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 from Structures.Structure import Structure
 from Structures.Table import Table
 from Structures.Relation import Relation, Attribute
@@ -7,7 +7,7 @@ from Helpers.Change import Change
 from Structures.Node import TableNode, ColumnNode
 
 class QueryStructure:
-    def __init__(self, table_nodes: list[TableNode], column_nodes: list[ColumnNode], db_structure: DatabaseStructure):
+    def __init__(self, table_nodes: list[TableNode], column_nodes: list[ColumnNode], db_structure: Schema):
         self.table_nodes = table_nodes
         self.column_nodes = column_nodes
         self.db_structure = db_structure
@@ -75,11 +75,11 @@ class QueryStructure:
         return table_to_columns_map
 
 
-    def get_table_from_structure(self, table: Table, db_structure: DatabaseStructure):
+    def get_table_from_structure(self, table: Table, db_structure: Schema):
         return db_structure.get_table(table.name)
 
 
-    def change_relations(self, change: Change, new_structure: DatabaseStructure):
+    def change_relations(self, change: Change, new_structure: Schema):
         for relation in self.relations:
             if self.change_affects_relation(change, relation):
                 # Check if the change changes the table of the relation
@@ -101,7 +101,7 @@ class QueryStructure:
         return not change.get_new_table().name == relation.table.name
 
 
-    def change_attributes(self, change: Change, new_structure: DatabaseStructure, relation: Relation):
+    def change_attributes(self, change: Change, new_structure: Schema, relation: Relation):
         for attribute in relation.attributes:
             # Change column reference to columns in the new structure
             if attribute.column.name == change.get_old_column().name:

@@ -1,9 +1,9 @@
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 
 
 class ChangesParser:
     def __init__(self, changes: str):
         self.changes = changes
 
-    def get_changes(self, old_structure: DatabaseStructure, new_structure: DatabaseStructure):
+    def get_changes(self, old_structure: Schema, new_structure: Schema):
         raise NotImplemented

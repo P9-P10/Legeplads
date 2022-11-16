@@ -1,7 +1,7 @@
 from Structures.Column import Column
 from Structures.Query import Query
 from Structures.Table import Table
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 from Helpers.Change import Change
 from Structures.QueryStructure import QueryStructure
 from Structures.Relation import Relation, Attribute
@@ -9,8 +9,8 @@ from Structures.Node import TableNode, ColumnNode
 
 
 def transform(query: Query, changes: list[Change], old_tables: list[Table], new_tables: list[Table]):
-    old_structure = DatabaseStructure(old_tables)
-    new_structure = DatabaseStructure(new_tables)
+    old_structure = Schema(old_tables)
+    new_structure = Schema(new_tables)
 
     # Extract and transform subqueries separately
     subqueries = query.extract_subqueries()
@@ -27,7 +27,7 @@ def transform(query: Query, changes: list[Change], old_tables: list[Table], new_
     query.insert_subqueries(subqueries)
 
 
-def transform_star_expression(old_structure: DatabaseStructure, query: Query):
+def transform_star_expression(old_structure: Schema, query: Query):
     for table in query.get_tables():
         current_columns = query.get_columns()
         new_columns = old_structure.get_columns_in_table(table.name)
@@ -43,7 +43,7 @@ def transform_star_expression(old_structure: DatabaseStructure, query: Query):
         query.add_to_select(new_columns)
 
 
-def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Change], old_structure: DatabaseStructure, new_structure: DatabaseStructure):
+def create_changes_to_transform_ambiguous_columns(query: Query, changes: list[Change], old_structure: Schema, new_structure: Schema):
     ast_alias_nodes = query.get_alias_nodes()
     ast_table_nodes = query.get_table_nodes()
     ast_column_nodes = query.get_column_nodes()

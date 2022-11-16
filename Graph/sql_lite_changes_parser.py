@@ -2,7 +2,8 @@ import json
 
 from Graph.changes_parser import ChangesParser
 from Structures.Column import Column
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.DataStore import DataStore
+from Structures.Schema import Schema
 from Structures.Table import Table
 
 
@@ -11,22 +12,31 @@ class JsonChangesParser(ChangesParser):
         changes = json.loads(changes)
         super().__init__(changes)
 
-    def get_changes(self, old_structure: DatabaseStructure, new_structure: DatabaseStructure) -> [(Table, Table)]:
-        def find_column_in_database(database_structure, uri_to_find):
-            for table_name, columns in database_structure.column_dict.items():
-                for column in columns:
-                    if column.URI == uri_to_find:
-                        return Table(table_name, [Column(column.name)])
+    def get_changes(self, old_structure: DataStore, new_structure: DataStore) -> [(Schema, Schema)]:
+
+        def find_element(database_structure, uri_to_find):
+            for schema in database_structure.schemas:
+                if schema.URI == uri_to_find:
+                    return Schema(schema.name)
+                else:
+                    for table in schema.tables:
+                        if table.URI == uri_to_find:
+                            return Schema(name=schema.name, tables=[Table(table.name)])
+                        else:
+                            for column in table.columns:
+                                if column.URI == uri_to_find:
+                                    return Schema(name=schema.name,
+                                                  tables=[Table(table.name, columns=[Column(column.name)])])
 
         output = []
         for change in self.changes:
             if "MOVE" in change:
                 change = change.replace("MOVE(", " ")
                 change = change.replace(")", " ")
-                old_URI, new_URI = change.split(",")
-                print(old_URI + new_URI)
+                old_uri, new_uri = change.split(",")
+                print(old_uri + new_uri)
                 old_new_tuple = (
-                    find_column_in_database(old_structure, int(old_URI)),
-                    find_column_in_database(new_structure, int(new_URI)))
+                    find_element(old_structure, int(old_uri)),
+                    find_element(new_structure, int(new_uri)))
                 output.append(old_new_tuple)
         return output

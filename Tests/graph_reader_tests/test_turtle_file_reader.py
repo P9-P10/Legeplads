@@ -3,7 +3,8 @@ import pathlib
 from Helpers.filereader import FileReader
 from Graph.turtle_parser import TurtleParser
 from Structures.Column import Column
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.DataStore import DataStore
+from Structures.Schema import Schema
 from Structures.Table import Table
 
 
@@ -13,13 +14,14 @@ def create_turtle_reader(path):
     return TurtleParser(file_reader.get_content())
 
 
-def find_database_structure_in_result(result: [DatabaseStructure], query) -> DatabaseStructure:
-    items = [item for item in result if item.name == query]
-    return items[0]
+def find_schema_structure_in_datastore(result: [DataStore], query, schema_name="main") -> Schema:
+    items = [datastore for datastore in result if datastore.name == query]
+    result = [schema for schema in items[0].schemas if schema.name == schema_name]
+    return result[0]
 
 
 def tables_in_database(result, database_name, tables):
-    current_database = find_database_structure_in_result(result, database_name)
+    current_database = find_schema_structure_in_datastore(result, database_name)
     # As the parser is nondeterministic, it is necessary to verify whether all tables are present
     return all([item in tables for item in current_database.tables]) and all(
         [item in current_database.tables for item in tables])
@@ -46,7 +48,7 @@ def test_get_structure_returns_data_base_structure():
     turtle_reader = create_turtle_reader("file_for_tests.ttl")
     result = turtle_reader.get_structure()
     expected = [Table("table", [Column("AnotherName")])]
-    assert result[0].tables == expected
+    assert result[0].schemas[0].tables == expected
     assert result[0].name == "TestDatabase"
 
 
@@ -54,12 +56,13 @@ def test_get_structure_returns_database_structure_multiple_tables():
     turtle_reader = create_turtle_reader("larger_file.ttl")
     result = turtle_reader.get_structure()
     assert len(result) == 1
-    assert len(result[0].tables) == 5
+    assert len(result[0].schemas) == 1
+    assert len(result[0].schemas[0].tables) == 5
 
 
 def test_get_structure_returns_database_structure_correct_tables():
     turtle_reader = create_turtle_reader("larger_file.ttl")
-    result = turtle_reader.get_structure()
+    result: [DataStore] = turtle_reader.get_structure()
 
     assert tables_in_database(result, "OptimizedAdvancedDatabase", expected_tables_optimized_advanced_database)
 

@@ -2,7 +2,8 @@ from rdflib import Graph
 
 from Graph.graph_parser import GraphParser
 from Structures.Column import Column
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.DataStore import DataStore
+from Structures.Schema import Schema
 from Structures.Table import Table
 
 
@@ -20,10 +21,10 @@ class TurtleParser(GraphParser):
     def __init__(self, database_contents: str, changes_as_string: str = ""):
         super().__init__(database_contents, changes_as_string)
 
-    def get_structure(self) -> [DatabaseStructure]:
+    def get_structure(self) -> [DataStore]:
         return self.turtle_parser()
 
-    def turtle_parser(self) -> [DatabaseStructure]:
+    def turtle_parser(self) -> [Schema]:
 
         graph = Graph()
         parsed = graph.parse(data=self.input_string)
@@ -69,15 +70,16 @@ class TurtleParser(GraphParser):
 
         return turtle_map
 
-    def turtle_map_to_database_structures(self, turtle_map) -> [DatabaseStructure]:
+    def turtle_map_to_database_structures(self, turtle_map) -> [DataStore]:
         output = []
         for key, value in turtle_map.items():
             for structure in value.hasStructure:
                 structure_representation = turtle_map[structure]
                 if structure_representation.type == "Schema":
-                    database_name = turtle_map[structure_representation.hasStore].hasName
+                    schema_name = structure_representation.hasName
+                    dataStore_name = turtle_map[structure_representation.hasStore].hasName
                     tables = self.get_tables(turtle_map, structure_representation)
-                    output.append(DatabaseStructure(tables, database_name, uri=key))
+                    output.append(DataStore([Schema(tables, schema_name, uri=key)],name=dataStore_name))
 
         return output
 

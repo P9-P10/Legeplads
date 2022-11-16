@@ -1,4 +1,4 @@
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.DataStore import DataStore
 
 
 class GraphParser:
@@ -7,5 +7,5 @@ class GraphParser:
         self.changes = changes
         self.graph = None
 
-    def get_structure(self) -> [DatabaseStructure]:
+    def get_structure(self) -> [DataStore]:
         raise NotImplemented

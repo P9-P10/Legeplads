@@ -1,5 +1,5 @@
 class Column:
-    def __init__(self, name, alias=None, uri=None):
+    def __init__(self, name, alias=None, uri: int = None):
         self.alias = alias
         self.name = name
         self.URI = uri
