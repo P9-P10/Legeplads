@@ -11,9 +11,9 @@ def test__get_changes_move_columns_action():
     changes = ['MOVE(123456789,852852852)']
     changes = json.dumps(changes)
     changes_parser = JsonChangesParser(changes)
-    old_db_structure = DataStore([Schema([Table("TableNameA", [Column("name", uri=123456789)], uri="852852")],
+    old_db_structure = DataStore([Schema([Table("TableNameA", [Column("name", uri=123456789)], uri=852852)],
                                          uri=963963)])
-    new_db_structure = DataStore([Schema([Table("TableNameB", [Column("second_name", uri=852852852)], uri="123456963")],
+    new_db_structure = DataStore([Schema([Table("TableNameB", [Column("second_name", uri=852852852)], uri=123456963)],
                                          uri=852789456123)])
     changes = changes_parser.get_changes(old_db_structure, new_db_structure)
     assert changes == [(Schema([Table("TableNameA", [Column("name")])]),
@@ -26,10 +26,10 @@ def test_get_changes_multiple_move_columns_actions():
     changes_parser = JsonChangesParser(changes)
     old_db_structure = DataStore([Schema(
         [Table("TableNameA", [Column("name", uri=123456789),
-                              Column("ColumnC", uri=5252)], uri="852852")],
+                              Column("ColumnC", uri=5252)], uri=852852)],
         uri=963963)])
     new_db_structure = DataStore([Schema([Table("TableNameB",
-                                                [Column("second_name", uri=852852852)], uri="123456963"),
+                                                [Column("second_name", uri=852852852)], uri=123456963),
                                           Table("tableA",
                                                 [Column("ColumnC", uri=8989)])], uri=852789456123)])
     changes = changes_parser.get_changes(old_db_structure, new_db_structure)
