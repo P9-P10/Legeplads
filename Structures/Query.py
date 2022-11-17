@@ -56,14 +56,23 @@ class Query:
     def create_table(self, name: str):
         return exp.Table(this=self.create_identifier(name))
 
-    def create_simple_join(self, table_name: str):
-        return exp.Join(this=self.create_table(table_name))
+    def create_simple_join(self, table_name: str, table_alias: str = None):
+        if table_alias:
+            return exp.Join(this=self.create_table_with_alias(table_name, table_alias))
+        else:
+            return exp.Join(this=self.create_table(table_name))
 
-    def create_join_with_condition(self, table_name: str, condition: exp.Expression):
-        return exp.Join(this=self.create_table(table_name), on=condition)
+    def create_join_with_condition(self, table_name: str, condition: exp.Expression, table_alias: str = None):
+        if table_alias:
+            return exp.Join(this=self.create_table_with_alias(table_name, table_alias), on=condition)
+        else:
+            return exp.Join(this=self.create_table(table_name), on=condition)
 
-    def create_from_with_table(self, table_name: str):
-        return exp.From(expressions=[self.create_table(table_name)])
+    def create_from_with_table(self, table_name: str, table_alias: str = None):
+        if table_alias:
+            return exp.From(expressions=[self.create_table_with_alias(table_name, table_alias)])
+        else:
+            return exp.From(expressions=[self.create_table(table_name)])
 
     def create_table_with_alias(self, table_name: str, table_alias: str):
         return exp.Alias(this=self.create_table(table_name), alias=exp.TableAlias(this=self.create_identifier(table_alias)))
