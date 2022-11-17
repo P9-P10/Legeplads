@@ -18,16 +18,16 @@ class TurtleParser(GraphParser):
             self.columnOptions = None
             self.isNotNull = False
 
-    def __init__(self, database_contents: str, changes_as_string: str = ""):
-        super().__init__(database_contents, changes_as_string)
+    def __init__(self):
+        super().__init__()
 
-    def get_structure(self) -> [DataStore]:
-        return self.turtle_parser()
+    def get_structure(self, string_to_parse: str) -> [DataStore]:
+        return self.turtle_parser(string_to_parse)
 
-    def turtle_parser(self) -> [Schema]:
+    def turtle_parser(self, string_to_parse) -> [Schema]:
 
         graph = Graph()
-        parsed = graph.parse(data=self.input_string)
+        parsed = graph.parse(data=string_to_parse)
 
         turtle_map = self.turtle_map_from_parsed_ttl(parsed)
 
@@ -35,10 +35,6 @@ class TurtleParser(GraphParser):
 
     def turtle_map_from_parsed_ttl(self, parsed):
         turtle_map = {}
-
-        def clean_subject(current_subject):
-            subject_elements = current_subject.split("/")
-            return subject_elements[len(subject_elements) - 1]
 
         def prefix_remover(current_input):
             if "#" in current_input:
@@ -48,17 +44,16 @@ class TurtleParser(GraphParser):
 
         def update_turtle_rep():
             if predicate == "hasStructure":
-                turtle_rep.hasStructure.append(clean_subject(str(parsed_object)))
+                turtle_rep.hasStructure.append(str(parsed_object))
             elif predicate == "hasStore":
-                setattr(turtle_rep, predicate, clean_subject(str(parsed_object)))
-
+                setattr(turtle_rep, predicate, str(parsed_object))
             else:
                 setattr(turtle_rep, predicate, str(parsed_object))
 
         for subject, predicate, parsed_object in parsed:
             predicate = prefix_remover(predicate)
             parsed_object = prefix_remover(parsed_object)
-            subject = clean_subject(subject)
+            subject = str(subject)
             if subject in turtle_map:
                 turtle_rep = turtle_map[subject]
                 update_turtle_rep()
@@ -71,22 +66,19 @@ class TurtleParser(GraphParser):
         return turtle_map
 
     def turtle_map_to_database_structures(self, turtle_map) -> [DataStore]:
-        output = []
         for key, value in turtle_map.items():
             if not value.hasStore:
-                output.append(DataStore(self.get_schemas(turtle_map, value),name=value.hasName))
-
-        return output
+                return DataStore(self.get_schemas(turtle_map, value), name=value.hasName)
 
     def get_schemas(self, turtle_map, data_store):
         output = []
         for schema_uri in data_store.hasStructure:
             schema = turtle_map[schema_uri]
             schema_name = schema.hasName
-            output.append(Schema(self.get_tables(turtle_map,schema), name=schema_name))
+            output.append(Schema(self.get_tables(turtle_map, schema), name=schema_name, uri=schema_uri))
         return output
 
-    def get_tables(self, turtle_map:dict, schema):
+    def get_tables(self, turtle_map: dict, schema):
         output = []
         for table_uri in schema.hasStructure:
             current_table = turtle_map[table_uri]

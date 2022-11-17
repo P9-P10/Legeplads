@@ -3,7 +3,7 @@ from Structures.Column import Column
 
 
 class Schema:
-    def __init__(self, tables: list[Table], name=None, uri:int=None):
+    def __init__(self, tables: list[Table], name=None, uri: str = None):
         self.tables = tables
         self.table_names = [table.name for table in self.tables]
         self.column_dict = self.create_column_dict()

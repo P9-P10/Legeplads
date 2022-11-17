@@ -8,11 +8,10 @@ from Structures.Table import Table
 
 
 class JsonChangesParser(ChangesParser):
-    def __init__(self, changes: str):
-        changes = json.loads(changes)
-        super().__init__(changes)
+    def __init__(self):
+        super().__init__()
 
-    def get_changes(self, old_structure: DataStore, new_structure: DataStore) -> [(Schema, Schema)]:
+    def get_changes(self, old_structure: DataStore, new_structure: DataStore, changes: str) -> [(Schema, Schema)]:
 
         def find_element(database_structure, uri_to_find):
             for schema in database_structure.schemas:
@@ -29,14 +28,15 @@ class JsonChangesParser(ChangesParser):
                                                   tables=[Table(table.name, columns=[Column(column.name)])])
 
         output = []
-        for change in self.changes:
+        for change in json.loads(changes):
             if "MOVE" in change:
-                change = change.replace("MOVE(", " ")
-                change = change.replace(")", " ")
+                change = change.replace("MOVE(", "")
+                change = change.replace(")", "")
                 old_uri, new_uri = change.split(",")
-                print(old_uri + new_uri)
+                old_uri = old_uri.strip()
+                new_uri = new_uri.strip()
                 old_new_tuple = (
-                    find_element(old_structure, int(old_uri)),
-                    find_element(new_structure, int(new_uri)))
+                    find_element(old_structure, old_uri),
+                    find_element(new_structure, new_uri))
                 output.append(old_new_tuple)
         return output

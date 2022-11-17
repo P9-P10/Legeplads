@@ -8,15 +8,14 @@ from Structures.Schema import Schema
 from Structures.Table import Table
 
 
-def create_turtle_reader(path):
+def get_file_contents(path):
     correct_path = str(pathlib.Path(__file__).parent.parent.parent / 'Tests' / 'graph_reader_tests') + '\\' + path
     file_reader = FileReader(correct_path)
-    return TurtleParser(file_reader.get_content())
+    return file_reader.get_content()
 
 
 def find_schema_structure_in_datastore(result: [DataStore], query, schema_name="main") -> Schema:
-    items = [datastore for datastore in result if datastore.name == query]
-    result = [schema for schema in items[0].schemas if schema.name == schema_name]
+    result = [schema for schema in result.schemas if schema.name == schema_name]
     return result[0]
 
 
@@ -45,46 +44,23 @@ expected_tables_simple_database = [
 
 
 def test_get_structure_returns_data_base_structure():
-    turtle_reader = create_turtle_reader("file_for_tests.ttl")
-    result = turtle_reader.get_structure()
+    turtle_reader = TurtleParser()
+    result = turtle_reader.get_structure(get_file_contents("file_for_tests.ttl"))
     expected = [Table("table", [Column("AnotherName")])]
-    assert result[0].schemas[0].tables == expected
-    assert result[0].name == "TestDatabase"
-
-
-def test_get_structure_returns_database_structure_multiple_tables():
-    turtle_reader = create_turtle_reader("larger_file.ttl")
-    result = turtle_reader.get_structure()
-    assert len(result) == 1
-    assert len(result[0].schemas) == 1
-    assert len(result[0].schemas[0].tables) == 5
+    assert result.schemas[0].tables == expected
+    assert result.name == "TestDatabase"
 
 
 def test_get_structure_returns_database_structure_multiple_schemas():
-    turtle_reader = create_turtle_reader("large_file_multiple_schemas.ttl")
-    result = turtle_reader.get_structure()
-    assert len(result) == 1
-    assert len(result[0].schemas) == 2
-    assert len([schema for schema in result[0].schemas if schema.name == "main"]) == 1
-    assert len([schema for schema in result[0].schemas if schema.name == "secondmain"]) == 1
+    turtle_reader = TurtleParser()
+    result = turtle_reader.get_structure(get_file_contents("large_file_multiple_schemas.ttl"))
+    assert len(result.schemas) == 2
+    assert len([schema for schema in result.schemas if schema.name == "main"]) == 1
+    assert len([schema for schema in result.schemas if schema.name == "secondmain"]) == 1
 
 
 def test_get_structure_returns_database_structure_correct_tables():
-    turtle_reader = create_turtle_reader("larger_file.ttl")
-    result: [DataStore] = turtle_reader.get_structure()
+    turtle_reader = TurtleParser()
+    result = turtle_reader.get_structure(get_file_contents("larger_file.ttl"))
 
     assert tables_in_database(result, "OptimizedAdvancedDatabase", expected_tables_optimized_advanced_database)
-
-
-def test_get_structure_multiple_database_structures_returns_correct_structures():
-    turtle_reader = create_turtle_reader("large_file_with_two_databases.ttl")
-    result = turtle_reader.get_structure()
-    optimized_database_name = "OptimizedAdvancedDatabase"
-    simple_database_name = "SimpleDatabase"
-
-    # Checks if there are no duplicate database entries
-    assert len([item for item in result if item.name == optimized_database_name]) == 1
-    assert len([item for item in result if item.name == simple_database_name]) == 1
-    # Checks that the database entries contains the correct tables.
-    assert tables_in_database(result, optimized_database_name, expected_tables_optimized_advanced_database)
-    assert tables_in_database(result, simple_database_name, expected_tables_simple_database)
