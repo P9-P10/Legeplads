@@ -73,29 +73,32 @@ class TurtleParser(GraphParser):
     def turtle_map_to_database_structures(self, turtle_map) -> [DataStore]:
         output = []
         for key, value in turtle_map.items():
-            for structure in value.hasStructure:
-                structure_representation = turtle_map[structure]
-                if structure_representation.type == "Schema":
-                    schema_name = structure_representation.hasName
-                    dataStore_name = turtle_map[structure_representation.hasStore].hasName
-                    tables = self.get_tables(turtle_map, structure_representation)
-                    output.append(DataStore([Schema(tables, schema_name, uri=key)],name=dataStore_name))
+            if not value.hasStore:
+                output.append(DataStore(self.get_schemas(turtle_map, value),name=value.hasName))
 
         return output
 
-    def get_tables(self, turtle_map, structure_representation):
+    def get_schemas(self, turtle_map, data_store):
         output = []
-        for structure_uri in structure_representation.hasStructure:
-            current_structure = turtle_map[structure_uri]
-            columns = self.get_columns(turtle_map, current_structure)
-            table = Table(current_structure.hasName, columns, uri=structure_uri)
+        for schema_uri in data_store.hasStructure:
+            schema = turtle_map[schema_uri]
+            schema_name = schema.hasName
+            output.append(Schema(self.get_tables(turtle_map,schema), name=schema_name))
+        return output
+
+    def get_tables(self, turtle_map:dict, schema):
+        output = []
+        for table_uri in schema.hasStructure:
+            current_table = turtle_map[table_uri]
+            columns = self.get_columns(turtle_map, current_table)
+            table = Table(current_table.hasName, columns, uri=table_uri)
             output.append(table)
         return output
 
     def get_columns(self, turtle_map, current_structure):
         output = []
-        for structure_uri in current_structure.hasStructure:
-            representation = turtle_map[structure_uri]
-            column = Column(representation.hasName, uri=structure_uri)
+        for column_uri in current_structure.hasStructure:
+            column_representation = turtle_map[column_uri]
+            column = Column(column_representation.hasName, uri=column_uri)
             output.append(column)
         return output

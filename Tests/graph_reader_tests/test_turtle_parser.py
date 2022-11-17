@@ -60,6 +60,15 @@ def test_get_structure_returns_database_structure_multiple_tables():
     assert len(result[0].schemas[0].tables) == 5
 
 
+def test_get_structure_returns_database_structure_multiple_schemas():
+    turtle_reader = create_turtle_reader("large_file_multiple_schemas.ttl")
+    result = turtle_reader.get_structure()
+    assert len(result) == 1
+    assert len(result[0].schemas) == 2
+    assert len([schema for schema in result[0].schemas if schema.name == "main"]) == 1
+    assert len([schema for schema in result[0].schemas if schema.name == "secondmain"]) == 1
+
+
 def test_get_structure_returns_database_structure_correct_tables():
     turtle_reader = create_turtle_reader("larger_file.ttl")
     result: [DataStore] = turtle_reader.get_structure()
