@@ -66,6 +66,7 @@ def test_transform_raises_error_if_column_from_removed_table_is_in_selection(tra
         transformer.transform(actual, changes)
 
 
+# TODO: Change how SELECT * is handled. It should not add more columns than are present in the original query
 def test_transform_add_table_to_query_with_single_column(transformer):
     actual = Query("Select * from A")
     expected = Query("Select * from A join B")
@@ -150,8 +151,6 @@ def test_transform_move_column_from_table_that_is_not_used_does_nothing(transfor
     actual = Query("Select * from C")
     expected = Query("Select * from C")
     changes = [MoveColumn("a", "A", "D")]
-   # The changes below, produce the same result 
-   # changes = [ReplaceTable("A", "D")]
 
     transformer.transform(actual, changes)
 
@@ -176,3 +175,9 @@ def test_transform_replace_table_not_in_the_query_does_nothing(transformer):
     transformer.transform(actual, changes)
 
     assert actual == expected
+
+# TODO: Handle the addition of another instance of a table that is already in the query
+
+# TODO: Handle subqueries
+
+# TODO: Ensure aliases are preserved

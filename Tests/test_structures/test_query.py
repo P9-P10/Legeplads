@@ -51,6 +51,7 @@ def test_query_create_simple_join(empty_query):
 def test_query_create_join_with_condition(empty_query):
     assert empty_query.create_join_with_condition("test_table", exp.EQ(this=exp.Identifier(this="condition"))) == exp.Join(this=exp.Table(this=exp.Identifier(this="test_table")), on=exp.EQ(this=exp.Identifier(this="condition")))
 
+# TODO: Add case where table has an alias
 def test_query_create_from_expression(empty_query):
     assert empty_query.create_from_with_table("test_table") == exp.From(expressions=[exp.Table(this=exp.Identifier(this="test_table"))])
 

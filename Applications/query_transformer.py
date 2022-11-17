@@ -25,34 +25,16 @@ class Attribute:
         self.relation_index = new_index
 
 class RangeTable:
-    def __init__(self, from_expressions: list[exp.Expression], join_expressions: list[exp.Expression]):
-        self.from_expressions = from_expressions
-        # All elements in the list should be of type exp.JOIN where the attribute 'this' is the relation identifier
-        self.join_expressions = join_expressions
+    def __init__(self):
         self.relations = []
         self.relation_names = []
-        self.populate_range_table()
-
-
-    def populate_range_table(self):
-        all_expressions = self.from_expressions + [join_exp.this for join_exp in self.join_expressions]
-        [self.create_range_table_entry(expression) for expression in all_expressions]
-
-
-    def create_range_table_entry(self, expression):
-        if isinstance(expression, exp.Alias):
-            self.append(expression.this.name, expression.alias)
-        elif isinstance(expression, exp.Table):
-            self.append(expression.name, "")
-
-
+    
     def append(self, name: str, alias: str) -> int:
         relation = Relation(name, alias, len(self.relations))
         self.relations.append(relation)
         self.relation_names.append(name)
         # Return the index of the added item
         return relation.index
-
 
     def contains(self, table_name) -> bool:
         return table_name in self.relation_names
@@ -74,54 +56,20 @@ class RangeTable:
 
     def get_relation_with_alias(self, alias: str):
         for relation in self.relations:
-            if relation.alias == alias:
+            if relation.alias == alias or relation.name == alias:
                 return relation
-
-        # The alias of a column, can also be the table name
-        for relation in self.relations:
-            if relation.name == alias:
-                return relation  
         # TODO raise exception if there is no match
 
     def get_relation_with_index(self, index: int):
         return self.relations[index]
 
 class Selection:
-    def __init__(self, db_structure: DatabaseStructure, range_table: RangeTable, expressions: list[exp.Expression]):
-        self.selection_list = []
-        self.db = db_structure
+    def __init__(self, range_table: RangeTable, selection: list[Attribute], select_star: bool):
         self.range_table = range_table
+        self.selection_list = selection
+        self.select_star = select_star
 
-        if isinstance(expressions[0], exp.Star):
-            self.select_star = True
-            self.selection_list = self.from_star_expression()
-        else:
-            self.select_star = False
-            self.selection_list = self.from_expressions(expressions)
-
-    def from_star_expression(self) -> list[Attribute]:
-        for relation in self.range_table.relations:
-            columns_in_table = self.db.get_columns_in_table(relation.name)
-            self.selection_list.extend([Attribute(column_name, relation.index) for column_name in columns_in_table])
-        return self.selection_list
-
-    def from_expressions(self, expressions: list[exp.Expression]) -> list[Attribute]:
-        for expression in expressions:
-            # Assumption: All expressions are columns
-            column_name = expression.name
-            # if the column uses an alias
-            if expression.table:
-                # The alias is either the full name of the table or an alias
-                column_alias = expression.table
-                for relation in self.range_table.relations:
-                    if column_alias == relation.name or column_alias == relation.alias:
-                        self.selection_list.append(Attribute(column_name, self.range_table.index_of_matching_relation(relation.name, relation.alias)))
-            # Otherwise we need the database structure to find what table a column belongs to
-            else:
-                table_name = self.db.table_containing_column(column_name, self.range_table.relation_names)
-                self.selection_list.append(Attribute(column_name, self.range_table.index_of_matching_relation(table_name, "")))
-        return self.selection_list
-
+    # manipulation
     def change_source_relation_for_column(self, column_name: str, current_source_name: str, new_source_index: int):
         indicies = self.range_table.index_of_entries_with_name(current_source_name)
         new_list = []
@@ -134,6 +82,7 @@ class Selection:
 
         self.selection_list = new_list
 
+    # compilation
     def create_select_expressions(self):
         # An instance of query is needed as it has methods for creating nodes
         # TODO: This is a hint that this should not be the case
@@ -146,6 +95,7 @@ class Selection:
             selection_expressions.append(empty_query.create_column(attribute.name, relation.alias))
         return selection_expressions
 
+    # manipulation
     def get_unused_relations(self):
         if self.select_star:
             return []
@@ -160,7 +110,6 @@ class Selection:
                 unused_relations.append(relation)
 
         return unused_relations
-
 
 class Join:
     def __init__(self, relation_index: int, attributes: list[Attribute], condition):
@@ -178,45 +127,17 @@ class Join:
         self.condition = new_condition
 
 class JoinTree:
-    def __init__(self, join_expressions: list[exp.Expression], range_table: RangeTable):
+    def __init__(self, range_table: RangeTable, joins: list[Join]):
         self.range_table = range_table
-        # Create a list/tree of joins in the query and their qualifications/conditions
-        # The joins should reference relations in the range_table, and the conditions should contain attributes
-        self.joins = []
-        for node in join_expressions:
-            relation_index = self.get_relation_from_node(node.this).index
-            attributes = self.get_attributes_from_join_condition(node)
-            condition = None
-            # Add the 'on' expression node to the tuple if it exists 
-            if 'on' in node.args.keys():
-                condition = node.args['on'].copy()
-            self.joins.append(Join(relation_index, attributes, condition))
+        self.joins = joins
 
-
-    def get_relation_from_node(self, node: exp.Expression) -> Relation:
-        if isinstance(node, exp.Alias):
-            return self.range_table.get_matching_relation(node.this.name, node.alias)
-        elif isinstance(node, exp.Table):
-            return self.range_table.get_matching_relation(node.name, "")
-
-
-    def get_attributes_from_join_condition(self, node: exp.Expression) -> list[Attribute]:
-        result = []
-        for column in node.find_all(exp.Column):
-            if column.table:
-                result.append(Attribute(column.name, self.range_table.get_relation_with_alias(column.table).index))
-            # Otherwise we need the database structure to find what table a column belongs to
-            else:
-                table_name = self.db.table_containing_column(column.name, self.range_table.relation_names)
-                result.append(Attribute(column.name, self.range_table.index_of_matching_relation(table_name, "")))
-        return result
-
-
+    # manipulation
     def add_join_without_condition(self, table_name):
         relation = self.range_table.get_matching_relation(table_name, "")
         self.joins.append(Join(relation.index, [], None))
 
 
+    # compilation
     def create_join_expressions(self):
         # Empty query needed to create AST Nodes
         # See comment in Selection.create_select_expressions
@@ -238,10 +159,12 @@ class JoinTree:
         return new_joins
 
 
+    # manipulation
     def remove_relations_with_name(self, relation_name: str):
         self.joins = [join for join in self.joins if not self.range_table.get_relation_with_index(join.relation_index).name == relation_name]
 
     
+    # manipulation
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
         for join in self.joins:
             for attr in join.attributes:
@@ -249,6 +172,7 @@ class JoinTree:
                     attr.change_relation(new_index)
 
 
+    # manipulation
     def move_condition(self, indicies_to_replace: list[int], new_index: int):
         for join in self.joins:
             if join.relation_index == new_index:
@@ -261,6 +185,129 @@ class JoinTree:
                 new_join.change_condition(join.condition)
 
 
+######################
+# Parser
+######################
+class Parser:
+    def __init__(self,db_structure: DatabaseStructure):
+        self.db_structure = db_structure
+
+    def parse(self, ast: exp.Expression):
+        self.ast = ast
+        range_table = self.create_range_table()
+        selection = self.create_selection(range_table)
+        join_tree = self.create_join_tree(range_table)
+
+        return range_table, selection, join_tree
+
+    # Range Table
+    def create_range_table(self) -> RangeTable:
+        range_table = RangeTable()
+        self.populate_range_table(range_table, self.get_from_expressions(), self.get_join_expressions())
+        return range_table
+
+    def populate_range_table(self, range_table: RangeTable, from_expressions: list[exp.Expression], join_expressions: list[exp.Expression]):
+        all_expressions = from_expressions + [join_exp.this for join_exp in join_expressions]
+        entries = [self.create_range_table_entry(expression) for expression in all_expressions]
+        for name, alias in entries:
+            range_table.append(name, alias)
+
+    def create_range_table_entry(self, expression):
+        if isinstance(expression, exp.Alias):
+            return (expression.this.name, expression.alias)
+        elif isinstance(expression, exp.Table):
+            return (expression.name, "")
+
+
+    # Selection
+    def create_selection(self, range_table: RangeTable) -> Selection:
+        if isinstance(self.ast.expressions[0], exp.Star):
+            select_star = True
+            selection_list = self.from_star_expression(range_table)
+        else:
+            select_star = False
+            selection_list = self.from_expressions(self.ast.expressions, range_table)
+        
+        return Selection(range_table, selection_list, select_star)
+
+    def from_star_expression(self, range_table: RangeTable) -> list[Attribute]:
+        result = []
+        for relation in range_table.relations:
+            columns_in_table = self.db_structure.get_columns_in_table(relation.name)
+            result.extend([Attribute(column_name, relation.index) for column_name in columns_in_table])
+        return result
+
+    def from_expressions(self, expressions: list[exp.Expression], range_table: RangeTable) -> list[Attribute]:
+        result = []
+        for expression in expressions:
+            # Assumption: All expressions are columns
+            column_name = expression.name
+            # if the column uses an alias
+            if expression.table:
+                # The alias is either the full name of the table or an alias
+                column_alias = expression.table
+                for relation in range_table.relations:
+                    if column_alias == relation.name or column_alias == relation.alias:
+                        result.append(Attribute(column_name, range_table.index_of_matching_relation(relation.name, relation.alias)))
+            # Otherwise we need the database structure to find what table a column belongs to
+            else:
+                table_name = self.db_structure.table_containing_column(column_name, range_table.relation_names)
+                result.append(Attribute(column_name, range_table.index_of_matching_relation(table_name, "")))
+        return result
+
+
+    # Join Tree
+    def create_join_tree(self, range_table: RangeTable) -> JoinTree:
+        joins = []
+        for node in self.get_join_expressions():
+            relation_index = self.get_relation_from_node(node.this, range_table).index
+            attributes = self.get_attributes_from_join_condition(node, range_table)
+            condition = None
+            # Add the 'on' expression node to the tuple if it exists 
+            if 'on' in node.args.keys():
+                condition = node.args['on'].copy()
+            joins.append(Join(relation_index, attributes, condition))
+
+        return JoinTree(range_table, joins)
+
+    # (duplication from range_table)
+    def get_relation_from_node(self, node: exp.Expression, range_table: RangeTable) -> Relation:
+        if isinstance(node, exp.Alias):
+            return range_table.get_matching_relation(node.this.name, node.alias)
+        elif isinstance(node, exp.Table):
+            return range_table.get_matching_relation(node.name, "")
+
+    def get_attributes_from_join_condition(self, node: exp.Expression, range_table: RangeTable) -> list[Attribute]:
+        result = []
+        for column in node.find_all(exp.Column):
+            if column.table:
+                result.append(Attribute(column.name, range_table.get_relation_with_alias(column.table).index))
+            else:
+                table_name = self.db_structure.table_containing_column(column.name, range_table.relation_names)
+                result.append(Attribute(column.name, range_table.index_of_matching_relation(table_name, "")))
+        return result
+
+
+    def get_from_expressions(self):
+        return self.ast.args['from'].expressions
+
+    def get_join_expressions(self):
+        if 'joins' in self.ast.args.keys():
+            return self.ast.args['joins']
+        else:
+            return []
+
+    def get_where_expression(self):
+        if 'where' in self.ast.args.keys():
+            return self.ast.args['where'].this
+        else:
+            return []
+
+
+
+######################
+# Transformer
+######################
 class Transformer:
     def __init__(self, old_db_structure: DatabaseStructure, new_db_structure: DatabaseStructure):
         self.old_db = old_db_structure
@@ -279,10 +326,12 @@ class Transformer:
 
     def preprocess_query(self):
         self.verify_selection_is_valid_given_structure(self.old_db)
-        self.create_range_table()
-        self.create_selection_list()
-        self.create_join_tree()
-        
+        parser = Parser(self.old_db)
+        range_table, selection, join_tree = parser.parse(self.ast)
+        self.range_table = range_table
+        self.selection = selection
+        self.join_tree = join_tree
+
         
     def apply_changes(self, changes):
         for change in changes:
@@ -310,8 +359,6 @@ class Transformer:
     def move_column(self, change):
         new_table_index = self.get_index_of_new_relation(change.dst_table_name)
         self.selection.change_source_relation_for_column(change.column_name, change.src_table_name, new_table_index)
-        #self.join_tree.change_source_relation_for_join_conditions(change.column_name, change.src_table_name, new_table_index)
-        #self.replace_table(change.src_table_name, new_table_index)
         indicies_to_replace = self.range_table.index_of_entries_with_name(change.src_table_name)
         self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
 
@@ -346,18 +393,6 @@ class Transformer:
     def remove_unused_tables(self):
         for unused_relation in self.selection.get_unused_relations():
             self.remove_table_from_query(unused_relation.name)
-
-
-    def create_range_table(self):
-        self.range_table = RangeTable(self.query.get_from_expressions(), self.query.get_join_expressions())
-
-
-    def create_selection_list(self):
-        self.selection = Selection(self.old_db, self.range_table, self.ast.expressions)
-
-
-    def create_join_tree(self):
-        self.join_tree = JoinTree(self.query.get_join_expressions(), self.range_table)
 
 
     def get_relation_from_node(self, node: exp.Expression) -> Relation:
@@ -395,7 +430,7 @@ class Transformer:
             if condition_fun(node):
                 node.pop()
 
-
+    # Mix of parsing, manipulation, and compilation
     def ensure_from_not_empty(self):
         # Check if 'From' expression is now empty
         # If so one of the tables from join needs to be inserted
@@ -410,7 +445,7 @@ class Transformer:
             if 'on' in first_join.args.keys() and first_join.args['on']:
                 self.ast.args['where'] = self.query.create_where_with_condition(first_join.args['on'])
 
-
+    # parsing
     def verify_selection_is_valid_given_structure(self, structure: DatabaseStructure):
         column_nodes_in_expressions = self.flatten([list(expression.find_all(exp.Column)) for expression in self.ast.expressions])
         column_names_in_selection = [column.name for column in column_nodes_in_expressions]
