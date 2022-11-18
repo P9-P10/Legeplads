@@ -2,13 +2,14 @@ from Structures.Table import Table
 from Applications.exceptions import AmbiguousColumnException, ColumnNotFoundException, TableNotFoundException
 
 class DatabaseStructure:
-    def __init__(self, tables_in_database: list[Table]):
+    def __init__(self, tables_in_database: list[Table], name=None):
         """ 
         The constructor expects a list of tables that are in the database.
         The columns of the tables in the list, should correspond to their columns in the database.
         """
         self.tables = tables_in_database
         self.table_names = [table.name for table in self.tables]
+        self.name = name
 
     def is_column_in_tables(self, column_name: str, table_names: list[str]):
         for table in self.tables:

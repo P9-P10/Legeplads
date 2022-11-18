@@ -9,11 +9,18 @@ from Helpers.database_map import DBMapper
 from Scripts.database_creation_tool import run_all_databases
 from Structures.Changes import AddTable, RemoveTable, MoveColumn, ReplaceTable
 
+from Applications.Database_intefaces.sqliteInterfaceWIthChanges import SqLiteInterfaceWithChanges
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si, DBConfig
+import pytest
+
+from Helpers.database_map import DBMapper
+from Scripts.database_creation_tool import run_all_databases
+
 database_name = "AdvancedDatabase"
 database_path = "./Databases/"
 o_database_name = "OptimizedAdvancedDatabase"
-old_dbmap = DBMapper(Si(database_path + database_name + ".sqlite"))
-new_dbmap = DBMapper(Si(database_path + o_database_name + ".sqlite"))
+old_dbmap = DBMapper(Si(DBConfig(database_name)))
+new_dbmap = DBMapper(Si(DBConfig(o_database_name)))
 
 
 def create_connection_with_changes():
@@ -29,11 +36,11 @@ def create_connection_with_changes():
     new_tables = new_dbmap.create_database_map()
     old_tables = old_dbmap.create_database_map()
 
-    return SqLiteInterfaceWithChanges(database_path + o_database_name + ".sqlite", changes, old_tables, new_tables)
+    return SqLiteInterfaceWithChanges(DBConfig(o_database_name), changes, old_tables, new_tables)
 
 
 def create_connection_without_changes():
-    return Si(database_path + database_name + ".sqlite")
+    return Si(DBConfig(database_name))
 
 
 connection_without_changes = create_connection_without_changes()
