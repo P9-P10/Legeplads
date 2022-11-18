@@ -1,45 +1,42 @@
 from Graph.changes_parser import ChangesParser
 from Graph.graph_parser import GraphParser
+from Structures.Changes import MoveColumn
 from Structures.DataStore import DataStore
 from Structures.Schema import Schema
 
 
 class version_manager:
     class Change:
-        def __init__(self, time=0, old=None, new=None, database_id=None):
-            self.from_time = time
+        def __init__(self, version=0, old: Schema = None, new: Schema = None, database_id=None):
+            self.version = version
             self.old = old
             self.new = new
+            self.operation = None
+            old_column_name = old.tables[0].columns[0].name
+            new_column_name = new.tables[0].columns[0].name
+            if old_column_name == new_column_name:
+                self.operation = MoveColumn(old_column_name, old.tables[0].name, new.tables[0].name)
+
             self.database_id = database_id
 
         def __eq__(self, other):
-            return self.from_time == other.from_time \
+            return self.version == other.version \
                    and self.old == other.old \
                    and self.new == other.new \
                    and self.database_id == other.database_id
 
         def __repr__(self):
-            return "Time: " + str(self.from_time) + " Old: " + str(self.old) + " New: " + str(
-                self.new) + " ID: " + self.database_id
+            return "Version: " + str(self.version) + " Old: " + str(self.old) + " New: " + \
+                   str(self.new) + " ID: " + self.database_id
 
     def __init__(self, database_parser: GraphParser, changes_parser: ChangesParser, tables, input_changes):
-        def get_old_and_new_datastore(query_id) -> (DataStore, DataStore):
-
-            out = []
-            for key, table in versions.items():
-                if table[1] == query_id:
-                    out.append(table[0])
-
-                    if len(out) == 2:
-                        return out
-
         def get_changes():
             for change in input_changes:
                 from_time = change[0]
                 operations = change[1]
                 if not operations == "[]":
                     change_id = change[2]
-                    old, new = get_old_and_new_datastore(change_id)
+                    old, new = self.get_old_and_new_datastore(change_id)
                     parsed = changes_parser.get_changes(old, new, operations)
                     for current_change in parsed:
                         self.changes.append(
@@ -47,28 +44,54 @@ class version_manager:
 
         def get_database_versions():
             for table in tables:
-                from_time = table[0]
+                version = table[0]
                 graph = table[1]
                 table_id = table[2]
                 parsed_database = database_parser.get_structure(graph)
-                if from_time in versions:
-                    versions[from_time] = (parsed_database, table_id, ())
+                if len(self.versions) > version:
+                    self.versions[version] = (parsed_database, table_id)
                 else:
-                    versions.update({from_time: (parsed_database, table_id, ())})
+                    self.versions.append((parsed_database, table_id))
 
         self.changes: [version_manager.Change] = []
-        versions: dict[str, []] = {}
+        self.versions = []
         self.database_parser: GraphParser = database_parser
         get_database_versions()
         get_changes()
 
-    def get_change_for_column(self, schema_name="main", table_name="", column_name="") -> Schema | None:
+    def get_old_and_new_datastore(self, database_id, version_nr=None) -> (DataStore, DataStore):
+        out = []
+        if not version_nr:
+            version_nr = 0
+        else:
+            version_nr = version_nr - 1
+        for i in range(version_nr, len(self.versions)):
+            current_database_id = self.versions[i][1]
+            content = self.versions[i][0]
+
+            if current_database_id == database_id:
+                out.append(content)
+            if len(out) == 2:
+                return out[0], out[1]
+
+    def get_change_for_column(self, table_name, column_name, version, schema_name="main") -> Schema | None:
         for change in self.changes:
-            if change.old.name == schema_name:
-                schema = change.old
-                for table in schema.tables:
-                    if table.name == table_name:
-                        for column in table.columns:
-                            if column.name == column_name:
-                                return change.new
+            if change.version == version:
+                if change.old.name == schema_name:
+                    schema = change.old
+                    for table in schema.tables:
+                        if table.name == table_name:
+                            for column in table.columns:
+                                if column.name == column_name:
+                                    return change.new
         return None
+
+    def get_operations_for_version(self, version, database_name):
+        output = []
+        for change in self.changes:
+            if change.version == version and change.database_id == database_name:
+                output.append(change.operation)
+        return output
+
+    def get_data_store_for_change(self, version, database_id):
+        return self.get_old_and_new_datastore(database_id, version)

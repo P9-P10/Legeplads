@@ -7,3 +7,9 @@ class DataStore:
             schemas = []
         self.schemas: [Schema] = schemas
         self.name = name
+
+    def __eq__(self, other):
+        return self.schemas == other.schemas and self.name == other.name
+
+    def __repr__(self):
+        return "Name: " + self.name + "Schemas: " + str(self.schemas)
