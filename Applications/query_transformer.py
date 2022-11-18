@@ -480,7 +480,6 @@ class Transformer:
         self.adjust_query_select_expression()
         self.adjust_query_join_expressions()
         self.adjust_other_expressions()
-        #self.verify_selection_is_valid_given_structure(self.new_db)
 
 
     def move_column(self, change):
