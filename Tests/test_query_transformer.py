@@ -3,7 +3,7 @@ import pytest
 from Structures.Query import Query
 from Structures.Table import Table
 from Structures.Column import Column
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 from Structures.Changes import AddTable, RemoveTable, MoveColumn, RemoveColumn, AddColumn, ReplaceTable
 from Applications.exceptions import InvalidSelectionException, InvalidTransformationException, InvalidQueryException
 
@@ -14,7 +14,7 @@ def old_db():
     # Both A and C contain a column with the name "c"
     c = Table("C", [Column("c"), Column("g"), Column("h")])
 
-    return DatabaseStructure([a, b, c])
+    return Schema([a, b, c])
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def new_db():
     # Also the column "c" from C has also been moved to column "c" in D.
     d = Table("D", [Column("a"), Column("b"), Column("c")])
 
-    return DatabaseStructure([b, c, d])
+    return Schema([b, c, d])
 
 
 @pytest.fixture

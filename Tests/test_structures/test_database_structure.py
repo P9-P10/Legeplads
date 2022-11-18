@@ -1,4 +1,4 @@
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 import pytest
 from Structures.Table import Table
 from Structures.Column import Column
@@ -10,7 +10,7 @@ def structure():
     b = Table("B", [Column("d"), Column("e"), Column("f")])
     c = Table("C", [Column("c"), Column("g"), Column("h")])
 
-    return DatabaseStructure([a, b, c])
+    return Schema([a, b, c])
 
 
 def test_column_in_tables_returns_true_if_column_in_given_tables(structure):

@@ -1,5 +1,5 @@
 from Structures.Query import Query
-from Structures.DatabaseStructure import DatabaseStructure
+from Structures.Schema import Schema
 from Structures.Changes import *
 from sqlglot import exp
 from Applications.exceptions import *
@@ -262,7 +262,7 @@ class FromExpr:
 # Parser
 ######################
 class Parser:
-    def __init__(self,db_structure: DatabaseStructure):
+    def __init__(self,db_structure: Schema):
         self.db_structure = db_structure
 
     def parse(self, ast: exp.Expression):
@@ -424,7 +424,7 @@ class Parser:
 # Transformer
 ######################
 class Transformer:
-    def __init__(self, old_db_structure: DatabaseStructure, new_db_structure: DatabaseStructure):
+    def __init__(self, old_db_structure: Schema, new_db_structure: Schema):
         self.old_db = old_db_structure
         self.new_db = new_db_structure
 
@@ -625,7 +625,7 @@ class Transformer:
 
 
     # parsing
-    def verify_selection_is_valid_given_structure(self, structure: DatabaseStructure):
+    def verify_selection_is_valid_given_structure(self, structure: Schema):
         column_nodes_in_expressions = self.flatten([list(expression.find_all(exp.Column)) for expression in self.ast.expressions])
         column_names_in_selection = [column.name for column in column_nodes_in_expressions]
 
