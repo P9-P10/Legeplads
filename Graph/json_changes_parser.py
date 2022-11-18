@@ -15,17 +15,11 @@ class JsonChangesParser(ChangesParser):
 
         def find_element(database_structure, uri_to_find):
             for schema in database_structure.schemas:
-                if schema.URI == uri_to_find:
-                    return Schema(schema.name)
-                else:
-                    for table in schema.tables:
-                        if table.URI == uri_to_find:
-                            return Schema(name=schema.name, tables=[Table(table.name)])
-                        else:
-                            for column in table.columns:
-                                if column.URI == uri_to_find:
-                                    return Schema(name=schema.name,
-                                                  tables=[Table(table.name, columns=[Column(column.name)])])
+                for table in schema.tables:
+                    for column in table.columns:
+                        if column.URI == uri_to_find:
+                            return Schema(name=schema.name,
+                                          tables=[Table(table.name, columns=[Column(column.name)])])
 
         output = []
         for change in json.loads(changes):
@@ -35,8 +29,9 @@ class JsonChangesParser(ChangesParser):
                 old_uri, new_uri = change.split(",")
                 old_uri = old_uri.strip()
                 new_uri = new_uri.strip()
-                old_new_tuple = (
-                    find_element(old_structure, old_uri),
-                    find_element(new_structure, new_uri))
-                output.append(old_new_tuple)
+                old_element = find_element(old_structure, old_uri)
+                new_element = find_element(new_structure, new_uri)
+                if old_element and new_element:
+                    old_new_tuple = (old_element,new_element)
+                    output.append(old_new_tuple)
         return output

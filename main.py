@@ -12,5 +12,5 @@ tables = graphStorage.run_query(Query("SELECT from_date,graph,uri FROM Datastore
 
 
 vm = version_manager(TurtleParser(), JsonChangesParser(), tables, changes_string)
-print(vm.versions)
-print(vm.get_change_for("http://www.test.com/SimpleDatabase/main/Users/email"))
+
+print(vm)
