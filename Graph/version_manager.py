@@ -19,8 +19,8 @@ class version_manager:
                    and self.database_id == other.database_id
 
         def __repr__(self):
-            return "Time: " + str(self.from_time) + "Old: " + str(self.old) + "New: " + str(
-                self.new) + "ID: " + self.database_id
+            return "Time: " + str(self.from_time) + " Old: " + str(self.old) + " New: " + str(
+                self.new) + " ID: " + self.database_id
 
     def __init__(self, database_parser: GraphParser, changes_parser: ChangesParser, tables, input_changes):
         def get_old_and_new_datastore(query_id) -> (DataStore, DataStore):
@@ -62,7 +62,7 @@ class version_manager:
         get_database_versions()
         get_changes()
 
-    def get_change_for_column(self, schema_name, table_name, column_name) -> Schema | None:
+    def get_change_for_column(self, schema_name="main", table_name="", column_name="") -> Schema | None:
         for change in self.changes:
             if change.old.name == schema_name:
                 schema = change.old
