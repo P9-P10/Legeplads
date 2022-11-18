@@ -160,7 +160,7 @@ def test_transform_move_column_with_alias(transformer):
 def test_transform_move_column_that_is_used_in_join_condition_change_table_in_from(transformer):
     actual = Query("Select a, g from A Join C on A.c = C.c")
     expected = Query("Select a, g from C join D where D.c = C.c")
-    changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D"), RemoveTable("A")]
+    changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D")]
    # The changes below, produce the same result 
    # changes = [ReplaceTable("A", "D")]
 
@@ -198,8 +198,68 @@ def test_transform_replace_table_not_in_the_query_does_nothing(transformer):
 
     assert actual == expected
 
-# TODO: Handle the addition of another instance of a table that is already in the query
 
-# TODO: Handle subqueries
+def test_transform_without_changes_removes_unused_tables(transformer):
+    actual = Query("Select d, e from B join C")
+    expected = Query("Select d, e from B")
+    
+    transformer.transform(actual, [])
 
-# TODO: Ensure aliases are preserved
+    assert actual == expected
+
+def test_transform_does_not_remove_tables_that_are_only_used_in_condition(transformer):
+    actual = Query("Select d, e from C join B on B.d = C.c")
+    expected = Query("Select d, e from C join B on B.d = C.c")
+
+    transformer.transform(actual, [])
+
+    assert actual == expected
+
+
+def test_transform_does_not_change_insert_query(transformer):
+    actual = Query("Insert into B(e, f) Values (1,3)")
+    expected = Query("Insert into B(e, f) Values (1,3)")
+
+    transformer.transform(actual, [])
+
+    assert actual == expected
+
+
+def test_transform_handles_subquery_that_is_unaffected_by_changes(transformer):
+    actual = Query("SELECT a, d From B Join A WHERE B.d IN (Select d From B)")
+    expected = Query("SELECT a, d From B Join D WHERE B.d IN (Select d From B)")
+    changes = [MoveColumn("a", "A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+def test_transform_handles_aggregate_functions_in_selection(transformer):
+    actual = Query("Select SUM(a) as sum, g from C Join A on A.c = C.c")
+    expected = Query("Select SUM(a) as sum, g from C join D on D.c = C.c")
+    changes = [ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+def test_transform_handles_multiple_occurences_of_the_same_table_and_preserves_aliases(transformer):
+    actual = Query("Select A1.a, g from C Join A as A1 on A1.c = C.c Join A as A2 on A2.c = C.c")
+    expected = Query("Select A1.a, g from C join D as A1 on A1.c = C.c Join D as A2 on A2.c = C.c")
+    changes = [ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+def test_tranform_handles_attributes_in_group_by_clause(transformer):
+    actual = Query("Select a, g from C Join A on A.c = C.c group by a, g")
+    expected = Query("Select a, g from C join D on D.c = C.c group by a, g")
+    changes = [ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+def test_tranform_handles_attributes_in_order_by_clause(transformer):
+    pass

@@ -44,3 +44,6 @@ def test_get_columns_in_table_raises_if_no_such_table(structure):
 
 def test_get_columns_in_table_returns_names_of_columns_in_the_table(structure):
     assert structure.get_columns_in_table("A") == ["a", "b", "c"]
+
+def test_get_tables_containing_column(structure):
+    assert structure.get_tables_containing_column("c") == ["A", "C"]

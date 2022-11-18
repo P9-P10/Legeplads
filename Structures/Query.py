@@ -84,20 +84,20 @@ class Query:
         return [exp.Star()]
 
 
-    # def extract_subqueries(self):
-    #     # Get subqueries by getting all but the first select expression
-    #     subqueries = list(self.get_all_instances(exp.Select))[1:]
-    #     # Insert a placeholder for the subqueries
-    #     for subquery in subqueries:
-    #         subquery.replace(self.create_identifier("__subquery_placeholder__"))
-    #     # Transform the subquery ASTs to instances of Query
-    #     return [Query(subq.sql()) for subq in subqueries]
+    def extract_subqueries(self):
+        # Get subqueries by getting all but the first select expression
+        subqueries = list(self.ast.find_all(exp.Select))[1:]
+        # Insert a placeholder for the subqueries
+        for subquery in subqueries:
+            subquery.replace(self.create_identifier("__subquery_placeholder__"))
+        # Transform the subquery ASTs to instances of Query
+        return [Query(subq.sql()) for subq in subqueries]
 
-    # def insert_subqueries(self, subqueries):
-    #     def transform(node):
-    #         if isinstance(node, exp.Identifier) and node.name == "__subquery_placeholder__":
-    #             return node.replace(subqueries.pop(0).ast)
-    #         return node
+    def insert_subqueries(self, subqueries):
+        def transform(node):
+            if isinstance(node, exp.Identifier) and node.name == "__subquery_placeholder__":
+                return node.replace(subqueries.pop(0).ast)
+            return node
 
-    #     self.transform_ast(transform)
+        self.ast = self.ast.transform(transform)
         

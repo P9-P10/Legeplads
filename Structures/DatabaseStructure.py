@@ -33,6 +33,9 @@ class DatabaseStructure:
             return result_table
         else:
             raise ColumnNotFoundException(f'The column {column_name} was not found')
+
+    def get_tables_containing_column(self, column_name: str):
+        return [table.name for table in self.tables if table.has_column_with_name(column_name)]
         
 
     def get_columns_in_table(self, table_name: str):

@@ -27,6 +27,26 @@ class Attribute:
     def change_relation(self, new_index: int):
         self.relation_index = new_index
 
+class Expression:
+    """
+    An Expression is some part of a query that contains attributes.
+    The purpose of the class is to be able to manipulate the attributes that appear in elements of the query,
+    without having to be concerned with the type of the element.
+    """
+
+    def __init__(self, expression: exp.Expression, attributes: list[Attribute]):
+        self.expression = expression
+        self.attributes = attributes
+
+    def change_attributes(self, new_attributes: list[Attribute]):
+        self.attributes = new_attributes
+
+    def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
+        for attr in self.attributes:
+            if attr.relation_index in indicies_to_replace:
+                attr.change_relation(new_index)
+
+
 class RangeTable:
     def __init__(self):
         self.relations = []
@@ -66,6 +86,27 @@ class RangeTable:
     def get_relation_with_index(self, index: int):
         return self.relations[index]
 
+class ExpressionCompiler:
+    def __init__(self, range_table: RangeTable):
+        self.range_table = range_table
+
+    def compile(self, expression: Expression):
+        empty_query = Query("")
+        if isinstance(expression.expression, exp.Column) or expression.expression is None:
+            # An instance of query is needed as it has methods for creating nodes
+            # TODO: This is a hint that this should not be the case
+            selection_expressions = []
+            for attribute in expression.attributes:
+                relation = self.range_table.get_relation_for_attribute(attribute)
+                selection_expressions.append(empty_query.create_column(attribute.name, relation.alias))
+            return selection_expressions
+        else:
+            for column, attribute in zip(expression.expression.find_all(exp.Column), expression.attributes):
+                relation = self.range_table.get_relation_for_attribute(attribute)
+                column.replace(empty_query.create_column(attribute.name, relation.alias))
+            return [expression.expression]
+        
+
 class Selection:
     def __init__(self, range_table: RangeTable, selection: list[Attribute], select_star: bool):
         self.range_table = range_table
@@ -76,32 +117,29 @@ class Selection:
     # manipulation
     def change_source_relation_for_column(self, column_name: str, current_source_name: str, new_source_index: int):
         indicies = self.range_table.index_of_entries_with_name(current_source_name)
-        new_list = []
-        for attribute in self.selection_list:
-            if attribute.name == column_name and attribute.relation_index in indicies:
-                new_attr = Attribute(column_name, new_source_index)
-            else:
-                new_attr = attribute
-            new_list.append(new_attr)
+        for expr in self.selection_list:
+            new_list = []
+            for attribute in expr.attributes:
+                if attribute.name == column_name and attribute.relation_index in indicies:
+                    new_attr = Attribute(column_name, new_source_index)
+                else:
+                    new_attr = attribute
+                new_list.append(new_attr)
 
-        self.selection_list = new_list
+            expr.change_attributes(new_list)
 
     def change_relations(self, old_indicies: list[int], new_index: int):
-        for attribute in self.selection_list:
-            if attribute.relation_index in old_indicies:
-                attribute.change_relation(new_index)
+        for expr in self.selection_list:
+            for attribute in expr.attributes:
+                if attribute.relation_index in old_indicies:
+                    attribute.change_relation(new_index)
 
     # compilation
     def create_select_expressions(self):
-        # An instance of query is needed as it has methods for creating nodes
-        # TODO: This is a hint that this should not be the case
-        empty_query = Query("")
-        #if self.select_star:
-        #    return empty_query.create_star_selection()
+        compiler = ExpressionCompiler(self.range_table)
         selection_expressions = []
-        for attribute in self.selection_list:
-            relation = self.range_table.get_relation_for_attribute(attribute)
-            selection_expressions.append(empty_query.create_column(attribute.name, relation.alias))
+        for expr in self.selection_list:
+            selection_expressions.extend(compiler.compile(expr))
         return selection_expressions
 
     # manipulation
@@ -112,9 +150,10 @@ class Selection:
         unused_relations = []
         for relation in self.range_table.relations:
             used = False
-            for attribute in self.selection_list:
-                if attribute.relation_index == relation.index:
-                    used = True
+            for expr in self.selection_list:
+                for attribute in expr.attributes:
+                    if attribute.relation_index == relation.index:
+                        used = True
             if not used:
                 unused_relations.append(relation)
 
@@ -174,6 +213,9 @@ class JoinTree:
     def remove_relations_with_name(self, relation_name: str):
         self.joins = [join for join in self.joins if not self.range_table.get_relation_with_index(join.relation_index).name == relation_name]
 
+    def remove_relation(self, relation: Relation):
+        self.joins = [join for join in self.joins if not join.relation_index == relation.index]
+
     
     # manipulation
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
@@ -195,8 +237,16 @@ class JoinTree:
                 new_join.change_attributes(join.attributes)
                 new_join.change_condition(join.condition)
 
+    def relations_used_in_conditions(self):
+        indicies = []
+        for join in self.joins:
+            for attribute in join.attributes:
+                indicies.append(attribute.relation_index)
+
+        return set(indicies)
 
 
+# TODO: Change to use Expression instead of list of attributes and condition
 class FromExpr:
     def __init__(self, relation_indicies: list[int], attributes: list[Attribute], condition):
         self.relation_indicies = relation_indicies
@@ -220,6 +270,7 @@ class Parser:
         range_table = self.create_range_table()
         selection = self.create_selection(range_table)
         join_tree = self.create_join_tree(range_table)
+
 
         return range_table, selection, join_tree
 
@@ -257,27 +308,35 @@ class Parser:
         result = []
         for relation in range_table.relations:
             columns_in_table = self.db_structure.get_columns_in_table(relation.name)
-            result.extend([Attribute(column_name, relation.index) for column_name in columns_in_table])
+            result.extend([Expression(None, [Attribute(column_name, relation.index) for column_name in columns_in_table])])
         return result
 
     def from_expressions(self, expressions: list[exp.Expression], range_table: RangeTable) -> list[Attribute]:
         result = []
         for expression in expressions:
-            # Assumption: All expressions are columns
-            column_name = expression.name
-            # if the column uses an alias
-            if expression.table:
-                # The alias is either the full name of the table or an alias
-                column_alias = expression.table
-                for relation in range_table.relations:
-                    if column_alias == relation.name or column_alias == relation.alias:
-                        result.append(Attribute(column_name, range_table.index_of_matching_relation(relation.name, relation.alias)))
-            # Otherwise we need the database structure to find what table a column belongs to
+            if isinstance(expression, exp.Column):
+                expr = Expression(expression, [self.attribute_from_column(expression, range_table)])
             else:
-                table_name = self.db_structure.table_containing_column(column_name, range_table.relation_names)
-                result.append(Attribute(column_name, range_table.index_of_matching_relation(table_name, "")))
+                expr = Expression(expression, [self.attribute_from_column(column, range_table) for column in expression.find_all(exp.Column)])
+
+            result.append(expr)
         return result
 
+    def attribute_from_column(self, expression: exp.Column, range_table: RangeTable) -> Attribute:
+        column_name = expression.name
+        # if the column uses an alias
+        if expression.table:
+            # The alias is either the full name of the table or an alias
+            column_alias = expression.table
+            for relation in range_table.relations:
+                if column_alias == relation.name or column_alias == relation.alias:
+                    return Attribute(column_name, relation.index)
+        # Otherwise we need the database structure to find what table a column belongs to
+        else:
+            table_name = self.db_structure.table_containing_column(column_name, range_table.relation_names)
+            # Index is the first (and hopefully only) occurence in the range table
+            index = range_table.index_of_entries_with_name(table_name)[0]
+            return Attribute(column_name, index)
 
     # Join Tree
     def create_join_tree(self, range_table: RangeTable) -> JoinTree:
@@ -339,7 +398,27 @@ class Parser:
         else:
             return []
 
+    # ORDER BY and GROUP BY
+    def get_other_expressions(self, range_table: RangeTable) -> list[Expression]:
+        result = []
+        if 'group' in self.ast.args.keys():
+            result.extend(self.ast.args['group'].expressions)
+        if 'order' in self.ast.args.keys():
+            result.extend(self.ast.args['order'].expressions)
 
+        return self.parse_expressions(result, range_table)
+
+    # From AST expression to our expression
+    def parse_expressions(self, expressions: list[exp.Expression], range_table: RangeTable) -> list[Expression]:
+        result = []
+        for expression in expressions:
+            if isinstance(expression, exp.Column):
+                expr = Expression(expression, [self.attribute_from_column(expression, range_table)])
+            else:
+                expr = Expression(expression, [self.attribute_from_column(column, range_table) for column in expression.find_all(exp.Column)])
+
+            result.append(expr)
+        return result
 
 ######################
 # Transformer
@@ -353,11 +432,21 @@ class Transformer:
     def transform(self, query: Query, changes):
         self.query = query
         self.ast = query.get_ast()
-        self.from_subtree = self.ast.find(exp.From)
+
+        # Only handle SELECT queries
+        if len(list(self.ast.find_all(exp.Select))) == 0:
+            return
+
+        # Extract and transform subqueries separately
+        subqueries = self.query.extract_subqueries()
+        for subquery in subqueries:
+            Transformer(self.old_db, self.new_db).transform(subquery, changes)
 
         self.preprocess_query()
         self.apply_changes(changes)
         self.postprocess_query()
+
+        self.query.insert_subqueries(subqueries)
 
 
     def preprocess_query(self):
@@ -368,6 +457,7 @@ class Transformer:
         self.selection = selection
         self.join_tree = join_tree
         self.from_expr = parser.create_from_expression(self.range_table)
+        self.other_expressions = parser.get_other_expressions(range_table)
 
         
     def apply_changes(self, changes):
@@ -380,9 +470,7 @@ class Transformer:
                 if change.src_table_name in self.range_table.relation_names:
                     self.move_column(change)
             elif isinstance(change, ReplaceTable):
-                if change.old_table_name in self.range_table.relation_names:
-                    new_index = self.get_index_of_new_relation(change.new_table_name)
-                    self.replace_table(change.old_table_name, new_index)
+                self.replace_table(change)
 
 
     def postprocess_query(self):
@@ -391,33 +479,49 @@ class Transformer:
         self.ensure_from_not_empty()
         self.adjust_query_select_expression()
         self.adjust_query_join_expressions()
+        self.adjust_other_expressions()
         #self.verify_selection_is_valid_given_structure(self.new_db)
 
 
     def move_column(self, change):
-        new_table_index = self.get_index_of_new_relation(change.dst_table_name)
+        new_table_index = self.get_existing_or_create_new_relation(change.dst_table_name)
         self.selection.change_source_relation_for_column(change.column_name, change.src_table_name, new_table_index)
         indicies_to_replace = self.range_table.index_of_entries_with_name(change.src_table_name)
         self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
         self.from_expr.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
 
 
+    def replace_table(self, change):
+        if not change.old_table_name in self.range_table.relation_names:
+            return
+
+        indicies_to_replace = self.range_table.index_of_entries_with_name(change.old_table_name)
+        
+        for old_index in indicies_to_replace:
+            new_index = self.get_index_of_new_relation(change.new_table_name)
+            new_relation = self.range_table.get_relation_with_index(new_index)
+            old_relation = self.range_table.get_relation_with_index(old_index)
+            new_relation.change_alias(old_relation.alias)
+
+            self.join_tree.change_references_to_relations_in_attributes([old_index], new_index)
+            self.join_tree.move_condition([old_index], new_index)
+            self.selection.change_relations([old_index], new_index)
+            self.remove_relation_from_query(self.range_table.get_relation_with_index(old_index))
+
+            for expression in self.other_expressions:
+                expression.change_references_to_relations_in_attributes([old_index], new_index)
+
+
     def get_index_of_new_relation(self, relation_name: str):
-        # Is this condition even necessary? Do we ever want to use an existing relation?
+        return self.add_table_to_query(relation_name)
+
+    def get_existing_or_create_new_relation(self, relation_name: str):
         if not self.range_table.contains(relation_name):
             # Add it to the query
             return self.add_table_to_query(relation_name)
         else:
             # Find the first occurence of the table in the range_table
             return self.range_table.index_of_entries_with_name(relation_name)[0]
-
-
-    def replace_table(self, old_table_name: str, new_table_index: str):
-        indicies_to_replace = self.range_table.index_of_entries_with_name(old_table_name)
-        self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
-        self.join_tree.move_condition(indicies_to_replace, new_table_index)
-        self.selection.change_relations(indicies_to_replace, new_table_index)
-        self.remove_relation_from_query(self.range_table.get_matching_relation(old_table_name, ""))
 
 
     def adjust_query_select_expression(self):
@@ -429,10 +533,20 @@ class Transformer:
         new_joins = self.join_tree.create_join_expressions()
         self.query.ast.set('joins', new_joins)
 
+    def adjust_other_expressions(self):
+        compiler = ExpressionCompiler(self.range_table)
+        new_expressions = []
+        for expr in self.other_expressions:
+            new_expressions.extend(compiler.compile(expr))
+
+        for old_expr, new_expr in zip(self.other_expressions, new_expressions):
+            old_expr.expression.replace(new_expr)
+
 
     def remove_unused_tables(self):
         for unused_relation in self.selection.get_unused_relations():
-            self.remove_relation_from_query(unused_relation)
+            if unused_relation.index not in self.join_tree.relations_used_in_conditions():
+                self.remove_relation_from_query(unused_relation)
 
 
     def get_relation_from_node(self, node: exp.Expression) -> Relation:
@@ -460,47 +574,27 @@ class Transformer:
         if len(indicies_of_relations_with_name) > 1:
             for occurence, index in enumerate(indicies_of_relations_with_name):
                 relation = self.range_table.get_relation_with_index(index)
-                relation.change_alias(relation.name + str(occurence + 1))
+                if relation.alias == "" or relation.alias == relation.name:
+                    relation.change_alias(relation.name + str(occurence + 1))
                 
 
     def remove_relation_from_query(self, relation):
-        # Remove from 'From' expression
-        # TODO: Move 'from' expressions into the join tree also. With the condition being the 'where' clause
-        #self.remove_table_from_tree(self.from_subtree, relation)
-        self.join_tree.remove_relations_with_name(relation.name)
+        self.join_tree.remove_relation(relation)
         self.from_expr.relation_indicies = [index for index in self.from_expr.relation_indicies if not index == relation.index]
         
-
-    def remove_table_from_tree(self, tree, relation):
-        if relation.alias:
-            self.remove_nodes_from_tree(tree, exp.Alias, lambda alias_node: alias_node.this.name == relation.name and alias_node.alias == relation.alias)
-        else:
-            self.remove_nodes_from_tree(tree, exp.Table, lambda table_node: table_node.name == relation.name)
-
-
-    def remove_nodes_from_tree(self, tree, node_type, condition_fun):
-        for node in tree.find_all(node_type):
-            if condition_fun(node):
-                node.pop()
-
     
     def resolve_ambiguities(self):
-        # Do a pairwise comparison of attributes in selection
-        for current_attr in self.selection.selection_list:
-            for other_attr in self.selection.selection_list:
-                if current_attr == other_attr:
-                    continue
-                # Check if they have the same name and are from different relations
-                if current_attr.name == other_attr.name:
-                    if not current_attr.relation_index == other_attr:
-                        # There is a collision
-                        # TODO: Check if there are multiple relations with the name, and a new alias should be created
-                        current_relation = self.range_table.get_relation_with_index(current_attr.relation_index)
-                        current_relation.change_alias(current_relation.name)
+        for expr in self.selection.selection_list:
+            for attribute in expr.attributes:
+                if len(self.new_db.get_tables_containing_column(attribute.name)) > 1:
+                    relation = self.range_table.get_relation_with_index(attribute.relation_index)
+                    if relation.alias == "" or relation.alias == relation.name:
+                        relation.change_alias(relation.name)
 
 
     # Mix of parsing, manipulation, and compilation
     def ensure_from_not_empty(self):
+        # If from is empty, move the first join into from
         if len(self.from_expr.relation_indicies) == 0:
             first_join = self.join_tree.joins.pop(0)
             self.from_expr.relation_indicies = [first_join.relation_index]
@@ -508,6 +602,7 @@ class Transformer:
             if first_join.condition:
                 self.from_expr.condition = first_join.condition
                 
+        # Create and insert from expressions
         expressions = []
         for index in self.from_expr.relation_indicies:
             relation = self.range_table.get_relation_with_index(index)
@@ -517,6 +612,7 @@ class Transformer:
                 expressions.append(self.query.create_table(relation.name))
         self.ast.set('from', exp.From(expressions=expressions))
 
+        # Adjust attributes used in WHERE condition
         if self.from_expr.condition:
             for column, attr in zip(self.from_expr.condition.find_all(exp.Column), self.from_expr.attributes):
                 attr_relation = self.range_table.get_relation_for_attribute(attr)
