@@ -3,91 +3,72 @@ import pytest
 from Structures.Query import Query
 from Structures.Table import Table
 from Structures.Column import Column
-from Helpers.Change import Change
+from sqlglot import exp
 
+def test_query_get_from_expressions():
+    query = Query("Select * from test_table")
+    expected = [exp.Table(this=exp.Identifier(this="test_table"))]
 
-def test_query_to_string():
-    query = Query("SELECT * FROM testTable JOIN other_table")
-    assert str(query) == "SELECT * FROM testTable JOIN other_table"
+    assert query.get_from_expressions() == expected
 
+def test_query_get_join_expressions_with_no_joins():
+    query = Query("Select * from test_table")
+    expected = []
 
-def test_query_comparison_succeeds_on_same_query():
-    query1 = Query("SELECT * FROM some_table")
-    query2 = Query("SELECT * FROM some_table")
+    assert query.get_join_expressions() == expected
 
-    assert query1 == query2
+def test_query_get_join_expressions_with_joins():
+    query = Query("Select * from test_table join first_other_table join second_other_table")
+    expected = [query.create_simple_join("first_other_table"), query.create_simple_join("second_other_table")]
 
+    assert query.get_join_expressions() == expected
 
-def test_query_comparison_fails_on_different_queries():
-    query1 = Query("SELECT * FROM some_table")
-    query2 = Query("SELECT * FROM some_other_table")
+def test_query_get_where_expression_without_where():
+    query = Query("Select * from test_table")
+    expected = []
 
-    assert not query1 == query2
+    assert query.get_where_expression() == expected
 
+def test_query_get_where_expression_with_where():
+    query = Query("Select * from test_table where a = b")
+    expected = exp.EQ(this=query.create_column("a"), expression=query.create_column("b"))
 
-def test_query_comparison_is_not_case_sensitive_with_keywords():
-    query1 = Query("SELECT * FROM some_table")
-    query2 = Query("select * from some_table")
+    assert query.get_where_expression() == expected
 
-    assert query1 == query2
+@pytest.fixture
+def empty_query():
+    return Query("")
 
+def test_query_create_identifier(empty_query):
+    assert empty_query.create_identifier("test") == exp.Identifier(this="test")
 
-def test_query_comparison_is_case_sensitive_about_identifiers():
-    query1 = Query("SELECT * FROM some_table")
-    query2 = Query("SELECT * FROM SOME_TABLE")
+def test_query_create_table(empty_query):
+    assert empty_query.create_table("test_table") == exp.Table(this=exp.Identifier(this="test_table"))
 
-    assert not query1 == query2
+def test_query_create_simple_join(empty_query):
+    assert empty_query.create_simple_join("test_table") == exp.Join(this=exp.Table(this=exp.Identifier(this="test_table")))
 
+def test_query_create_simple_join_with_alias(empty_query):
+    assert empty_query.create_simple_join("test_table", "test_alias") == exp.Join(this=empty_query.create_table_with_alias("test_table", "test_alias"))
 
-def test_query_comparison_succeeds_when_keywords_can_be_inferred():
-    query1 = Query("SELECT * FROM some_table ST")
-    query2 = Query("SELECT * FROM some_table AS ST")
+def test_query_create_join_with_condition(empty_query):
+    assert empty_query.create_join_with_condition("test_table", exp.EQ(this=exp.Identifier(this="condition"))) == exp.Join(this=exp.Table(this=exp.Identifier(this="test_table")), on=exp.EQ(this=exp.Identifier(this="condition")))
 
-    assert query1 == query2
+def test_query_create_join_with_condition_with_alias(empty_query):
+    assert empty_query.create_join_with_condition("test_table", exp.EQ(this=exp.Identifier(this="condition")), "test_alias") == exp.Join(this=empty_query.create_table_with_alias("test_table", "test_alias"), on=exp.EQ(this=exp.Identifier(this="condition")))
 
+# TODO: Add case where table has an alias
+def test_query_create_from_expression(empty_query):
+    assert empty_query.create_from_with_table("test_table") == exp.From(expressions=[exp.Table(this=exp.Identifier(this="test_table"))])
 
-def test_query_to_string_raises_error_if_not_valid_sql():
-    with pytest.raises(ValueError) as error:
-        Query("This is not valid SQL")
-        assert error.value == "The query is not valid SQL"
+def test_query_create_from_expression_with_alias(empty_query):
+    assert empty_query.create_from_with_table("test_table", "test_alias") == exp.From(expressions=[empty_query.create_table_with_alias("test_table", "test_alias")])
 
-def test_query_get_tables():
-    # Should return both tables that have an alias, and those that do not
-    query = Query(
-        "SELECT email, UD.name, wants_letter "
-        "from Users "
-        "JOIN UserData UD on Users.id = UD.user_id "
-        "JOIN NewsLetter NL on UD.id = NL.user_id "
-        "GROUP BY UD.name")
+def test_query_create_table_alias(empty_query):
+    assert empty_query.create_table_with_alias("test_table", "test_alias") == exp.Alias(this=exp.Table(this=exp.Identifier(this="test_table")), alias=exp.TableAlias(this=exp.Identifier(this="test_alias")))
 
-    users_table = Table("Users")
-    userdata_table = Table("UserData")
-    userdata_table.set_alias("UD")
-    newsletter_table = Table("NewsLetter")
-    newsletter_table.set_alias("NL")
+def test_query_create_where_with_condition(empty_query):
+    assert empty_query.create_where_with_condition(exp.EQ(this=exp.Identifier(this="condition"))) == exp.Where(this=exp.EQ(this=exp.Identifier(this="condition")))
 
-    expected = [users_table, userdata_table, newsletter_table]
-
-    assert query.get_tables() == expected
-
-def test_query_get_columns():
-    # Should return all columns present in the query, if they have an alias or table prefix this should be included
-    query = Query(
-    "SELECT email, UD.name, wants_letter "
-    "from Users "
-    "JOIN UserData UD on Users.id = UD.user_id "
-    "JOIN NewsLetter NL on UD.id = NL.user_id "
-    "GROUP BY UD.name")
-
-    # Transform to set and then back to list so that order does not matter
-    expected = set([
-        Column("wants_letter"), 
-        Column("id", "Users"),
-        Column("user_id", "UD"),
-        Column("email"), 
-        Column("name", "UD"), 
-        Column("user_id", "NL"),
-        Column("id", "UD"),
-    ])
-    
-    assert query.get_columns() == expected
+def test_query_create_star_selection(empty_query):
+    assert empty_query.create_star_selection() == [exp.Star()]

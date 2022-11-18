@@ -1,4 +1,4 @@
-from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si, DBConfig
+from Applications.Database_intefaces.sqliteinterface import SqLiteInterface as Si
 import pytest
 
 database_name = "SimpleDatabase"
@@ -7,7 +7,7 @@ database_path = "./Databases/"
 
 @pytest.fixture
 def connection():
-    return Si(DBConfig(database_name))
+    return Si(database_path + database_name + ".sqlite")
 
 
 def test_basic_select(connection):

@@ -106,3 +106,14 @@ def test_sqlglot_modify_join():
     result = expression_tree.transform(transformer).sql()
 
     assert result == expected
+
+def test_sqlglot_replace_changes_ast():
+    query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+
+    ast = parse_one(query)
+
+    column = ast.find(exp.Column)
+
+    column.replace(exp.Column(this=exp.Identifier(this="test")))
+
+    assert ast.find(exp.Column) == exp.Column(this=exp.Identifier(this="test"))

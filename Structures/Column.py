@@ -26,3 +26,4 @@ class Column:
 
     def get_alias(self):
         return self.alias
+        
