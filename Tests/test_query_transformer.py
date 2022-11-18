@@ -92,8 +92,6 @@ def test_transform_move_column(transformer):
     actual = Query("Select a from A")
     expected = Query("Select a from D")
     changes = [MoveColumn("a", "A", "D")]
-    # This is equivalent to 
-    # changes = [RemoveTable("A"), AddTable("D")]
 
     transformer.transform(actual, changes)
 
@@ -104,8 +102,6 @@ def test_transform_move_one_of_multiple_columns(transformer):
     actual = Query("Select a, d from A Join B")
     expected = Query("Select a, d from B Join D")
     changes = [MoveColumn("a", "A", "D"), RemoveTable("A")]
-    # This is equivalent to 
-    # changes = [AddTable("D"), RemoveTable("A")]
 
     transformer.transform(actual, changes)
 
@@ -116,10 +112,6 @@ def test_transform_move_column_with_alias(transformer):
     actual = Query("Select Alias.a from A as Alias")
     expected = Query("Select a from D")
     changes = [MoveColumn("a", "A", "D")]
-    # This is NOT equivalent to
-    # changes = [AddTable("D"), RemoveTable("A")]
-    # Because of the alias
-    # When only doing add and remove, there is no way to determine alias equivalence.
 
     transformer.transform(actual, changes)
 
@@ -130,8 +122,6 @@ def test_transform_move_column_that_is_used_in_join_condition_change_table_in_fr
     actual = Query("Select a, g from A Join C on A.c = C.c")
     expected = Query("Select a, g from C join D where D.c = C.c")
     changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D")]
-   # The changes below, produce the same result 
-   # changes = [ReplaceTable("A", "D")]
 
     transformer.transform(actual, changes)
 
