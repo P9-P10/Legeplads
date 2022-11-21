@@ -120,7 +120,7 @@ class JoinTree:
         for join in self.joins:
             if join.relation_index in indicies_to_replace:
                 new_join.expression.change_attributes(join.expression.attributes)
-                new_join.expression.expression = join.expression.expression
+                new_join.expression.ast = join.expression.ast
 
     def relations_used_in_conditions(self):
         indicies = []

@@ -32,8 +32,8 @@ class Expression:
     without having to be concerned with the type of the element.
     """
 
-    def __init__(self, expression: exp.Expression, attributes: list[Attribute]):
-        self.expression = expression
+    def __init__(self, ast: exp.Expression, attributes: list[Attribute]):
+        self.ast = ast
         self.attributes = attributes
 
     def change_attributes(self, new_attributes: list[Attribute]):

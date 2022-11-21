@@ -210,7 +210,7 @@ class Parser:
             return []
 
     # ORDER BY and GROUP BY
-    def get_other_expressions(self, range_table: RangeTable) -> list[Expression]:
+    def get_other_expressions(self) -> list[Expression]:
         result = []
         if 'group' in self.ast.args.keys():
             result.extend(self.ast.args['group'].expressions)

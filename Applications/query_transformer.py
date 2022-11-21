@@ -9,30 +9,42 @@ from Applications.Parsing import *
 class ExpressionCompiler:
     def __init__(self, range_table: RangeTable):
         self.range_table = range_table
+        # An instance of query is needed as it has methods for creating nodes
+        # TODO: This is a hint that this should not be the case
+        self.query = Query("")
+
 
     def compile(self, expression: Expression):
-        empty_query = Query("")
-        if expression.expression is None:
+        if expression.ast is None:
             return None
-        # This seems to only be used for select
-        if isinstance(expression.expression, exp.Column):
-            # An instance of query is needed as it has methods for creating nodes
-            # TODO: This is a hint that this should not be the case
-            relation = self.range_table.get_relation_for_attribute(expression.attributes[0])
-            expression.expression = empty_query.create_column(expression.attributes[0].name, relation.alias)
-            return expression.expression
+        if isinstance(expression.ast, exp.Column):
+            self.compile_single_column(expression)
         else:
-            for column, attribute in zip(expression.expression.find_all(exp.Column), expression.attributes):
-                #relation = self.range_table.get_relation_for_attribute(attribute)
-                #column.replace(empty_query.create_column(attribute.name, relation.alias))
-                attr_relation = self.range_table.get_relation_for_attribute(attribute)
-                if attr_relation.alias == '':
-                    relation_name = attr_relation.name
-                else:
-                    relation_name = attr_relation.alias
-                column.replace(empty_query.create_column(attribute.name, relation_name))
-            return expression.expression
+            self.compile_multiple_columns(expression)
         
+        return expression.ast
+
+
+    def compile_single_column(self, expression: Expression):
+        relation = self.range_table.get_relation_for_attribute(expression.attributes[0])
+        expression.ast = self.query.create_column(expression.attributes[0].name, relation.alias)
+
+    
+    def compile_multiple_columns(self, expression: Expression):
+        new_columns = [self.compile_attribute(attribute) for attribute in expression.attributes]
+        # Each column should correspond to an attribute
+        for column, new_column in zip(expression.ast.find_all(exp.Column), new_columns):
+            column.replace(new_column)
+
+        
+    def compile_attribute(self, attribute: Attribute) -> exp.Column:
+        attr_relation = self.range_table.get_relation_for_attribute(attribute)
+        if attr_relation.alias == '':
+            relation_name = attr_relation.name
+        else:
+            relation_name = attr_relation.alias
+        return self.query.create_column(attribute.name, relation_name)
+
 
 class Transformer:
     def __init__(self, old_db_structure: DatabaseStructure, new_db_structure: DatabaseStructure):
@@ -68,7 +80,7 @@ class Transformer:
         self.selection = selection
         self.join_tree = join_tree
         self.from_expr = parser.create_from_expression(self.range_table)
-        self.other_expressions = parser.get_other_expressions(range_table)
+        self.other_expressions = parser.get_other_expressions()
 
         
     def apply_changes(self, changes):
@@ -125,6 +137,7 @@ class Transformer:
     def get_index_of_new_relation(self, relation_name: str):
         return self.add_table_to_query(relation_name)
 
+
     def get_existing_or_create_new_relation(self, relation_name: str):
         if not self.range_table.contains(relation_name):
             # Add it to the query
@@ -146,22 +159,18 @@ class Transformer:
     def adjust_query_join_expressions(self):
         empty_query = Query("")
         new_joins = []
+        compiler = ExpressionCompiler(self.range_table)
         for join in self.join_tree.joins:
             # Change the columns in the condition
-            if join.expression.expression:
-                for column, attr in zip(join.expression.expression.find_all(exp.Column), join.expression.attributes):
-                    attr_relation = self.range_table.get_relation_for_attribute(attr)
-                    if attr_relation.alias == '':
-                        relation_name = attr_relation.name
-                    else:
-                        relation_name = attr_relation.alias
-                    column.replace(empty_query.create_column(attr.name, relation_name))
+            if join.expression.ast:
+                compiler.compile(join.expression)
                 
             relation = self.range_table.get_relation_with_index(join.relation_index)
             alias = None if relation.alias == "" else relation.alias
-            new_joins.append(empty_query.create_join_with_condition(relation.name, join.expression.expression, alias))
+            new_joins.append(empty_query.create_join_with_condition(relation.name, join.expression.ast, alias))
 
         self.query.ast.set('joins', new_joins)
+
 
     def adjust_other_expressions(self):
         compiler = ExpressionCompiler(self.range_table)
@@ -170,7 +179,7 @@ class Transformer:
             new_expressions.append(compiler.compile(expr))
 
         for old_expr, new_expr in zip(self.other_expressions, new_expressions):
-            old_expr.expression.replace(new_expr)
+            old_expr.ast.replace(new_expr)
 
 
     def remove_unused_tables(self):
@@ -229,8 +238,8 @@ class Transformer:
             first_join = self.join_tree.joins.pop(0)
             self.from_expr.relation_indicies = [first_join.relation_index]
             self.from_expr.condition.attributes = first_join.expression.attributes
-            if first_join.expression.expression:
-                self.from_expr.condition.expression = first_join.expression.expression
+            if first_join.expression.ast:
+                self.from_expr.condition.ast = first_join.expression.ast
                 
         # Create and insert from expressions
         expressions = []
@@ -243,7 +252,7 @@ class Transformer:
         self.ast.set('from', exp.From(expressions=expressions))
 
         # Adjust attributes used in WHERE condition
-        if self.from_expr.condition.expression:
+        if self.from_expr.condition.ast:
             compiler = ExpressionCompiler(self.range_table)
             result = compiler.compile(self.from_expr.condition)
             self.ast.args['where'] = self.query.create_where_with_condition(result)
