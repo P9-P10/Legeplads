@@ -195,7 +195,7 @@ def test_transform_handles_subquery_that_is_unaffected_by_changes(transformer):
 
 def test_transform_handles_aggregate_functions_in_selection(transformer):
     actual = Query("Select SUM(a) as sum, g from C Join A on A.c = C.c")
-    expected = Query("Select SUM(a) as sum, g from C join D on D.c = C.c")
+    expected = Query("Select SUM(D.a) as sum, g from C join D on D.c = C.c")
     changes = [ReplaceTable("A", "D")]
 
     transformer.transform(actual, changes)

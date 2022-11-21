@@ -56,12 +56,9 @@ class Join:
 
 # TODO: Change to use Expression instead of list of attributes and condition
 class FromExpr:
-    def __init__(self, relation_indicies: list[int], attributes: list[Attribute], condition):
+    def __init__(self, relation_indicies: list[int], condition: Expression):
         self.relation_indicies = relation_indicies
-        self.attributes = attributes
         self.condition = condition
     
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
-        for attr in self.attributes:
-            if attr.relation_index in indicies_to_replace:
-                attr.change_relation(new_index)
+        self.condition.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
