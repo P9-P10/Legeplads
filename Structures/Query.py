@@ -1,5 +1,6 @@
 from Structures.Table import Table
 from Structures.Column import Column
+import Applications.Compilation.ast_factory as AST
 import sqlglot
 from sqlglot import parse_one, exp
 
@@ -41,55 +42,13 @@ class Query:
         else:
             return []
 
-    def create_column(self, name, table=None):
-        if table:
-            return exp.Column(
-                this=self.create_identifier(name),
-                table=self.create_identifier(table)
-            )
-        else:
-            return exp.Column(this=self.create_identifier(name))
-
-    def create_identifier(self, name: str):
-        return exp.Identifier(this=name)
-
-    def create_table(self, name: str):
-        return exp.Table(this=self.create_identifier(name))
-
-    def create_simple_join(self, table_name: str, table_alias: str = None):
-        if table_alias:
-            return exp.Join(this=self.create_table_with_alias(table_name, table_alias))
-        else:
-            return exp.Join(this=self.create_table(table_name))
-
-    def create_join_with_condition(self, table_name: str, condition: exp.Expression, table_alias: str = None):
-        if table_alias:
-            return exp.Join(this=self.create_table_with_alias(table_name, table_alias), on=condition)
-        else:
-            return exp.Join(this=self.create_table(table_name), on=condition)
-
-    def create_from_with_table(self, table_name: str, table_alias: str = None):
-        if table_alias:
-            return exp.From(expressions=[self.create_table_with_alias(table_name, table_alias)])
-        else:
-            return exp.From(expressions=[self.create_table(table_name)])
-
-    def create_table_with_alias(self, table_name: str, table_alias: str):
-        return exp.Alias(this=self.create_table(table_name), alias=exp.TableAlias(this=self.create_identifier(table_alias)))
-
-    def create_where_with_condition(self, condition: exp.Expression):
-        return exp.Where(this=condition)
-
-    def create_star_selection(self):
-        return [exp.Star()]
-
 
     def extract_subqueries(self):
         # Get subqueries by getting all but the first select expression
         subqueries = list(self.ast.find_all(exp.Select))[1:]
         # Insert a placeholder for the subqueries
         for subquery in subqueries:
-            subquery.replace(self.create_identifier("__subquery_placeholder__"))
+            subquery.replace(AST.create_identifier("__subquery_placeholder__"))
         # Transform the subquery ASTs to instances of Query
         return [Query(subq.sql()) for subq in subqueries]
 

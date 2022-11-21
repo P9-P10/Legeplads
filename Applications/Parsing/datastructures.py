@@ -1,5 +1,5 @@
 from .primitives import *
-from Structures.Query import Query
+import Applications.Compilation.ast_factory as AST
 
 class RangeTable:
     def __init__(self):

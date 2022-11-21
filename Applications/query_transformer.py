@@ -4,14 +4,11 @@ from Structures.Changes import *
 from sqlglot import exp
 from Applications.exceptions import *
 from Applications.Parsing import *
-
+import Applications.Compilation.ast_factory as AST
 
 class ExpressionCompiler:
     def __init__(self, range_table: RangeTable):
         self.range_table = range_table
-        # An instance of query is needed as it has methods for creating nodes
-        # TODO: This is a hint that this should not be the case
-        self.query = Query("")
 
 
     def compile(self, expression: Expression):
@@ -27,7 +24,7 @@ class ExpressionCompiler:
 
     def compile_single_column(self, expression: Expression):
         relation = self.range_table.get_relation_for_attribute(expression.attributes[0])
-        expression.ast = self.query.create_column(expression.attributes[0].name, relation.alias)
+        expression.ast = AST.create_column(expression.attributes[0].name, relation.alias)
 
     
     def compile_multiple_columns(self, expression: Expression):
@@ -43,7 +40,7 @@ class ExpressionCompiler:
             relation_name = attr_relation.name
         else:
             relation_name = attr_relation.alias
-        return self.query.create_column(attribute.name, relation_name)
+        return AST.create_column(attribute.name, relation_name)
 
 
 class Transformer:
@@ -171,7 +168,6 @@ class Transformer:
 
 
     def adjust_query_join_expressions(self):
-        empty_query = Query("")
         new_joins = []
         compiler = ExpressionCompiler(self.range_table)
         for join in self.join_tree.joins:
@@ -181,7 +177,7 @@ class Transformer:
                 
             relation = self.range_table.get_relation_with_index(join.relation_index)
             alias = None if relation.alias == "" else relation.alias
-            new_joins.append(empty_query.create_join_with_condition(relation.name, join.expression.ast, alias))
+            new_joins.append(AST.create_join_with_condition(relation.name, join.expression.ast, alias))
 
         self.query.ast.set('joins', new_joins)
 
@@ -260,16 +256,16 @@ class Transformer:
         for index in self.from_expr.relation_indicies:
             relation = self.range_table.get_relation_with_index(index)
             if relation.alias:
-                expressions.append(self.query.create_table_with_alias(relation.name, relation.alias))
+                expressions.append(AST.create_table_with_alias(relation.name, relation.alias))
             else:
-                expressions.append(self.query.create_table(relation.name))
+                expressions.append(AST.create_table(relation.name))
         self.ast.set('from', exp.From(expressions=expressions))
 
         # Adjust attributes used in WHERE condition
         if self.from_expr.condition.ast:
             compiler = ExpressionCompiler(self.range_table)
             result = compiler.compile(self.from_expr.condition)
-            self.ast.args['where'] = self.query.create_where_with_condition(result)
+            self.ast.args['where'] = AST.create_where_with_condition(result)
 
 
     # parsing

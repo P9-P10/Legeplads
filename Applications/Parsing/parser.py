@@ -2,6 +2,7 @@ from .primitives import *
 from .datastructures import *
 from Structures.DatabaseStructure import DatabaseStructure
 from Structures.Query import Query
+import Applications.Compilation.ast_factory as AST
 
 class ExpressionParser:
     def __init__(self, db_structure: DatabaseStructure, range_table: RangeTable):
@@ -90,11 +91,10 @@ class SelectionParser:
 
 
     def from_star_expression(self) -> list[Expression]:
-        empty_query = Query("")
         result = []
         for relation in self.range_table.relations:
             columns_in_table = self.db_structure.get_columns_in_table(relation.name)
-            result.extend([Expression(empty_query.create_column(column_name), [Attribute(column_name, relation.index)]) for column_name in columns_in_table])
+            result.extend([Expression(AST.create_column(column_name), [Attribute(column_name, relation.index)]) for column_name in columns_in_table])
         return result
         
 
