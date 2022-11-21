@@ -86,12 +86,11 @@ class Transformer:
     def apply_changes(self, changes):
         for change in changes:
             if isinstance(change, RemoveTable):
-                self.remove_relation_from_query(self.range_table.get_matching_relation(change.table_name, ""))
+                self.remove_table_from_query(change)
             elif isinstance(change, AddTable):
                 self.add_table_to_query(change.table_name)
             elif isinstance(change, MoveColumn):
-                if change.src_table_name in self.range_table.relation_names:
-                    self.move_column(change)
+                self.move_column(change)
             elif isinstance(change, ReplaceTable):
                 self.replace_table(change)
 
@@ -105,12 +104,28 @@ class Transformer:
         self.adjust_other_expressions()
 
 
+    def remove_table_from_query(self, change):
+        # Find and remove all instances of that table
+        for index in self.range_table.index_of_entries_with_name(change.table_name):
+            relation = self.range_table.get_relation_with_index(index)
+            self.remove_relation_from_query(relation)
+
+
     def move_column(self, change):
+        if change.src_table_name not in self.range_table.relation_names:
+            return
         new_table_index = self.get_existing_or_create_new_relation(change.dst_table_name)
-        self.selection.change_source_relation_for_column(change.column_name, change.src_table_name, new_table_index)
         indicies_to_replace = self.range_table.index_of_entries_with_name(change.src_table_name)
-        self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
-        self.from_expr.change_references_to_relations_in_attributes(indicies_to_replace, new_table_index)
+        self.change_all_references_to_relations(indicies_to_replace, new_table_index)
+        
+
+    def change_all_references_to_relations(self, indicies_to_replace: list[int], new_index: int):
+        self.selection.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
+        self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
+        self.from_expr.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
+
+        for expression in self.other_expressions:
+                expression.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
 
 
     def replace_table(self, change):
@@ -121,17 +136,16 @@ class Transformer:
         
         for old_index in indicies_to_replace:
             new_index = self.get_index_of_new_relation(change.new_table_name)
-            new_relation = self.range_table.get_relation_with_index(new_index)
-            old_relation = self.range_table.get_relation_with_index(old_index)
-            new_relation.change_alias(old_relation.alias)
-
-            self.join_tree.change_references_to_relations_in_attributes([old_index], new_index)
+            self.move_alias_to_new_relation(old_index, new_index)
+            self.change_all_references_to_relations([old_index], new_index)
             self.join_tree.move_condition([old_index], new_index)
-            self.selection.change_relations([old_index], new_index)
             self.remove_relation_from_query(self.range_table.get_relation_with_index(old_index))
 
-            for expression in self.other_expressions:
-                expression.change_references_to_relations_in_attributes([old_index], new_index)
+
+    def move_alias_to_new_relation(self, old_index, new_index):
+        new_relation = self.range_table.get_relation_with_index(new_index)
+        old_relation = self.range_table.get_relation_with_index(old_index)
+        new_relation.change_alias(old_relation.alias)
 
 
     def get_index_of_new_relation(self, relation_name: str):

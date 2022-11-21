@@ -89,7 +89,7 @@ class SelectionParser:
         return Selection(self.range_table, selection_list, select_star)
 
 
-    def from_star_expression(self) -> list[Attribute]:
+    def from_star_expression(self) -> list[Expression]:
         empty_query = Query("")
         result = []
         for relation in self.range_table.relations:

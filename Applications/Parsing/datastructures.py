@@ -42,31 +42,17 @@ class RangeTable:
 
 
 class Selection:
-    def __init__(self, range_table: RangeTable, selection: list[Attribute], select_star: bool):
+    def __init__(self, range_table: RangeTable, selection: list[Expression], select_star: bool):
         self.range_table = range_table
         self.selection_list = selection
         self.select_star = select_star
-        self.initial_selection = selection.copy()
+        self.initial_selection = selection
 
-    # manipulation
-    def change_source_relation_for_column(self, column_name: str, current_source_name: str, new_source_index: int):
-        indicies = self.range_table.index_of_entries_with_name(current_source_name)
+
+    def change_references_to_relations_in_attributes(self, old_indicies: list[int], new_index: int):
         for expr in self.selection_list:
-            new_list = []
-            for attribute in expr.attributes:
-                if attribute.name == column_name and attribute.relation_index in indicies:
-                    new_attr = Attribute(column_name, new_source_index)
-                else:
-                    new_attr = attribute
-                new_list.append(new_attr)
+            expr.change_references_to_relations_in_attributes(old_indicies, new_index)
 
-            expr.change_attributes(new_list)
-
-    def change_relations(self, old_indicies: list[int], new_index: int):
-        for expr in self.selection_list:
-            for attribute in expr.attributes:
-                if attribute.relation_index in old_indicies:
-                    attribute.change_relation(new_index)
 
     # manipulation
     def get_unused_relations(self):

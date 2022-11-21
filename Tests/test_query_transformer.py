@@ -88,6 +88,16 @@ def test_transform_remove_existing_table_and_add_new_table(transformer):
     assert actual == expected
 
 
+def test_transform_removes_multiple_occurences_of_table(transformer):
+    actual = Query("Select g from C Join A as A1 on A1.c = C.c Join A as A2 on A2.c = C.c")
+    expected = Query("Select g from C")
+    changes = [RemoveTable("A")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
 def test_transform_move_column(transformer):
     actual = Query("Select a from A")
     expected = Query("Select a from D")
