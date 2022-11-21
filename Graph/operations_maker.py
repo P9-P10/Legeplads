@@ -20,7 +20,6 @@ class OperationsMaker:
         old_table = change.old.tables[0]
         new_table = change.new.tables[0]
 
-
         if old_column.name == new_colum.name:
             operations.append(MoveColumn(old_column.name, old_table.name, new_table.name))
         else:
