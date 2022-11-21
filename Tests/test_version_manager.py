@@ -2,7 +2,7 @@ import json
 
 from Graph.changes_parser import ChangesParser
 from Graph.graph_parser import GraphParser
-from Graph.version_manager import version_manager
+from Graph.versionmanager import VersionManager
 from Structures.Changes import MoveColumn
 from Structures.Column import Column
 from Structures.DataStore import DataStore
@@ -36,14 +36,14 @@ def create_version_manager(old_schema, new_schema):
     new_tuple = (2, new_ds, "Id")
     parsed_change = [(old_schema, new_schema)]
     changes_tuple = (1, parsed_change, "Id")
-    return version_manager(gp, cp, [old_tuple, new_tuple], [changes_tuple])
+    return VersionManager(gp, cp, [old_tuple, new_tuple], [changes_tuple])
 
 
 def test_init():
     old_schema = Schema([Table("TableName", [Column("TestName", uri="1")])], name="SchemaName")
     new_schema = Schema([Table("TableName", [Column("NewColumnName", uri="2")])], name="SchemaName")
     vm = create_version_manager(old_schema, new_schema)
-    assert version_manager.Change(1, old_schema, new_schema, "Id") in vm.changes
+    assert VersionManager.Change(1, old_schema, new_schema, "Id") in vm.changes
 
 
 def test_get_changes_for_column():
@@ -70,14 +70,5 @@ def test_get_datastore_for_change():
     old_ds = DataStore([old_schema], name="Name")
     new_ds = DataStore([new_schema], name="Name")
 
-    result = vm.get_data_store_for_change(version=1, database_id="Id")
+    result = vm.get_data_stores_for_change(version=1, database_id="Id")
     assert result == (old_ds, new_ds)
-
-
-def test_get_operation_for_version():
-    old_schema = Schema([Table("TableName", [Column("TestName", uri="1")])], name="SchemaName")
-    new_schema = Schema([Table("NewName", [Column("TestName", uri="2")])], name="SchemaName")
-    vm = create_version_manager(old_schema, new_schema)
-
-    result = vm.get_operations_for_version(version=1, database_name="Id")
-    assert result == [MoveColumn("TestName","TableName","NewName")]
