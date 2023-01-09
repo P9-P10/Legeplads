@@ -17,7 +17,7 @@ class ConfigManager:
                             raise self.error
             else:
                 with open(file_path, "w") as file:
-                    config = {"changes_location": "", "database_versions_location": ""}
+                    config = {"changes_location": "", "database_versions_location": "","database_connections":[]}
                     yaml.dump(config, file)
                     self.config = config
 

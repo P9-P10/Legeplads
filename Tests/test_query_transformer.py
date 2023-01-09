@@ -4,8 +4,9 @@ from Structures.Query import Query
 from Structures.Table import Table
 from Structures.Column import Column
 from Structures.Schema import Schema
-from Structures.Changes import AddTable, RemoveTable, MoveColumn, RemoveColumn, AddColumn, ReplaceTable
+from Structures.Changes import AddTable, RemoveTable, MoveColumn, RemoveColumn, AddColumn, ReplaceTable, RenameColumn
 from Applications.exceptions import InvalidSelectionException, InvalidTransformationException, InvalidQueryException
+
 
 @pytest.fixture
 def old_db():
@@ -29,14 +30,30 @@ def new_db():
 
 
 @pytest.fixture
+def db_with_rename_column():
+    a = Table("A", [Column("a"), Column("b"), Column("q")])
+    b = Table("B", [Column("d"), Column("e"), Column("f")])
+    # Both A and C contain a column with the name "c"
+
+    return Schema([a, b, ])
+
+
+@pytest.fixture
 def transformer(old_db, new_db):
     return Transformer(old_db, new_db)
+
+
+@pytest.fixture
+def transformer_rename(old_db, db_with_rename_column):
+    return Transformer(old_db, db_with_rename_column)
+
 
 def test_transform_raises_error_when_selecting_unavailable_columns(transformer):
     query = Query("Select g from A")
 
     with pytest.raises(InvalidQueryException):
         transformer.transform(query, [])
+
 
 # TODO: Add test for removing table containing selected columns when doing SELECT *
 
@@ -49,6 +66,7 @@ def test_transform_removes_table(transformer):
 
     assert actual == expected
 
+
 def test_transform_removes_table_in_join(transformer):
     actual = Query("Select d, e from B Join A")
     expected = Query("Select d, e from B")
@@ -57,6 +75,7 @@ def test_transform_removes_table_in_join(transformer):
     transformer.transform(actual, changes)
 
     assert actual == expected
+
 
 def test_transform_add_table_to_query_with_single_column(transformer):
     actual = Query("Select * from B")
@@ -130,8 +149,8 @@ def test_transform_move_column_that_is_used_in_join_condition_change_table_in_fr
     actual = Query("Select a, g from A Join C on A.c = C.c")
     expected = Query("Select a, g from C join D where D.c = C.c")
     changes = [MoveColumn("a", "A", "D"), MoveColumn("c", "A", "D")]
-   # The changes below, produce the same result 
-   # changes = [ReplaceTable("A", "D")]
+    # The changes below, produce the same result
+    # changes = [ReplaceTable("A", "D")]
 
     transformer.transform(actual, changes)
 
@@ -171,10 +190,11 @@ def test_transform_replace_table_not_in_the_query_does_nothing(transformer):
 def test_transform_without_changes_removes_unused_tables(transformer):
     actual = Query("Select d, e from B join C")
     expected = Query("Select d, e from B")
-    
+
     transformer.transform(actual, [])
 
     assert actual == expected
+
 
 def test_transform_does_not_remove_tables_that_are_only_used_in_condition(transformer):
     actual = Query("Select d, e from C join B on B.d = C.c")
@@ -203,6 +223,7 @@ def test_transform_handles_subquery_that_is_unaffected_by_changes(transformer):
 
     assert actual == expected
 
+
 def test_transform_handles_aggregate_functions_in_selection(transformer):
     actual = Query("Select SUM(a) as sum, g from C Join A on A.c = C.c")
     expected = Query("Select SUM(a) as sum, g from C join D on D.c = C.c")
@@ -211,6 +232,7 @@ def test_transform_handles_aggregate_functions_in_selection(transformer):
     transformer.transform(actual, changes)
 
     assert actual == expected
+
 
 def test_transform_handles_multiple_occurences_of_the_same_table_and_preserves_aliases(transformer):
     actual = Query("Select A1.a, g from C Join A as A1 on A1.c = C.c Join A as A2 on A2.c = C.c")
@@ -221,6 +243,7 @@ def test_transform_handles_multiple_occurences_of_the_same_table_and_preserves_a
 
     assert actual == expected
 
+
 def test_tranform_handles_attributes_in_group_by_clause(transformer):
     actual = Query("Select a, g from C Join A on A.c = C.c group by a, g")
     expected = Query("Select a, g from C join D on D.c = C.c group by a, g")
@@ -230,5 +253,15 @@ def test_tranform_handles_attributes_in_group_by_clause(transformer):
 
     assert actual == expected
 
+
 def test_tranform_handles_attributes_in_order_by_clause(transformer):
     pass
+
+
+def test_transform_changes_column_name(transformer_rename):
+    actual = Query("Select c from A")
+    expected = Query("Select q from A")
+
+    transformer_rename.transform(actual, [RenameColumn("c","q","A")])
+
+    assert actual == expected

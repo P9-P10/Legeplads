@@ -4,10 +4,11 @@ from Structures.Query import Query
 from Applications.Database_intefaces.sqliteinterface import SqLiteInterface
 from Applications.query_transformer import Transformer
 from Structures.Schema import Schema
+from Structures.Table import Table
 
 
 class SqLiteInterfaceWithChanges(SqLiteInterface):
-    def __init__(self, path, changes, old_tables=None, new_tables=None):
+    def __init__(self, path, changes, old_tables: [Table] = None, new_tables: [Table] = None):
         super().__init__(path)
         if new_tables is None:
             new_tables = []
@@ -23,7 +24,8 @@ class SqLiteInterfaceWithChanges(SqLiteInterface):
         return self.run_super_query(query)
 
     def run_super_query(self, query: Query):
-        self.apply_changes(query)
+        if self.changes:
+            self.apply_changes(query)
         return super().run_query(query)
 
     def apply_changes(self, query: Query):
