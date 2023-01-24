@@ -20,3 +20,6 @@ def run_all_databases():
     database_creation("AdvancedDatabaseButBad")
     database_creation("OptimizedAdvancedDatabase")
     database_creation("SimpleDatabase")
+
+if __name__ == "__main__":
+    run_all_databases()

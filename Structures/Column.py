@@ -1,7 +1,8 @@
 class Column:
-    def __init__(self, name, alias=None):
+    def __init__(self, name, alias=None, uri: str = None):
         self.alias = alias
         self.name = name
+        self.URI = uri
 
     def __str__(self):
         return self.name

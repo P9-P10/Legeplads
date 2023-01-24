@@ -6,8 +6,8 @@ DROP TABLE IF EXISTS UserData;
 CREATE TABLE Users
 (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    email    VARCHAR NOT NULL,
     password VARCHAR
+
 );
 
 CREATE TABLE IF NOT EXISTS UserData
@@ -16,20 +16,21 @@ CREATE TABLE IF NOT EXISTS UserData
     address  VARCHAR,
     phone    INT,
     birthday VARCHAR,
+    email    VARCHAR NOT NULL,
     CONSTRAINT person_data
         FOREIGN KEY (id)
             REFERENCES Users (id)
             ON DELETE CASCADE
 );
 
-INSERT INTO Users(email, password)
-VALUES ('test@mail.mail', 'Securepass'),
-       ('bob@fancydomain.com', 'bobsSecurePass'),
-       ('JJonahJameson@JustTheFacts.com', 'ScrewYouSpiderMan'),
-       ('Egon@olsenbanden.net', 'Hundehoveder');
+INSERT INTO Users(password)
+VALUES ('Securepass'),
+       ('bobsSecurePass'),
+       ('ScrewYouSpiderMan'),
+       ('Hundehoveder');
 
-INSERT INTO UserData(id, address, phone, birthday)
-VALUES (1, 'testStreet', 1234, '22-22-22'),
-       (2, 'testSTreet 2', 12345, '33-33-33'),
-       (3, 'testStreet 3 NY', 54646576786, '99-99-99'),
-       (4, 'TestStreet 4', 57, '22-22-22');
+INSERT INTO UserData(id, address, phone, birthday, email)
+VALUES (1, 'testStreet', 1234, '22-22-22', 'test@mail.mail'),
+       (2, 'testSTreet 2', 12345, '33-33-33', 'bob@fancydomain.com'),
+       (3, 'testStreet 3 NY', 54646576786, '99-99-99', 'JJonahJameson@JustTheFacts.com'),
+       (4, 'TestStreet 4', 57, '22-22-22', 'Egon@olsenbanden.net');
