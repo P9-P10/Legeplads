@@ -54,10 +54,12 @@ class RangeTableParser:
             range_table.append(name, alias)
 
     def create_range_table_entry(self, expression):
-        if isinstance(expression, exp.Alias):
-            return (expression.this.name, expression.alias)
-        elif isinstance(expression, exp.Table):
-            return (expression.name, "")
+        if isinstance(expression, exp.Table):
+            if expression.alias: # if the table defines an alias
+                return (expression.name, expression.alias)
+            else:
+                return (expression.name, "")
+        # TODO: Throw error if given wrong type
 
     def get_from_expressions(self):
         return self.ast.args['from'].expressions
@@ -120,10 +122,12 @@ class JoinTreeParser:
 
     # (duplication from range_table)
     def get_relation_from_node(self, node: exp.Expression) -> Relation:
-        if isinstance(node, exp.Alias):
-            return self.range_table.get_matching_relation(node.this.name, node.alias)
-        elif isinstance(node, exp.Table):
-            return self.range_table.get_matching_relation(node.name, "")
+        if isinstance(node, exp.Table):
+            if node.alias:
+               return self.range_table.get_matching_relation(node.this.name, node.alias)
+            else: 
+                return self.range_table.get_matching_relation(node.name, "")
+        # TODO: Throw exception if given wrong expression type. And remove the duplication of this code
 
     def get_join_expressions(self):
         if 'joins' in self.ast.args.keys():
@@ -171,10 +175,12 @@ class Parser:
 
     # (duplication from range_table)
     def get_relation_from_node(self, node: exp.Expression, range_table: RangeTable) -> Relation:
-        if isinstance(node, exp.Alias):
-            return range_table.get_matching_relation(node.this.name, node.alias)
-        elif isinstance(node, exp.Table):
-            return range_table.get_matching_relation(node.name, "")
+        if isinstance(node, exp.Table):
+            if node.alias:
+                return range_table.get_matching_relation(node.this.name, node.alias)
+            else:
+                return range_table.get_matching_relation(node.name, "")
+        # TODO: Throw expression if given wrong expression type
 
 
     def get_attributes_from_join_condition(self, node: exp.Expression, range_table: RangeTable) -> list[Attribute]:

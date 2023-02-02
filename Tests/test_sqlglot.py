@@ -11,9 +11,8 @@ def test_sqlglot_parse_one_result():
     (TABLE this: 
       (IDENTIFIER this: Users, quoted: False))), joins: 
   (JOIN this: 
-    (ALIAS this: 
-      (TABLE this: 
-        (IDENTIFIER this: Orders, quoted: False)), alias: 
+    (TABLE this: 
+      (IDENTIFIER this: Orders, quoted: False), alias: 
       (TABLEALIAS this: 
         (IDENTIFIER this: O, quoted: False))), on: 
     (EQ this: 
@@ -37,10 +36,10 @@ def test_remove_aliases():
 
     alias_map = {}
 
-    for alias in parse_one(query).find_all(exp.Alias):
-        table = alias.find(exp.Table).name
-        table_alias = alias.find(exp.TableAlias).name
-        alias_map[table_alias] = table
+    for table in parse_one(query).find_all(exp.Table):
+        alias = table.find(exp.TableAlias)
+        if alias:
+            alias_map[alias.name] = table
 
     def transformer(node):
         if isinstance(node, exp.Column) and node.table in alias_map.keys():
@@ -52,11 +51,13 @@ def test_remove_aliases():
 
 
 def test_sqlglot_find_all_aliases():
-    query = "SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'"
+    query = parse_one("SELECT * FROM Users JOIN Orders O on Users.id = O.owner WHERE O.owner = 'bob'")
 
-    result = repr(list(parse_one(query).find_all(exp.Alias)))
+    tables = query.find_all(exp.Table)
+    tables_with_alias = list([table for table in tables if table.alias])
 
-    assert result == """[(ALIAS this: \n  (TABLE this: \n    (IDENTIFIER this: Orders, quoted: False)), alias: \n  (TABLEALIAS this: \n    (IDENTIFIER this: O, quoted: False)))]"""
+    assert repr(tables_with_alias) == '[(TABLE this: \n  (IDENTIFIER this: Orders, quoted: False), alias: \n  (TABLEALIAS this: \n    (IDENTIFIER this: O, quoted: False)))]'
+
 
 
 def test_sqlglot_insert_join():
@@ -99,7 +100,7 @@ def test_sqlglot_modify_join():
 
     def transformer(node):
         if isinstance(node, exp.Table) and node.name == "NewsLetter":
-            return parse_one("OtherTable")
+            return parse_one("OtherTable as NL")
         return node
 
     expression_tree = parse_one(query)

@@ -29,6 +29,9 @@ for database in databases:
     operations = operations_maker.get_operations_for_version(version, uri)
     old_dataStore, new_dataStore = vm.get_data_stores_for_change(version, uri)
     if not old_dataStore:
+        # It does not appear that this case will work
+        # If the value of old_dataStore is None, it is passed to sqliteInterfaceWithChanges
+        # which expectes a list of tables
         db_change = SqLiteInterfaceWithChanges("Databases/" + database, operations,
                                                old_dataStore,
                                                new_dataStore)
