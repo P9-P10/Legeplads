@@ -2,11 +2,21 @@ from .primitives import *
 import Applications.Compilation.ast_factory as AST
 
 class RangeTable:
+    """
+    The range table maintains an index of the relations present in the query.
+    Each relation has a unique index so they can be referred to unambiguously.
+    The index will continue to refer to the same relation, 
+    even if the name or alias should change.
+    """
     def __init__(self):
         self.relations = []
         self.relation_names = []
     
     def append(self, name: str, alias: str) -> int:
+        """
+        Adds a relation to the query.
+        Returns the index of the added relation.
+        """
         relation = Relation(name, alias, len(self.relations))
         self.relations.append(relation)
         self.relation_names.append(name)
@@ -17,12 +27,17 @@ class RangeTable:
         return table_name in self.relation_names
 
     def index_of_entries_with_name(self, table_name) -> list[int]:
+        """Returns a list containing the indicies of all relations with a matching name."""
         return [relation.index for relation in self.relations if relation.name == table_name]
 
     def index_of_matching_relation(self, name: str, alias: str):
         return self.get_matching_relation(name, alias).index
     
     def get_matching_relation(self, name: str, alias: str) -> Relation:
+        """
+        Returns the relation with matching name and alias.
+        Given a non-empty alias there should be at most one match, as multiple occurences of the same alias is invalid.
+        """
         for relation in self.relations:
             if relation.name == name and relation.alias == alias:
                 return relation
@@ -32,8 +47,12 @@ class RangeTable:
         return self.relations[attribute.relation_index]
 
     def get_relation_with_alias(self, alias: str):
+        """
+        Returns the relation with the given alias.
+        There should be at most one match, as multiple occurences of the same alias is invalid.
+        """
         for relation in self.relations:
-            if relation.alias == alias or relation.name == alias:
+            if relation.alias == alias:
                 return relation
         # TODO raise exception if there is no match
 
@@ -42,6 +61,11 @@ class RangeTable:
 
 
 class Selection:
+    """
+    The selection maintains a list of the Expressions in the select statement.
+    An expression in the selection will contain one or more attributes, each 
+    of which has a reference to the relation they are selected from.
+    """
     def __init__(self, range_table: RangeTable, selection: list[Expression], select_star: bool):
         self.range_table = range_table
         self.selection_list = selection
@@ -50,29 +74,39 @@ class Selection:
 
 
     def change_references_to_relations_in_attributes(self, old_indicies: list[int], new_index: int):
+        """Change all matching references to old_index in the attributes in the selection to refer to new_index"""
         for expr in self.selection_list:
             expr.change_references_to_relations_in_attributes(old_indicies, new_index)
 
 
     # manipulation
     def get_unused_relations(self):
+        """
+        Returns a list of all relations in the range table that are not referenced by any 
+        attributes in the selection.
+        """
         if self.select_star:
             return []
 
-        unused_relations = []
-        for relation in self.range_table.relations:
-            used = False
-            for expr in self.selection_list:
-                for attribute in expr.attributes:
-                    if attribute.relation_index == relation.index:
-                        used = True
-            if not used:
-                unused_relations.append(relation)
-
-        return unused_relations
+        # Using a set to maintain indicies of referenced relations
+        # as duplicates are not needed, and better performance for membership testing
+        indicies_of_used_relations = set()
+        # Create set used relations
+        for expr in self.selection_list:
+            for attribute in expr.attributes:
+                indicies_of_used_relations.add(attribute.relation_index)
+        
+        # Construct and return list of all relations not present in the set
+        return [relation for relation in self.range_table.relations if relation.index not in indicies_of_used_relations]
 
 
 class JoinTree:
+    """
+    The join tree maintains the order of expressions in the 'FROM' clause of a query.
+    These expressions can simply be the name of a table or they can be joins.
+    Each of the expressions can have a condition which corresponds to the 'WHERE' clause 
+    of a query or to the 'ON' clause of a join.
+    """
     def __init__(self, range_table: RangeTable, joins: list[Join]):
         self.range_table = range_table
         self.joins = joins
@@ -109,9 +143,15 @@ class JoinTree:
                 new_join.expression.ast = join.expression.ast
 
     def relations_used_in_conditions(self):
+        """Returns a set containing the indicies of relations used in joins"""
         indicies = []
         for join in self.joins:
             for attribute in join.expression.attributes:
                 indicies.append(attribute.relation_index)
 
         return set(indicies)
+
+
+# TODO: Create [result relation](https://www.postgresql.org/docs/current/querytree.html) 
+# This is not used for select queries
+# For Insert, Update, and Delete commands the result relation is the relation where the changes will take effect

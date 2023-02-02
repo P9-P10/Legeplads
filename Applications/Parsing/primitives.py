@@ -54,7 +54,6 @@ class Join:
         self.relation_index = new_index
 
 
-# TODO: Change to use Expression instead of list of attributes and condition
 class FromExpr:
     def __init__(self, relation_indicies: list[int], condition: Expression):
         self.relation_indicies = relation_indicies
