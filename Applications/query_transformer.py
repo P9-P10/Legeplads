@@ -131,7 +131,7 @@ class Transformer:
         indicies_to_replace = self.range_table.index_of_entries_with_name(change.old_table_name)
         
         for old_index in indicies_to_replace:
-            new_index = self.get_index_of_new_relation(change.new_table_name)
+            new_index = self.add_table_to_query(change.new_table_name)
             self.move_alias_to_new_relation(old_index, new_index)
             self.change_all_references_to_relations([old_index], new_index)
             self.join_tree.move_condition([old_index], new_index)
@@ -142,10 +142,6 @@ class Transformer:
         new_relation = self.range_table.get_relation_with_index(new_index)
         old_relation = self.range_table.get_relation_with_index(old_index)
         new_relation.change_alias(old_relation.alias)
-
-
-    def get_index_of_new_relation(self, relation_name: str):
-        return self.add_table_to_query(relation_name)
 
 
     def get_existing_or_create_new_relation(self, relation_name: str):

@@ -127,12 +127,12 @@ class JoinTree:
         self.where_expr = where_expr
         self.joins = joins
 
-    # manipulation
-    def add_join_without_condition(self, relation_index):
-        relation = self.range_table.get_relation_with_index(relation_index)
-        self.joins.append(Join(relation.index, Expression(None, [])))
-
     def add_relation_without_condition(self, relation_index):
+        """
+        Adds a relation to the query.
+        The relation is added to the 'FROM' clause if this is empty.
+        Otherwise it is added as an inner join.
+        """
         if len(self.from_indicies) > 0:
             relation = self.range_table.get_relation_with_index(relation_index)
             self.joins.append(Join(relation.index, Expression(None, [])))
@@ -144,7 +144,7 @@ class JoinTree:
         """
         Removes the occurences of a relation from the 'FROM' clause and from joins.
         """
-        # Remove from 'From' clause
+        # Remove from 'FROM' clause
         self.from_indicies = [index for index in self.from_indicies if not index == relation.index]
 
         # Remove from joins
@@ -161,8 +161,7 @@ class JoinTree:
             first_join = self.joins.pop(0)
             self.from_indicies = [first_join.relation_index]
             self.where_expr.attributes = first_join.expression.attributes
-            if first_join.expression.ast:
-                self.where_expr.ast = first_join.expression.ast
+            self.where_expr.ast = first_join.expression.ast
                 
     # manipulation
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
@@ -171,6 +170,7 @@ class JoinTree:
 
     # manipulation
     def move_condition(self, indicies_to_replace: list[int], new_index: int):
+
         for join in self.joins:
             if join.relation_index == new_index:
                 new_join = join

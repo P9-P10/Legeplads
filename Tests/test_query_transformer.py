@@ -190,6 +190,31 @@ def test_transform_replace_table_not_in_the_query_does_nothing(transformer):
     assert actual == expected
 
 
+def test_transform_replace_table_that_is_used_in_from_clause(transformer):
+    # Notice that since the change affects the 'FROM' clause, the condition is added
+    # to the 'WHERE' clause rather than as an 'ON' clause on the join.
+    actual = Query("Select a, g from A Join C on A.c = C.c")
+    expected = Query("Select a, g from C join D where D.c = C.c")
+    changes = [ReplaceTable("A", "D")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+# This is an alternative result of the functionality tested above.
+# In this case the replacement table is added directly to the from clause, 
+# rather than as a join
+# def test_transform_replace_table_that_is_used_in_from_clause(transformer):
+#     actual = Query("Select a, g from A Join C on A.c = C.c")
+#     expected = Query("Select a, g from D join C on D.c = C.c")
+#     changes = [ReplaceTable("A", "D")]
+
+#     transformer.transform(actual, changes)
+
+#     assert actual == expected
+
+
 def test_transform_without_changes_removes_unused_tables(transformer):
     actual = Query("Select d, e from B join C")
     expected = Query("Select d, e from B")
