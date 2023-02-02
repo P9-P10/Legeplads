@@ -66,7 +66,7 @@ class VersionManager:
             if current_database_id == database_id:
                 out.append(content)
             if len(out) == 2:
-                return out[0], out[1]
+                return out[1], out[0]
         return (None, None)
 
     def get_change_for_column(self, table_name, column_name, version, schema_name="main") -> Schema | None:
