@@ -157,6 +157,7 @@ class Transformer:
             return self.range_table.index_of_entries_with_name(relation_name)[0]
 
 
+    # Compilation
     def adjust_query_select_expression(self):
         compiler = ExpressionCompiler(self.range_table)
         selection_expressions = []
@@ -166,6 +167,7 @@ class Transformer:
         self.query.ast.set('expressions', selection_expressions)
 
 
+    # Compilation
     def adjust_query_join_expressions(self):
         new_joins = []
         compiler = ExpressionCompiler(self.range_table)
@@ -181,6 +183,7 @@ class Transformer:
         self.query.ast.set('joins', new_joins)
 
 
+    # Compliation
     def adjust_other_expressions(self):
         compiler = ExpressionCompiler(self.range_table)
         new_expressions = []
@@ -197,34 +200,11 @@ class Transformer:
                 self.remove_relation_from_query(unused_relation)
 
 
-    def get_relation_from_node(self, node: exp.Expression) -> Relation:
-        if isinstance(node, exp.Alias):
-            return self.range_table.get_matching_relation(node.this.name, node.alias)
-        elif isinstance(node, exp.Table):
-            return self.range_table.get_matching_relation(node.name, "")
-
-
     def add_table_to_query(self, table_name):
         new_table_index = self.range_table.append(table_name, "")
-        self.ensure_table_is_not_ambiguous(table_name)
-        # This could be simplified, as the case of an empty 'from' clause is handled.
-        # However, that would not communicate the purpose of this operation as effectively
-        if len(self.join_tree.from_indicies) > 0: # If there is at least one table in the query
-            self.join_tree.add_join_without_condition(new_table_index)
-        else:
-            self.join_tree.from_indicies = [new_table_index]
-            #self.ast.set("from", self.query.create_from_with_table(table_name))
+        self.join_tree.add_relation_without_condition(new_table_index)
         return new_table_index
 
-
-    def ensure_table_is_not_ambiguous(self, table_name):
-        indicies_of_relations_with_name = self.range_table.index_of_entries_with_name(table_name)
-        if len(indicies_of_relations_with_name) > 1:
-            for occurence, index in enumerate(indicies_of_relations_with_name):
-                relation = self.range_table.get_relation_with_index(index)
-                if relation.alias == "" or relation.alias == relation.name:
-                    relation.change_alias(relation.name + str(occurence + 1))
-                
 
     def remove_relation_from_query(self, relation):
         self.join_tree.remove_relation(relation)
@@ -240,7 +220,7 @@ class Transformer:
                         relation.change_alias(relation.name)
 
 
-    # Mix of parsing, manipulation, and compilation
+    # Compilation
     def adjust_query_from_expression(self):               
         # Create and insert from expressions
         expressions = []

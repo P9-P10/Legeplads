@@ -78,6 +78,28 @@ def test_transform_add_table_to_query_with_multiple_columns(transformer):
     assert actual == expected
 
 
+def test_transform_add_ambiguous_table(transformer):
+    actual = Query("Select * from B Join C")
+    expected = Query("Select B1.d, B1.e, B1.f, c, g, h from B as B1 Join C Join B as B2")
+    changes = [AddTable("B")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
+def test_transform_add_ambiguous_table_where_alias_is_table_name(transformer):
+    # I am not sure if the use of a tables name as its alias is a realistic case.
+    # But should it ever occur, the case is covered
+    actual = Query("Select * from B as B Join C")
+    expected = Query("Select B1.d, B1.e, B1.f, c, g, h from B as B1 Join C Join B as B2")
+    changes = [AddTable("B")]
+
+    transformer.transform(actual, changes)
+
+    assert actual == expected
+
+
 def test_transform_remove_existing_table_and_add_new_table(transformer):
     actual = Query("Select * from A")
     expected = Query("Select a, b, c from D")

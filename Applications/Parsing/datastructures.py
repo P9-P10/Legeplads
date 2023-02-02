@@ -20,8 +20,24 @@ class RangeTable:
         relation = Relation(name, alias, len(self.relations))
         self.relations.append(relation)
         self.relation_names.append(name)
+
+        self.ensure_table_is_not_ambiguous(name)
+
         # Return the index of the added item
         return relation.index
+
+    def ensure_table_is_not_ambiguous(self, table_name: str) -> None:
+        """
+        If the given table name is ambiguous, aliases are created for all instances.
+        """
+        # The automatic creation of aliases could be a setting, so that it is possible for
+        # the caller to determine if they want aliases to be generated.
+        indicies_of_relations_with_name = self.index_of_entries_with_name(table_name)
+        if len(indicies_of_relations_with_name) > 1:
+            for occurence, index in enumerate(indicies_of_relations_with_name):
+                relation = self.get_relation_with_index(index)
+                if relation.alias == "" or relation.alias == relation.name:
+                    relation.change_alias(relation.name + str(occurence + 1))
 
     def contains(self, table_name) -> bool:
         return table_name in self.relation_names
@@ -72,12 +88,10 @@ class Selection:
         self.select_star = select_star
         self.initial_selection = selection
 
-
     def change_references_to_relations_in_attributes(self, old_indicies: list[int], new_index: int):
         """Change all matching references to old_index in the attributes in the selection to refer to new_index"""
         for expr in self.selection_list:
             expr.change_references_to_relations_in_attributes(old_indicies, new_index)
-
 
     # manipulation
     def get_unused_relations(self):
@@ -118,6 +132,12 @@ class JoinTree:
         relation = self.range_table.get_relation_with_index(relation_index)
         self.joins.append(Join(relation.index, Expression(None, [])))
 
+    def add_relation_without_condition(self, relation_index):
+        if len(self.from_indicies) > 0:
+            relation = self.range_table.get_relation_with_index(relation_index)
+            self.joins.append(Join(relation.index, Expression(None, [])))
+        else: 
+            self.from_indicies = [relation_index]
 
     # manipulation
     def remove_relation(self, relation: Relation):
@@ -131,7 +151,6 @@ class JoinTree:
         self.joins = [join for join in self.joins if not join.relation_index == relation.index]
 
         self.ensure_from_is_not_empty()
-
     
     def ensure_from_is_not_empty(self):
         """
@@ -145,7 +164,6 @@ class JoinTree:
             if first_join.expression.ast:
                 self.where_expr.ast = first_join.expression.ast
                 
-
     # manipulation
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
         for join in self.joins:
