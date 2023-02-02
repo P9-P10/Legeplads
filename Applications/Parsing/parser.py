@@ -44,7 +44,7 @@ class ExpressionParser:
 
 # Utility functions used in multiple places
 # TODO: Find them a good home
-def get_table_name_and_alias(expression: exp.Expression):
+def get_table_name_and_alias(expression: exp.Expression) -> tuple[str, str]:
     # TODO: Throw error if given wrong type
     if isinstance(expression, exp.Table):
         if expression.alias: 
@@ -132,6 +132,15 @@ class JoinTreeParser:
 
 
     def create_join_tree(self) -> JoinTree:
+        expressions = self.get_from_expressions()
+        relation_indicies = [get_relation_for_table(expr, self.range_table).index for expr in expressions]
+
+        where_expr = self.get_where_expression()
+        where_expression = Expression(None, [])
+        if where_expr:
+            where_expression = self.expr_parser.parse(self.get_where_expression())
+
+
         joins = []
         for node in self.get_join_expressions():
             relation_index = get_relation_for_table(node.this, self.range_table).index
@@ -140,7 +149,11 @@ class JoinTreeParser:
                 condition = self.expr_parser.parse(node.args['on'])
             joins.append(Join(relation_index, condition))
 
-        return JoinTree(self.range_table, joins)
+        return JoinTree(self.range_table, relation_indicies, where_expression, joins)
+
+
+    def get_from_expressions(self):
+        return self.ast.args['from'].expressions
 
 
     def get_join_expressions(self):
@@ -170,58 +183,6 @@ class Parser:
         join_tree = JoinTreeParser(self.expression_parser, range_table).parse(ast)
 
         return range_table, selection, join_tree
-
-
-    def attribute_from_column(self, expression: exp.Column, range_table: RangeTable) -> Attribute:
-        column_name = expression.name
-        # if the column uses an alias
-        if expression.table:
-            # The alias is either the full name of the table or an alias
-            column_alias = expression.table
-            for relation in range_table.relations:
-                if column_alias == relation.name or column_alias == relation.alias:
-                    return Attribute(column_name, relation.index)
-        # Otherwise we need the database structure to find what table a column belongs to
-        else:
-            table_name = self.db_structure.table_containing_column(column_name, range_table.relation_names)
-            # Index is the first (and hopefully only) occurence in the range table
-            index = range_table.index_of_entries_with_name(table_name)[0]
-            return Attribute(column_name, index)
-
-
-    def get_attributes_from_join_condition(self, node: exp.Expression, range_table: RangeTable) -> list[Attribute]:
-        return [self.attribute_from_column(column, range_table) for column in node.find_all(exp.Column)]
-
-
-    # From expression
-    def create_from_expression(self, range_table: RangeTable):
-        expressions = self.get_from_expressions()
-        relation_indicies = [get_relation_for_table(expr, range_table).index for expr in expressions]
-
-        where_expr = self.get_where_expression()
-        expression = Expression(None, [])
-        if where_expr:
-            expression = self.expression_parser.parse(self.get_where_expression())
-        
-        return FromExpr(relation_indicies, expression)
-
-
-    def get_from_expressions(self):
-        return self.ast.args['from'].expressions
-
-
-    def get_join_expressions(self):
-        if 'joins' in self.ast.args.keys():
-            return self.ast.args['joins']
-        else:
-            return []
-
-
-    def get_where_expression(self):
-        if 'where' in self.ast.args.keys():
-            return self.ast.args['where'].this
-        else:
-            return []
 
 
     # ORDER BY and GROUP BY

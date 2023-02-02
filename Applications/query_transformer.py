@@ -76,7 +76,6 @@ class Transformer:
         self.range_table = range_table
         self.selection = selection
         self.join_tree = join_tree
-        self.from_expr = parser.create_from_expression(self.range_table)
         self.other_expressions = parser.get_other_expressions()
 
         
@@ -95,7 +94,7 @@ class Transformer:
     def postprocess_query(self):
         self.resolve_ambiguities()
         self.remove_unused_tables()
-        self.ensure_from_not_empty()
+        self.adjust_query_from_expression()
         self.adjust_query_select_expression()
         self.adjust_query_join_expressions()
         self.adjust_other_expressions()
@@ -119,7 +118,7 @@ class Transformer:
     def change_all_references_to_relations(self, indicies_to_replace: list[int], new_index: int):
         self.selection.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
         self.join_tree.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
-        self.from_expr.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
+        self.join_tree.where_expr.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
 
         for expression in self.other_expressions:
                 expression.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
@@ -210,10 +209,10 @@ class Transformer:
         self.ensure_table_is_not_ambiguous(table_name)
         # This could be simplified, as the case of an empty 'from' clause is handled.
         # However, that would not communicate the purpose of this operation as effectively
-        if len(self.range_table.relations) > 1: # If there is at least one table in the query
+        if len(self.join_tree.from_indicies) > 0: # If there is at least one table in the query
             self.join_tree.add_join_without_condition(new_table_index)
         else:
-            self.from_expr.relation_indicies = [new_table_index]
+            self.join_tree.from_indicies = [new_table_index]
             #self.ast.set("from", self.query.create_from_with_table(table_name))
         return new_table_index
 
@@ -229,7 +228,7 @@ class Transformer:
 
     def remove_relation_from_query(self, relation):
         self.join_tree.remove_relation(relation)
-        self.from_expr.relation_indicies = [index for index in self.from_expr.relation_indicies if not index == relation.index]
+        self.join_tree.from_indicies = [index for index in self.join_tree.from_indicies if not index == relation.index]
         
     
     def resolve_ambiguities(self):
@@ -242,18 +241,10 @@ class Transformer:
 
 
     # Mix of parsing, manipulation, and compilation
-    def ensure_from_not_empty(self):
-        # If from is empty, move the first join into from
-        if len(self.from_expr.relation_indicies) == 0:
-            first_join = self.join_tree.joins.pop(0)
-            self.from_expr.relation_indicies = [first_join.relation_index]
-            self.from_expr.condition.attributes = first_join.expression.attributes
-            if first_join.expression.ast:
-                self.from_expr.condition.ast = first_join.expression.ast
-                
+    def adjust_query_from_expression(self):               
         # Create and insert from expressions
         expressions = []
-        for index in self.from_expr.relation_indicies:
+        for index in self.join_tree.from_indicies:
             relation = self.range_table.get_relation_with_index(index)
             if relation.alias:
                 expressions.append(AST.create_table_with_alias(relation.name, relation.alias))
@@ -262,9 +253,9 @@ class Transformer:
         self.ast.set('from', exp.From(expressions=expressions))
 
         # Adjust attributes used in WHERE condition
-        if self.from_expr.condition.ast:
+        if self.join_tree.where_expr.ast:
             compiler = ExpressionCompiler(self.range_table)
-            result = compiler.compile(self.from_expr.condition)
+            result = compiler.compile(self.join_tree.where_expr)
             self.ast.args['where'] = AST.create_where_with_condition(result)
 
 

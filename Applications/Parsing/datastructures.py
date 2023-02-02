@@ -107,8 +107,10 @@ class JoinTree:
     Each of the expressions can have a condition which corresponds to the 'WHERE' clause 
     of a query or to the 'ON' clause of a join.
     """
-    def __init__(self, range_table: RangeTable, joins: list[Join]):
+    def __init__(self, range_table: RangeTable, from_indicies: list[int], where_expr: Expression, joins: list[Join]):
         self.range_table = range_table
+        self.from_indicies = from_indicies
+        self.where_expr = where_expr
         self.joins = joins
 
     # manipulation
@@ -118,13 +120,32 @@ class JoinTree:
 
 
     # manipulation
-    def remove_relations_with_name(self, relation_name: str):
-        self.joins = [join for join in self.joins if not self.range_table.get_relation_with_index(join.relation_index).name == relation_name]
-
     def remove_relation(self, relation: Relation):
+        """
+        Removes the occurences of a relation from the 'FROM' clause and from joins.
+        """
+        # Remove from 'From' clause
+        self.from_indicies = [index for index in self.from_indicies if not index == relation.index]
+
+        # Remove from joins
         self.joins = [join for join in self.joins if not join.relation_index == relation.index]
 
+        self.ensure_from_is_not_empty()
+
     
+    def ensure_from_is_not_empty(self):
+        """
+        The removal of relations from the joins tree can result in the 'FROM' clause being empty.
+        In this case the first join should be moved to the 'FROM' clause.
+        """
+        if len(self.from_indicies) == 0 and len(self.joins) > 0:
+            first_join = self.joins.pop(0)
+            self.from_indicies = [first_join.relation_index]
+            self.where_expr.attributes = first_join.expression.attributes
+            if first_join.expression.ast:
+                self.where_expr.ast = first_join.expression.ast
+                
+
     # manipulation
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
         for join in self.joins:

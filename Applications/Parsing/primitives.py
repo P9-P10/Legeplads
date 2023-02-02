@@ -49,15 +49,3 @@ class Join:
     def __init__(self, relation_index: int, expression: Expression):
         self.relation_index = relation_index
         self.expression = expression
-
-    def change_relation(self, new_index: int):
-        self.relation_index = new_index
-
-
-class FromExpr:
-    def __init__(self, relation_indicies: list[int], condition: Expression):
-        self.relation_indicies = relation_indicies
-        self.condition = condition
-    
-    def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
-        self.condition.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
