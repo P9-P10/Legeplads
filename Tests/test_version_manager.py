@@ -45,7 +45,6 @@ def old_schema():
 def new_schema():
     return Schema([Table("TableName", [Column("NewColumnName", uri="2")])], name="SchemaName")
 
-
 @pytest.fixture
 def version_manager(old_schema, new_schema):
     return create_version_manager(old_schema, new_schema)

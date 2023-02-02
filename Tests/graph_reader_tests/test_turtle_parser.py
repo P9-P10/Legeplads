@@ -14,7 +14,7 @@ def get_file_contents(path):
     return file_reader.get_content()
 
 
-def find_schema_structure_in_datastore(result: [DataStore], query, schema_name="main") -> Schema:
+def find_schema_structure_in_datastore(result: list[DataStore], query, schema_name="main") -> Schema:
     result = [schema for schema in result.schemas if schema.name == schema_name]
     return result[0]
 
