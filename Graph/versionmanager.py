@@ -1,6 +1,5 @@
 from Graph.changes_parser import ChangesParser
 from Graph.graph_parser import GraphParser
-from Structures.Changes import *
 from Structures.DataStore import DataStore
 from Structures.Schema import Schema
 
@@ -15,13 +14,13 @@ class VersionManager:
 
         def __eq__(self, other):
             return self.version == other.version \
-                   and self.old == other.old \
-                   and self.new == other.new \
-                   and self.database_id == other.database_id
+                and self.old == other.old \
+                and self.new == other.new \
+                and self.database_id == other.database_id
 
         def __repr__(self):
             return "Version: " + str(self.version) + " Old: " + str(self.old) + " New: " + \
-                   str(self.new) + " ID: " + self.database_id
+                str(self.new) + " ID: " + self.database_id
 
     def __init__(self, database_parser: GraphParser, changes_parser: ChangesParser, tables, input_changes):
         def get_changes():
@@ -67,20 +66,17 @@ class VersionManager:
                 out.append(content)
             if len(out) == 2:
                 return out[1], out[0]
-        return (None, None)
+        return None, None
 
     def get_change_for_column(self, table_name, column_name, version, schema_name="main") -> Schema | None:
         for change in self.changes:
-            if change.version == version:
-                if change.old.name == schema_name:
-                    schema = change.old
-                    
-                    for table in schema.tables:
-                        if table.name == table_name:
-
-                            for column in table.columns:
-                                if column.name == column_name:
-                                    return change.new
+            if change.version == version and change.old.name == schema_name:
+                schema = change.old
+                for table in schema.tables:
+                    if table.name == table_name:
+                        for column in table.columns:
+                            if column.name == column_name:
+                                return change.new
         return None
 
     def get_data_stores_for_change(self, version, database_id) -> tuple[DataStore, DataStore]:
