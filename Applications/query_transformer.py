@@ -4,7 +4,6 @@ from Structures.Changes import *
 from sqlglot import exp
 from Applications.exceptions import *
 from Applications.Parsing import *
-import Applications.Compilation.ast_factory as AST
 from Applications.Compilation.compilers import *
 
 
@@ -59,6 +58,7 @@ class Transformer:
     def postprocess_query(self):
         self.resolve_ambiguities()
         self.remove_unused_tables()
+        self.expr_compiler = ExpressionCompiler(self.range_table)
         self.adjust_query_from_expression()
         self.adjust_query_select_expression()
         self.adjust_query_join_expressions()
@@ -86,11 +86,11 @@ class Transformer:
         self.join_tree.where_expr.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
 
         for expression in self.other_expressions:
-                expression.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
+            expression.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
 
 
     def replace_table(self, change):
-        if not change.old_table_name in self.range_table.relation_names:
+        if change.old_table_name not in self.range_table.relation_names:
             return
 
         indicies_to_replace = self.range_table.index_of_entries_with_name(change.old_table_name)
@@ -120,22 +120,27 @@ class Transformer:
 
     # Compilation
     def adjust_query_select_expression(self):
-        compiler = ExpressionCompiler(self.range_table)
-        selection_expressions = SelectionCompiler(compiler).compile(self.selection)
+        selection_expressions = SelectionCompiler(self.expr_compiler).compile(self.selection)
         self.query.ast.set('expressions', selection_expressions)
 
 
     # Compilation
+    def adjust_query_from_expression(self):      
+        from_expr, where_expr = FromExprCompiler(self.range_table, self.expr_compiler).compile(self.join_tree) 
+        self.ast.set('from', from_expr)
+        if where_expr:
+            self.ast.args['where'] = where_expr
+
+
+    # Compilation
     def adjust_query_join_expressions(self):
-        compiler = ExpressionCompiler(self.range_table)
-        new_joins = JoinTreeCompiler(compiler).compile(self.join_tree)
+        new_joins = JoinTreeCompiler(self.expr_compiler).compile(self.join_tree)
         self.query.ast.set('joins', new_joins)
 
 
     # Compliation
     def adjust_other_expressions(self):
-        compiler = ExpressionCompiler(self.range_table)
-        new_expressions = GroupbyAndOrderbyCompiler(compiler).compile(self.other_expressions)
+        new_expressions = GroupbyAndOrderbyCompiler(self.expr_compiler).compile(self.other_expressions)
         for old_expr, new_expr in zip(self.other_expressions, new_expressions):
             old_expr.ast.replace(new_expr)
 
@@ -164,15 +169,6 @@ class Transformer:
                     relation = self.range_table.get_relation_with_index(attribute.relation_index)
                     if relation.alias == "" or relation.alias == relation.name:
                         relation.change_alias(relation.name)
-
-
-    # Compilation
-    def adjust_query_from_expression(self):      
-        compiler = ExpressionCompiler(self.range_table) 
-        from_expr, where_expr = FromExprCompiler(self.range_table, compiler).compile(self.join_tree) 
-        self.ast.set('from', from_expr)
-        if where_expr:
-            self.ast.args['where'] = where_expr
 
 
     # parsing

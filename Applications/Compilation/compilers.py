@@ -84,7 +84,6 @@ class FromExprCompiler:
             else:
                 expressions.append(AST.create_table(relation.name))
         from_expr = exp.From(expressions=expressions)
-        # self.ast.set('from', exp.From(expressions=expressions))
 
         where_expr = None
         # Adjust attributes used in WHERE condition
@@ -92,7 +91,6 @@ class FromExprCompiler:
             compiler = ExpressionCompiler(self.range_table)
             result = compiler.compile(join_tree.where_expr)
             where_expr = AST.create_where_with_condition(result)
-            #self.ast.args['where'] = AST.create_where_with_condition(result)
 
         return from_expr, where_expr
 

@@ -1,17 +1,17 @@
 from .primitives import *
-import Applications.Compilation.ast_factory as AST
+
 
 class RangeTable:
     """
     The range table maintains an index of the relations present in the query.
     Each relation has a unique index so they can be referred to unambiguously.
-    The index will continue to refer to the same relation, 
+    The index will continue to refer to the same relation,
     even if the name or alias should change.
     """
     def __init__(self):
         self.relations = []
         self.relation_names = []
-    
+
     def append(self, name: str, alias: str) -> int:
         """
         Adds a relation to the query.
@@ -36,7 +36,7 @@ class RangeTable:
         if len(indicies_of_relations_with_name) > 1:
             for occurence, index in enumerate(indicies_of_relations_with_name):
                 relation = self.get_relation_with_index(index)
-                if relation.alias == "" or relation.alias == relation.name:
+                if relation.alias in ('', relation.name):
                     relation.change_alias(relation.name + str(occurence + 1))
 
     def contains(self, table_name) -> bool:
@@ -48,7 +48,7 @@ class RangeTable:
 
     def index_of_matching_relation(self, name: str, alias: str):
         return self.get_matching_relation(name, alias).index
-    
+
     def get_matching_relation(self, name: str, alias: str) -> Relation:
         """
         Returns the relation with matching name and alias.
@@ -57,7 +57,7 @@ class RangeTable:
         for relation in self.relations:
             if relation.name == name and relation.alias == alias:
                 return relation
-                # TODO raise exception if there is no match
+                # TODO: raise exception if there is no match
 
     def get_relation_for_attribute(self, attribute: Attribute) -> Relation:
         return self.relations[attribute.relation_index]
