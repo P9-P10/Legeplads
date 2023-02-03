@@ -1,6 +1,5 @@
 from Graph.changes_parser import ChangesParser
 from Graph.graph_parser import GraphParser
-from Structures.Changes import *
 from Structures.DataStore import DataStore
 from Structures.Schema import Schema
 
