@@ -5,42 +5,7 @@ from sqlglot import exp
 from Applications.exceptions import *
 from Applications.Parsing import *
 import Applications.Compilation.ast_factory as AST
-
-class ExpressionCompiler:
-    def __init__(self, range_table: RangeTable):
-        self.range_table = range_table
-
-
-    def compile(self, expression: Expression):
-        if expression.ast is None:
-            return None
-        if isinstance(expression.ast, exp.Column):
-            self.compile_single_column(expression)
-        else:
-            self.compile_multiple_columns(expression)
-        
-        return expression.ast
-
-
-    def compile_single_column(self, expression: Expression):
-        relation = self.range_table.get_relation_for_attribute(expression.attributes[0])
-        expression.ast = AST.create_column(expression.attributes[0].name, relation.alias)
-
-    
-    def compile_multiple_columns(self, expression: Expression):
-        new_columns = [self.compile_attribute(attribute) for attribute in expression.attributes]
-        # Each column should correspond to an attribute
-        for column, new_column in zip(expression.ast.find_all(exp.Column), new_columns):
-            column.replace(new_column)
-
-        
-    def compile_attribute(self, attribute: Attribute) -> exp.Column:
-        attr_relation = self.range_table.get_relation_for_attribute(attribute)
-        if attr_relation.alias == '':
-            relation_name = attr_relation.name
-        else:
-            relation_name = attr_relation.alias
-        return AST.create_column(attribute.name, relation_name)
+from Applications.Compilation.compilers import *
 
 
 class Transformer:
@@ -156,36 +121,21 @@ class Transformer:
     # Compilation
     def adjust_query_select_expression(self):
         compiler = ExpressionCompiler(self.range_table)
-        selection_expressions = []
-        for expr in self.selection.selection_list:
-            selection_expressions.append(compiler.compile(expr))
-
+        selection_expressions = SelectionCompiler(compiler).compile(self.selection)
         self.query.ast.set('expressions', selection_expressions)
 
 
     # Compilation
     def adjust_query_join_expressions(self):
-        new_joins = []
         compiler = ExpressionCompiler(self.range_table)
-        for join in self.join_tree.joins:
-            # Change the columns in the condition
-            if join.expression.ast:
-                compiler.compile(join.expression)
-                
-            relation = join.relation
-            alias = None if relation.alias == "" else relation.alias
-            new_joins.append(AST.create_join_with_condition(relation.name, join.expression.ast, alias))
-
+        new_joins = JoinTreeCompiler(compiler).compile(self.join_tree)
         self.query.ast.set('joins', new_joins)
 
 
     # Compliation
     def adjust_other_expressions(self):
         compiler = ExpressionCompiler(self.range_table)
-        new_expressions = []
-        for expr in self.other_expressions:
-            new_expressions.append(compiler.compile(expr))
-
+        new_expressions = GroupbyAndOrderbyCompiler(compiler).compile(self.other_expressions)
         for old_expr, new_expr in zip(self.other_expressions, new_expressions):
             old_expr.ast.replace(new_expr)
 
@@ -217,22 +167,12 @@ class Transformer:
 
 
     # Compilation
-    def adjust_query_from_expression(self):               
-        # Create and insert from expressions
-        expressions = []
-        for index in self.join_tree.from_indicies:
-            relation = self.range_table.get_relation_with_index(index)
-            if relation.alias:
-                expressions.append(AST.create_table_with_alias(relation.name, relation.alias))
-            else:
-                expressions.append(AST.create_table(relation.name))
-        self.ast.set('from', exp.From(expressions=expressions))
-
-        # Adjust attributes used in WHERE condition
-        if self.join_tree.where_expr.ast:
-            compiler = ExpressionCompiler(self.range_table)
-            result = compiler.compile(self.join_tree.where_expr)
-            self.ast.args['where'] = AST.create_where_with_condition(result)
+    def adjust_query_from_expression(self):      
+        compiler = ExpressionCompiler(self.range_table) 
+        from_expr, where_expr = FromExprCompiler(self.range_table, compiler).compile(self.join_tree) 
+        self.ast.set('from', from_expr)
+        if where_expr:
+            self.ast.args['where'] = where_expr
 
 
     # parsing

@@ -1,7 +1,6 @@
 from .primitives import *
 from .datastructures import *
 from Structures.DatabaseStructure import DatabaseStructure
-from Structures.Query import Query
 import Applications.Compilation.ast_factory as AST
 
 class ExpressionParser:

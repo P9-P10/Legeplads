@@ -142,7 +142,6 @@ class JoinTree:
     def is_from_empty(self) -> bool:
         return len(self.from_indicies) == 0
 
-    # manipulation
     def remove_relation(self, relation: Relation):
         """
         Removes the occurences of a relation from the 'FROM' clause and from joins.
@@ -166,14 +165,16 @@ class JoinTree:
             self.where_expr.attributes = first_join.expression.attributes
             self.where_expr.ast = first_join.expression.ast
                 
-    # manipulation
     def change_references_to_relations_in_attributes(self, indicies_to_replace: list[int], new_index: int):
         for join in self.joins:
             join.expression.change_references_to_relations_in_attributes(indicies_to_replace, new_index)
 
-    # manipulation
     def move_condition(self, indicies_to_replace: list[int], new_index: int):
-
+        """
+        Moves any conditions on joins including the indicies_to_replace to the 
+        join including the new_index.
+        This is used when replacing one table with another.
+        """
         for join in self.joins:
             if join.relation == self.range_table.get_relation_with_index(new_index):
                 new_join = join
