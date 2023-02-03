@@ -172,7 +172,7 @@ class Transformer:
             if join.expression.ast:
                 compiler.compile(join.expression)
                 
-            relation = self.range_table.get_relation_with_index(join.relation_index)
+            relation = join.relation
             alias = None if relation.alias == "" else relation.alias
             new_joins.append(AST.create_join_with_condition(relation.name, join.expression.ast, alias))
 

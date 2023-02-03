@@ -133,11 +133,14 @@ class JoinTree:
         The relation is added to the 'FROM' clause if this is empty.
         Otherwise it is added as an inner join.
         """
-        if len(self.from_indicies) > 0:
-            relation = self.range_table.get_relation_with_index(relation_index)
-            self.joins.append(Join(relation.index, Expression(None, [])))
-        else: 
+        if self.is_from_empty():
             self.from_indicies = [relation_index]
+        else: 
+            relation = self.range_table.get_relation_with_index(relation_index)
+            self.joins.append(Join(relation, Expression(None, [])))
+            
+    def is_from_empty(self) -> bool:
+        return len(self.from_indicies) == 0
 
     # manipulation
     def remove_relation(self, relation: Relation):
@@ -148,7 +151,7 @@ class JoinTree:
         self.from_indicies = [index for index in self.from_indicies if not index == relation.index]
 
         # Remove from joins
-        self.joins = [join for join in self.joins if not join.relation_index == relation.index]
+        self.joins = [join for join in self.joins if not join.relation.index == relation.index]
 
         self.ensure_from_is_not_empty()
     
@@ -159,7 +162,7 @@ class JoinTree:
         """
         if len(self.from_indicies) == 0 and len(self.joins) > 0:
             first_join = self.joins.pop(0)
-            self.from_indicies = [first_join.relation_index]
+            self.from_indicies = [first_join.relation.index]
             self.where_expr.attributes = first_join.expression.attributes
             self.where_expr.ast = first_join.expression.ast
                 
@@ -172,12 +175,12 @@ class JoinTree:
     def move_condition(self, indicies_to_replace: list[int], new_index: int):
 
         for join in self.joins:
-            if join.relation_index == new_index:
+            if join.relation == self.range_table.get_relation_with_index(new_index):
                 new_join = join
                 break
 
         for join in self.joins:
-            if join.relation_index in indicies_to_replace:
+            if join.relation.index in indicies_to_replace:
                 new_join.expression.change_attributes(join.expression.attributes)
                 new_join.expression.ast = join.expression.ast
 
