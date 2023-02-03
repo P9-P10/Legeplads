@@ -14,7 +14,7 @@ def connection():
 
 
 def test_basic_select(connection):
-    result = connection.run_query("SELECT email FROM Users")
+    result = connection.run_query("SELECT email FROM UserData")
 
     assert result == [('test@mail.mail',),
                       ('bob@fancydomain.com',),
@@ -24,7 +24,7 @@ def test_basic_select(connection):
 
 def test_basic_select_with_join(connection):
     result = connection.run_query(
-        "SELECT U.email,phone,birthday FROM UserData "
+        "SELECT email,phone,birthday FROM UserData "
         "JOIN Users U on U.id = UserData.id "
         "ORDER BY birthday")
 
