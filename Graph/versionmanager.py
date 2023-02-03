@@ -47,13 +47,13 @@ class VersionManager:
                 else:
                     self.versions.append((parsed_database, table_id))
 
-        self.changes: [VersionManager.Change] = []
+        self.changes: list[VersionManager.Change] = []
         self.versions = []
         self.database_parser: GraphParser = database_parser
         get_database_versions()
         get_changes()
 
-    def get_old_and_new_datastore(self, database_id, version_nr=None) -> (DataStore, DataStore):
+    def get_old_and_new_datastore(self, database_id, version_nr=None) -> tuple[DataStore, DataStore]:
         out = []
         if not version_nr:
             version_nr = 0
@@ -74,12 +74,14 @@ class VersionManager:
             if change.version == version:
                 if change.old.name == schema_name:
                     schema = change.old
+                    
                     for table in schema.tables:
                         if table.name == table_name:
+
                             for column in table.columns:
                                 if column.name == column_name:
                                     return change.new
         return None
 
-    def get_data_stores_for_change(self, version, database_id) -> (DataStore, DataStore):
+    def get_data_stores_for_change(self, version, database_id) -> tuple[DataStore, DataStore]:
         return self.get_old_and_new_datastore(database_id, version)

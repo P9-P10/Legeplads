@@ -31,7 +31,6 @@ def test_config_manager_init_file_does_not_exist_creates_file_with_correct_conte
     with pytest.raises(ValueError) as v:
         cf = ConfigManager(test_file)
         cf.get_config()
-    # This is impossible, as this is the function that raises an exception
     assert cf.config == {'changes_location': '', 'database_connections': [], 'database_versions_location': ''}
     assert "Please configure the config in" in str(v)
  
