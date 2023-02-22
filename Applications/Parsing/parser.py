@@ -1,7 +1,6 @@
 from .primitives import *
 from .datastructures import *
 from Structures.DatabaseStructure import DatabaseStructure
-from Structures.Query import Query
 import Applications.Compilation.ast_factory as AST
 
 class ExpressionParser:
@@ -143,11 +142,11 @@ class JoinTreeParser:
 
         joins = []
         for node in self.get_join_expressions():
-            relation_index = get_relation_for_table(node.this, self.range_table).index
+            relation = get_relation_for_table(node.this, self.range_table)
             condition = Expression(None, [])
             if 'on' in node.args.keys():
                 condition = self.expr_parser.parse(node.args['on'])
-            joins.append(Join(relation_index, condition))
+            joins.append(Join(relation, condition))
 
         return JoinTree(self.range_table, relation_indicies, where_expression, joins)
 

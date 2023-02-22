@@ -46,6 +46,6 @@ class Expression:
 
 
 class Join:
-    def __init__(self, relation_index: int, expression: Expression):
-        self.relation_index = relation_index
+    def __init__(self, relation: Relation, expression: Expression):
+        self.relation = relation
         self.expression = expression
