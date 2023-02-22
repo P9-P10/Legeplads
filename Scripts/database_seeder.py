@@ -1,8 +1,8 @@
-import datetime
 import random
 
-from dateutil.relativedelta import relativedelta
 from randomuser import RandomUser
+from Scripts.Helpers.Database_seeder_helper import *
+from Scripts.Helpers.database_seeder_formatters import *
 
 
 class User():
@@ -19,34 +19,12 @@ class User():
         self.id = id
         self.name = toSQLString(c_user.get_first_name() + " " + c_user.get_last_name())
 
-def toSQLString(entry):
-    return '"' + str(entry) + '"'
-
 
 column_type_map = {"subscribed": "BOOL",
                    "id": "INT NOT NULL PRIMARY KEY",
                    "order_date": "DATETIME",
                    "orderedBy": "INT",
                    "birthday": "DATETIME"}
-
-
-def end_of_values_format(output_string):
-    return output_string[:-2] + ";\n\n"
-
-
-def end_of_line_format(output_string):
-    return output_string[:-2] + "),\n"
-
-
-def insert_into(columns, table_name):
-    output_columns = ','.join(columns)
-    output_string = "INSERT INTO " + table_name + f" ({output_columns}) VALUES\n"
-    return output_string
-
-
-def line_format(input_string):
-    return input_string + ", "
-
 
 def generate_users(count=10):
     users = []
@@ -72,15 +50,6 @@ def create_table(table_name, column_type: [str]):
     print(output_string)
 
 
-def remove_last_comma(output_string):
-    return output_string[:-1]
-
-
-def generate_row_creation(output_string, column_name, column_type):
-    output_string = output_string + "\n  "
-    return output_string + column_name + " " + column_type + ","
-
-
 def populate_table_from_users(table_name, users: [User], columns: [str], user_properties: [str]):
     output_string = insert_into(columns, table_name)
     for user in users:
@@ -90,10 +59,6 @@ def populate_table_from_users(table_name, users: [User], columns: [str], user_pr
         output_string = end_of_line_format(output_string)
     output_string = end_of_values_format(output_string)
     print(output_string)
-
-
-def apply_user_data(key, output_string, user):
-    return output_string + line_format(str(getattr(user, key)))
 
 
 def populate_table_from_functions(table_name, functions: [], columns: [str], count: int, id_first=True):
@@ -117,42 +82,6 @@ def apply_function(f, output_string):
     else:
         output_string = output_string + line_format(str(result))
     return output_string
-
-
-def print_id(i, output_string):
-    return output_string + line_format(str(i + 1))
-
-
-def get_random_user_id(users: [User]):
-    return random.randint(0, len(users) - 1) + 1
-
-
-def get_random_user_address(users: [User]):
-    return users[random.randint(0, len(users) - 1)].address
-
-
-def get_random_product():
-    products = ["Chair", "Table", "Door", "FirstBook", "LOTR"]
-    selector = random.randint(0, len(products) - 1)
-    return toSQLString(products[selector])
-
-
-def get_random_adress_and_ordered_by(users) -> (str, str):
-    user = users[random.randint(0, len(users) - 1)]
-    return str(user.address), str(user.id)
-
-
-def random_date():
-    current_date = datetime.datetime.now()
-    old_date = current_date - relativedelta(years=10)
-    """
-    This function will return a random datetime between two datetime 
-    objects.
-    """
-    delta = current_date - old_date
-    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
-    random_second = random.randrange(int_delta)
-    return toSQLString(current_date - datetime.timedelta(seconds=random_second))
 
 
 def define_all_tables(count=10):
