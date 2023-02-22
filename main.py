@@ -33,8 +33,8 @@ for database in databases:
         # If the value of old_dataStore is None, it is passed to sqliteInterfaceWithChanges
         # which expectes a list of tables
         db_change = SqLiteInterfaceWithChanges("Databases/" + database, operations,
-                                               old_dataStore,
-                                               new_dataStore)
+                                               old_dataStore.schemas[0].tables,
+                                               new_dataStore.schemas[0].tables)
     else:
         db_change = SqLiteInterfaceWithChanges("Databases/" + database,
                                                operations,
