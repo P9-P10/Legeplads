@@ -6,8 +6,7 @@ from dateutil.relativedelta import relativedelta
 from Scripts.database_seeder import User
 
 
-def toSQLString(entry):
-    return '"' + str(entry) + '"'
+
 
 def get_random_product():
     products = ["Chair", "Table", "Door", "FirstBook", "LOTR"]
