@@ -96,7 +96,7 @@ def apply_user_data(key, output_string, user):
     return output_string + line_format(str(getattr(user, key)))
 
 
-def populate_table_from_functions(table_name, functions: [], count: int, columns: [str], id_first=True):
+def populate_table_from_functions(table_name, functions: [], columns: [str], count: int, id_first=True):
     output_string = insert_into(columns, table_name)
 
     for i in range(count):
@@ -174,7 +174,7 @@ def define_all_tables(count=10):
 
     populate_table_from_users(user_table_name, users, user_columns, ["id", "username", "password", "name", "address"])
     populate_table_from_users(newsletter_table_name, users, newsletter_columns, ["id", "email", "subscribed"])
-    populate_table_from_functions(orders_table_name, order_functions, count * 5, orders_columns)
+    populate_table_from_functions(orders_table_name, order_functions, orders_columns, count * 5)
 
 
 if __name__ == "__main__":
