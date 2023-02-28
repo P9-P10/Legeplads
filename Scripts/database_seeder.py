@@ -1,3 +1,5 @@
+import time
+
 from Scripts.Helpers.Database_seeder_helper import *
 from Scripts.Helpers.database_seeder_formatters import *
 
@@ -6,6 +8,8 @@ column_type_map = {"subscribed": "BOOL",
                    "order_date": "DATETIME",
                    "orderedBy": "INT",
                    "birthday": "DATETIME"}
+
+API_LIMIT = 5000
 
 
 def create_table(table_name, column_type: [str]):
@@ -62,8 +66,20 @@ def drop_table(table):
 
 
 def define_all_tables(count=10, should_drop_table=False):
-    users = generate_users(count)
-    second_user_list = generate_users(count)
+    users = []
+    second_user_list = []
+    if count > API_LIMIT:
+        steps = round(count / API_LIMIT)
+
+        for i in range(0, steps):
+            users.append(generate_users(API_LIMIT))
+            second_user_list = get_random_user(API_LIMIT)
+            time.sleep(1)
+
+    else:
+        users = generate_users(count)
+        second_user_list = generate_users(count)
+
     user_table_name = "users"
     newsletter_table_name = "newsletter"
     orders_table_name = "orders"
