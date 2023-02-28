@@ -75,7 +75,7 @@ def define_all_tables(count=10, should_drop_table=False):
             if len(users) >= count:
                 continue
             users.append(generate_users(API_LIMIT))
-            second_user_list.append(get_random_user(API_LIMIT))
+            second_user_list.append(generate_users(API_LIMIT))
             time.sleep(1)
 
     else:
