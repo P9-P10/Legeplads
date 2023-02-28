@@ -72,6 +72,8 @@ def define_all_tables(count=10, should_drop_table=False):
         steps = round(count / API_LIMIT)
 
         for i in range(0, steps):
+            if len(users) >= count:
+                continue
             users.append(generate_users(API_LIMIT))
             second_user_list = get_random_user(API_LIMIT)
             time.sleep(1)
