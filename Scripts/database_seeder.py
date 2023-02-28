@@ -88,7 +88,7 @@ def define_all_tables(count=10, should_drop_table=False):
     user_columns = ["id", "Username", "Password", "Name", "Address"]
     newsletter_columns = ["id", "email", "subscribed"]
     orders_columns = ["id", "products", "order_date", "delivery_address", "orderedBy"]
-    output = ""
+    function_output = ""
 
     order_functions = [lambda: get_random_product(),
                        lambda: random_date(),
@@ -97,23 +97,23 @@ def define_all_tables(count=10, should_drop_table=False):
     newsletter_functions = [lambda: generate_extra_newsletters(second_user_list)]
 
     if should_drop_table:
-        output += drop_table(user_table_name)
-        output += drop_table(newsletter_table_name)
-        output += drop_table(orders_table_name)
+        function_output += drop_table(user_table_name)
+        function_output += drop_table(newsletter_table_name)
+        function_output += drop_table(orders_table_name)
 
-    output += create_table(user_table_name, user_columns)
-    output += create_table(newsletter_table_name, newsletter_columns)
-    output += create_table(orders_table_name, orders_columns)
+    function_output += create_table(user_table_name, user_columns)
+    function_output += create_table(newsletter_table_name, newsletter_columns)
+    function_output += create_table(orders_table_name, orders_columns)
 
-    output += populate_table_from_users(user_table_name, users, user_columns,
+    function_output += populate_table_from_users(user_table_name, users, user_columns,
                                         ["id", "username", "password", "name", "address"])
-    output += populate_table_from_users(newsletter_table_name, users, newsletter_columns, ["id", "email", "subscribed"])
-    output += populate_table_from_functions(orders_table_name, order_functions, orders_columns, count * 5)
+    function_output += populate_table_from_users(newsletter_table_name, users, newsletter_columns, ["id", "email", "subscribed"])
+    function_output += populate_table_from_functions(orders_table_name, order_functions, orders_columns, count * 5)
     # The below call ensures that there are more entries into newsletter than there are in users
-    output += populate_table_from_functions(newsletter_table_name, newsletter_functions, newsletter_columns, count,
+    function_output += populate_table_from_functions(newsletter_table_name, newsletter_functions, newsletter_columns, count,
                                             start_id=count)
 
-    return output
+    return function_output
 
 
 if __name__ == "__main__":
