@@ -24,5 +24,5 @@ def main(output_file, user_count, drop_existing_tables=True):
 
 
 if __name__ == "__main__":
-    user_count = 400
+    user_count = 800
     main("output_file.sqlite", user_count)
